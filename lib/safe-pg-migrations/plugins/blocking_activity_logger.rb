@@ -38,34 +38,35 @@ module SafePgMigrations
     def log_blocking_queries
       blocking_queries_retriever_thread =
         Thread.new do
-          sleep BLOCKING_QUERIES_LOGGER_DELAY
+          sleep SafePgMigrations.config.blocking_activity_logger_delay
           SafePgMigrations.alternate_connection.query_values(SELECT_BLOCKING_QUERIES_SQL % raw_connection.backend_pid)
         end
 
       yield
 
       blocking_queries_retriever_thread.kill
-    rescue ActiveRecord::LockWaitTimeout => lock_timeout_error
+    rescue ActiveRecord::LockWaitTimeout
       SafePgMigrations.say 'Lock timeout.', true
       queries =
         begin
           blocking_queries_retriever_thread.value
         rescue StandardError => e
           SafePgMigrations.say("Error while retrieving blocking queries: #{e}", true)
-          raise lock_timeout_error
+          nil
         end
 
-      if queries.none?
-        SafePgMigrations.say 'Could not find any blocking query.', true
-        raise
-      end
+      raise if queries.nil?
 
-      SafePgMigrations.say(
-        "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:", true
-      )
-      SafePgMigrations.say '', true
-      queries.each { |query| SafePgMigrations.say "  #{query}", true }
-      SafePgMigrations.say '', true
+      if queries.empty?
+        SafePgMigrations.say 'Could not find any blocking query.', true
+      else
+        SafePgMigrations.say(
+          "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:", true
+        )
+        SafePgMigrations.say '', true
+        queries.each { |query| SafePgMigrations.say "  #{query}", true }
+        SafePgMigrations.say '', true
+      end
 
       raise
     end

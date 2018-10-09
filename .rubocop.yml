@@ -3,6 +3,8 @@ AllCops:
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
+Metrics/ClassLength:
+  Enabled: false
 Metrics/LineLength:
   Max: 120
 Metrics/BlockLength:

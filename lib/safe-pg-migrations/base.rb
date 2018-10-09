@@ -1,30 +1,26 @@
 # frozen_string_literal: true
 
-require 'safe_pg_migrations/plugins/blocking_activity_logger'
-require 'safe_pg_migrations/plugins/statement_insurer'
-require 'safe_pg_migrations/plugins/statement_retrier'
+require 'safe-pg-migrations/configuration'
+require 'safe-pg-migrations/plugins/blocking_activity_logger'
+require 'safe-pg-migrations/plugins/statement_insurer'
+require 'safe-pg-migrations/plugins/statement_retrier'
 
 module SafePgMigrations
-  SAFE_MODE = ENV['SAFE_PG_MIGRATIONS'] || Rails.env.production?
-  SAFE_TIMEOUT = '5s'
-  BLOCKING_QUERIES_LOGGER_DELAY = 4.seconds # Must be close to but smaller than SAFE_TIMEOUT.
-  BATCH_SIZE = 1000
-  RETRY_DELAY = 2.minutes
-  MAX_TRIES = 5
-
   PLUGINS = [
-    BlockingQueriesLogger,
+    BlockingActivityLogger,
     StatementRetrier,
     StatementInsurer,
   ].freeze
 
   class << self
     attr_reader :current_migration
+    attr_accessor :enabled
 
-    def setup_and_teardown(connection)
-      @current_migration = self
+    def setup_and_teardown(migration, connection)
+      @alternate_connection = nil
+      @current_migration = migration
       PLUGINS.each { |plugin| connection.extend(plugin) }
-      connection.with_setting(:lock_timeout, SafePgMigrations::SAFE_TIMEOUT) { yield }
+      connection.with_setting(:lock_timeout, SafePgMigrations.config.safe_timeout) { yield }
     ensure
       close_alternate_connection
       @current_migration = nil
@@ -50,23 +46,35 @@ module SafePgMigrations
     def say_method_call(method, *args)
       say "#{method}(#{args.map(&:inspect) * ', '})", true
     end
+
+    def enabled?
+      return ENV['SAFE_PG_MIGRATIONS'] == '1' if ENV['SAFE_PG_MIGRATIONS']
+      return enabled unless enabled.nil?
+      return Rails.env.production? if defined?(Rails)
+
+      false
+    end
+
+    def config
+      @config ||= Configuration.new
+    end
   end
 
-  class Migration
+  module Migration
     def exec_migration(connection, direction)
-      SafePgMigrations.setup_and_teardown(connection) do
+      SafePgMigrations.setup_and_teardown(self, connection) do
         super(connection, direction)
       end
     end
 
     def disable_ddl_transaction
-      SafePgMigrations::SAFE_MODE || super
+      SafePgMigrations.enabled? || super
     end
 
-    # Silence warnings from the strong_migrations gem.
-    SAFE_METHODS = %i[execute add_column add_index add_reference add_belongs_to].freeze
+    SAFE_METHODS = %i[execute add_column add_index add_reference add_belongs_to change_column_null].freeze
     SAFE_METHODS.each do |method|
       define_method method do |*args|
+        return super(*args) unless respond_to?(:safety_assured)
         safety_assured { super(*args) }
       end
     end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'safe_pg_migrations/base'
+require 'safe-pg-migrations/base'
 
 module SafePgMigrations
   class Railtie < Rails::Railtie

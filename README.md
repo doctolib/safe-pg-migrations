@@ -1,6 +1,14 @@
 # safe-pg-migrations
 
-Seatbelt
-Use at your own risk
-Rails 5.2
-PG 9.6
+## Compatibility
+
+Rails 5.2+
+PostgreSQL 9.6+
+
+## Running tests
+
+```bash
+bundle
+psql postgres://localhost -c 'CREATE DATABASE safe_pg_migrations_test'
+rake test
+```

@@ -4,7 +4,7 @@ module SafePgMigrations
   module StatementInsurer
     %i[change_column_null add_foreign_key create_table].each do |method|
       define_method method do |*args, &block|
-        with_setting(:statement_timeout, SAFE_TIMEOUT) { super(*args, &block) }
+        with_setting(:statement_timeout, SafePgMigrations.config.safe_timeout) { super(*args, &block) }
       end
     end
 
@@ -33,7 +33,7 @@ module SafePgMigrations
     end
 
     def add_index(table_name, column_name, **options)
-      if SAFE_MODE
+      if SafePgMigrations.enabled?
         options[:algorithm] = :concurrently
         SafePgMigrations.say_method_call(:add_index, table_name, column_name, **options)
       end
@@ -42,7 +42,7 @@ module SafePgMigrations
 
     def remove_index(table_name, options = {})
       options = { column: options } unless options.is_a?(Hash)
-      if SAFE_MODE
+      if SafePgMigrations.enabled?
         options[:algorithm] = :concurrently
         SafePgMigrations.say_method_call(:remove_index, table_name, **options)
       end
@@ -56,7 +56,7 @@ module SafePgMigrations
       loop do
         ids = query_values <<~SQL.squish
           SELECT id FROM #{quoted_table_name} WHERE id > #{primary_key_offset}
-          ORDER BY id LIMIT #{BATCH_SIZE}
+          ORDER BY id LIMIT #{SafePgMigrations.config.batch_size}
         SQL
         break if ids.empty?
 

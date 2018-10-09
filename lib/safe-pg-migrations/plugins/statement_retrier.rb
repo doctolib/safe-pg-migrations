@@ -16,7 +16,7 @@ module SafePgMigrations
     private
 
     def retry_if_lock_timeout
-      remaining_tries = MAX_TRIES
+      remaining_tries = SafePgMigrations.config.max_tries
       begin
         remaining_tries -= 1
         yield
@@ -24,8 +24,9 @@ module SafePgMigrations
         raise if transaction_open? # Retrying is useless if we're inside a transaction.
         raise unless remaining_tries > 0
 
-        SafePgMigrations.say "Retrying in #{RETRY_DELAY} seconds...", true
-        sleep RETRY_DELAY
+        retry_delay = SafePgMigrations.config.retry_delay
+        SafePgMigrations.say "Retrying in #{retry_delay} seconds...", true
+        sleep retry_delay
         SafePgMigrations.say 'Retrying now.', true
         retry
       end
