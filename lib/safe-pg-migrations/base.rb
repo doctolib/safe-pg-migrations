@@ -75,6 +75,7 @@ module SafePgMigrations
     SAFE_METHODS.each do |method|
       define_method method do |*args|
         return super(*args) unless respond_to?(:safety_assured)
+
         safety_assured { super(*args) }
       end
     end

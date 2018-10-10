@@ -13,6 +13,9 @@ Metrics/MethodLength:
   Enabled: false
 Metrics/AbcSize:
   Enabled: false
+Naming/FileName:
+  Exclude:
+    - lib/safe-pg-migrations.rb
 Style/BlockDelimiters:
   Enabled: false
 Style/Documentation:
