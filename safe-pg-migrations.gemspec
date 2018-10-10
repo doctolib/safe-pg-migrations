@@ -20,5 +20,17 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.platform              = Gem::Platform::RUBY
-  s.required_ruby_version = '>= 2.4'
+  s.required_ruby_version = '>= 2.3'
+
+  s.add_dependency 'activerecord', '>= 5.2'
+  s.add_dependency 'activesupport', '>= 5.2'
+
+  s.add_development_dependency 'bundler'
+  s.add_development_dependency 'minitest'
+  s.add_development_dependency 'mocha'
+  s.add_development_dependency 'pg'
+  s.add_development_dependency 'pry'
+  s.add_development_dependency 'pry-coolline'
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'rubocop'
 end

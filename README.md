@@ -4,8 +4,9 @@
 
 ## Compatibility
 
+Ruby 2.3+  
 Rails 5.2+  
-PostgreSQL 9.6+
+PostgreSQL 9.3+
 
 ## Running tests
 
