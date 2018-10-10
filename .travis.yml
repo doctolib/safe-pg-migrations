@@ -1,3 +1,7 @@
 language: ruby
-rvm:
-  - 2.4
+cache: bundler
+addons:
+  postgresql: 9.3
+
+before_script:
+  - psql -c 'CREATE DATABASE safe_pg_migrations_test' -U postgres

@@ -11,6 +11,6 @@ PostgreSQL 9.6+
 
 ```bash
 bundle
-psql postgres://localhost -c 'CREATE DATABASE safe_pg_migrations_test'
+psql -h localhost -c 'CREATE DATABASE safe_pg_migrations_test'
 rake test
 ```
