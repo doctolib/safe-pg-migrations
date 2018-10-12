@@ -129,7 +129,7 @@ rake test
 
 ## License
 
-[MIT](https://github.com/doctolib/safe-pg-migrations/blob/master/LICENSE) © Matthieu Prat
+[MIT](https://github.com/doctolib/safe-pg-migrations/blob/master/LICENSE) © Doctolib
 
 ## Additional resources
 
