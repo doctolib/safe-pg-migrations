@@ -57,7 +57,7 @@ class AddAdminToUsers < ActiveRecord::Migration[5.2]
 end
 ```
 
-Under the hood, **Safe PG Migrations** patches `ActiveRecord::Migration` and extends `ActiveRecord::Base.connection` to make potentially dangerous methods (e.g. `add_column` or `change_column_null`) safe.
+Under the hood, **Safe PG Migrations** patches `ActiveRecord::Migration` and extends `ActiveRecord::Base.connection` to make potentially dangerous methods—like `add_column`—safe.
 
 ## Motivation
 
@@ -89,7 +89,7 @@ When **Safe PG Migrations** is enabled (which is the case by default if `Rails.e
 
 Note that if a migration fails, it won't be rollbacked. This can result in migrations being partially applied. In that case, they need to be manually reverted.
 
-### Safe add_column
+### Safe `add_column`
 
 Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
 
@@ -104,7 +104,7 @@ Note: the addition of the not null constraint may timeout. In that case, you may
 
 ### Concurrent indexes
 
-Creating an index requires a `SHARE` lock on the target table which blocks all write on the table while the index is created (which can take some time on a large table). This is usually not practical in a live environment. Thus, **Safe PG Migrations** ensures index are created concurrently.
+Creating an index requires a `SHARE` lock on the target table which blocks all write on the table while the index is created (which can take some time on a large table). This is usually not practical in a live environment. Thus, **Safe PG Migrations** ensures indexes are created concurrently.
 
 ### Retry after lock timeout
 
@@ -112,7 +112,7 @@ When a statement fails with a lock timeout, **Safe PG Migrations** retries them 
 
 ### Blocking activity logging
 
-If a statement fails with a lock timeout, **Safe PG Migrations** will try to tell you which was the blocking statement.
+If a statement fails with a lock timeout, **Safe PG Migrations** will try to tell you what was the blocking statement.
 
 ## Runnings tests
 
@@ -129,7 +129,7 @@ rake test
 
 ## License
 
-[MIT](https://github.com/doctolib/safe-pg-migrations/blob/master/LICENSE) © Doctolib
+[MIT](https://github.com/doctolib/safe-pg-migrations/blob/master/LICENSE) © [Doctolib](https://github.com/doctolib/)
 
 ## Additional resources
 
