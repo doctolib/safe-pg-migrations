@@ -13,7 +13,7 @@ ActiveRecord migrations for Postgres made safe.
 Just drop this line in your Gemfile:
 
 ```rb
-gem safe-pg-migrations
+gem 'safe-pg-migrations'
 ```
 
 ## Example
@@ -28,7 +28,7 @@ class AddAdminToUsers < ActiveRecord::Migration[5.2]
 end
 ```
 
-If the users table is large, running this migration on a live Postgres database will likely cause downtime. **Safe PG Migrations** hooks into Active Record so that the following gets executed instead:
+If the `users` table is large, running this migration on a live Postgres database will likely cause downtime. **Safe PG Migrations** hooks into Active Record so that the following gets executed instead:
 
 ```rb
 class AddAdminToUsers < ActiveRecord::Migration[5.2]
