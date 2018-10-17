@@ -71,7 +71,7 @@ Active Record means developers don't have to be proficient in SQL to interact wi
 
 Most DDL operations (e.g. adding a column, removing a column or adding a default value to a column) take an `ACCESS EXCLUSIVE` lock on the table they are altering. While these operations wait to acquire their lock, other statements are blocked. Before running a migration, **Safe PG Migrations** sets a short lock timeout so that statements are not blocked for too long.
 
-See [PostgreSQL Alter Table and Long Transactions](http://www.joshuakehn.com/2017/9/9/postgresql-alter-table-and-long-transactions.html) for a detailed explanation of the matter.
+See [PostgreSQL Alter Table and Long Transactions](http://www.joshuakehn.com/2017/9/9/postgresql-alter-table-and-long-transactions.html) and [Migrations and Long Transactions](https://www.fin.com/post/2018/1/migrations-and-long-transactions) for detailed explanations of the matter.
 
 ### Statement timeout
 
@@ -139,10 +139,13 @@ Alternatives:
 - https://github.com/ankane/strong_migrations
 - https://github.com/LendingHome/zero_downtime_migrations
 
-Articles:
+Interesting reads:
 
+- https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/
+- https://www.fin.com/post/2018/1/migrations-and-long-transactions
 - http://www.joshuakehn.com/2017/9/9/postgresql-alter-table-and-long-transactions.html
 - https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c
 - https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/
 - https://pedro.herokuapp.com/past/2011/7/13/rails_migrations_with_no_downtime/
 - https://www.braintreepayments.com/blog/safe-operations-for-high-volume-postgresql/
+- https://blog.codeship.com/rails-migrations-zero-downtime/
