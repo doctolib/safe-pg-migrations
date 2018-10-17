@@ -256,6 +256,49 @@ class SafePgMigrationsTest < Minitest::Test
     assert_equal 'CREATE INDEX "index_users_on_email" ON "users" ("email")', calls[3][0].squish
   end
 
+  def test_add_index_idem_potent
+    @connection.create_table(:users) { |t| t.string :email }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { add_index(:users, :email, name: :my_custom_index_name, where: 'email IS NOT NULL') }
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_calls [
+      'SET statement_timeout TO 0',
+      'CREATE INDEX CONCURRENTLY "my_custom_index_name" ON "users" ("email") WHERE email IS NOT NULL',
+      "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO 0",
+      "SET statement_timeout TO '70s'",
+    ], calls
+  end
+
+  def test_add_index_idem_potent_invalid_index
+    @connection.create_table(:users) { |t| t.string :email, index: true }
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_index(:users, :email)
+        end
+      end.new
+
+    @connection.stubs(:index_valid?).returns(false)
+    calls = record_calls(@connection, :execute) { run_migration }
+    assert_calls [
+      'SET statement_timeout TO 0',
+      'SET statement_timeout TO 0',
+      'DROP INDEX CONCURRENTLY "index_users_on_email"',
+      "SET statement_timeout TO '0'",
+      'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
+      "SET statement_timeout TO '70s'"
+    ], calls
+  end
+
+
   def test_add_belongs_to
     @connection.create_table(:users)
     @migration =
