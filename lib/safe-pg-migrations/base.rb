@@ -4,10 +4,13 @@ require 'safe-pg-migrations/configuration'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
 require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
+require 'safe-pg-migrations/plugins/idem_potent_statements'
 
 module SafePgMigrations
+  # Order matters: the bottom-most plugin will have precedence
   PLUGINS = [
     BlockingActivityLogger,
+    IdemPotentStatements,
     StatementRetrier,
     StatementInsurer,
   ].freeze
