@@ -126,6 +126,7 @@ rake test
 
 - [Matthieu Prat](https://github.com/matthieuprat)
 - [Romain Choquet](https://github.com/rchoquet)
+- [Paul-Etienne Coisne](https://github.com/coisnepe)
 
 ## License
 
