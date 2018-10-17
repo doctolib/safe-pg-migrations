@@ -271,7 +271,7 @@ class SafePgMigrationsTest < Minitest::Test
       'SET statement_timeout TO 0',
       'CREATE INDEX CONCURRENTLY "my_custom_index_name" ON "users" ("email") WHERE email IS NOT NULL',
       "SET statement_timeout TO '70s'",
-      "SET statement_timeout TO 0",
+      'SET statement_timeout TO 0',
       "SET statement_timeout TO '70s'",
     ], calls
   end
@@ -294,10 +294,9 @@ class SafePgMigrationsTest < Minitest::Test
       'DROP INDEX CONCURRENTLY "index_users_on_email"',
       "SET statement_timeout TO '0'",
       'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
-      "SET statement_timeout TO '70s'"
+      "SET statement_timeout TO '70s'",
     ], calls
   end
-
 
   def test_add_belongs_to
     @connection.create_table(:users)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SafePgMigrations
   module IdemPotentStatements
     def add_index(table_name, column_name, **options)
