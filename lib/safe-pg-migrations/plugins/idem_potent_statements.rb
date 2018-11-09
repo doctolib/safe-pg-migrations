@@ -12,6 +12,11 @@ module SafePgMigrations
       super
     end
 
+    def remove_column(table_name, column_name, **options)
+      return super if column_exists?(table_name, column_name)
+      SafePgMigrations.say("/!\\ Column '#{column_name}' not found in table '#{table_name}'", true)
+    end
+
     private
 
     def index_valid?(index_name)
