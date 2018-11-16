@@ -3,14 +3,18 @@
 module SafePgMigrations
   module StatementRetrier
     RETRIABLE_SCHEMA_STATEMENTS = %i[
-      add_column remove_column add_foreign_key remove_foreign_key change_column_default
-      change_column_null add_index
+      add_column add_foreign_key remove_foreign_key change_column_default
+      change_column_null add_index remove_index
     ].freeze
 
     RETRIABLE_SCHEMA_STATEMENTS.each do |method|
       define_method method do |*args, &block|
         retry_if_lock_timeout { super(*args, &block) }
       end
+    end
+
+    def remove_column(table_name, column_name, type = nil, options = {})
+      retry_if_lock_timeout { super }
     end
 
     private

@@ -12,9 +12,18 @@ module SafePgMigrations
       super
     end
 
-    def remove_column(table_name, column_name, **options)
+    def remove_column(table_name, column_name, type = nil, options = {})
       return super if column_exists?(table_name, column_name)
-      SafePgMigrations.say("/!\\ Column '#{column_name}' not found in table '#{table_name}'", true)
+
+      SafePgMigrations.say("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.", true)
+    end
+
+    def remove_index(table_name, options = {})
+      index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, options)
+
+      return super if index_name_exists?(table_name, index_name)
+
+      SafePgMigrations.say("/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.", true)
     end
 
     private
