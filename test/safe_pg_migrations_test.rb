@@ -73,7 +73,7 @@ class SafePgMigrationsTest < Minitest::Test
             Thread.new do
               ActiveRecord::Base.connection.execute('BEGIN; SELECT 1 FROM users')
               thread_lock.count_down
-              sleep 0.5
+              sleep 1
               ActiveRecord::Base.connection.commit_db_transaction
             end
 
@@ -85,9 +85,9 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    SafePgMigrations.config.retry_delay = 0.5.seconds
-    SafePgMigrations.config.safe_timeout = '100ms'
-    SafePgMigrations.config.blocking_activity_logger_delay = 0.05.seconds
+    SafePgMigrations.config.retry_delay = 1.second
+    SafePgMigrations.config.safe_timeout = '500ms'
+    SafePgMigrations.config.blocking_activity_logger_delay = 0.1.seconds
 
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
     assert @connection.column_exists?(:users, :email, :string)
@@ -101,7 +101,7 @@ class SafePgMigrationsTest < Minitest::Test
     assert_includes calls[5], '   ->   BEGIN; SELECT 1 FROM users'
     assert_equal [
       '   -> ',
-      '   -> Retrying in 0.5 seconds...',
+      '   -> Retrying in 1 seconds...',
       '   -> Retrying now.',
     ], calls[6..8]
   end
