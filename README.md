@@ -118,7 +118,7 @@ If a statement fails with a lock timeout, **Safe PG Migrations** will try to tel
 
 ```bash
 bundle
-psql -h localhost -c 'CREATE DATABASE safe_pg_migrations_test'
+psql -h localhost -U postgres -c 'CREATE DATABASE safe_pg_migrations_test'
 rake test
 ```
 
