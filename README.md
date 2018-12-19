@@ -142,11 +142,13 @@ Alternatives:
 
 Interesting reads:
 
-- https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/
-- https://www.fin.com/post/2018/1/migrations-and-long-transactions
-- http://www.joshuakehn.com/2017/9/9/postgresql-alter-table-and-long-transactions.html
-- https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c
-- https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/
-- https://pedro.herokuapp.com/past/2011/7/13/rails_migrations_with_no_downtime/
-- https://www.braintreepayments.com/blog/safe-operations-for-high-volume-postgresql/
-- https://blog.codeship.com/rails-migrations-zero-downtime/
+- [When Postgres blocks: 7 tips for dealing with locks](https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/)
+- [Migrations and Long Transactions in Postgres
+](https://www.fin.com/post/2018/1/migrations-and-long-transactions)
+- [PostgreSQL Alter Table and Long Transactions](http://www.joshuakehn.com/2017/9/9/postgresql-alter-table-and-long-transactions.html)
+- [Adding a NOT NULL CONSTRAINT on PG Faster with Minimal Locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c)
+- [Adding columns with default values to really large tables in Postgres + Rails](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/)
+- [Rails migrations with no downtime](https://pedro.herokuapp.com/past/2011/7/13/rails_migrations_with_no_downtime/)
+- [
+Safe Operations For High Volume PostgreSQL](https://www.braintreepayments.com/blog/safe-operations-for-high-volume-postgresql/)
+- [Rails Migrations with Zero Downtime](https://blog.codeship.com/rails-migrations-zero-downtime/)
