@@ -29,16 +29,27 @@ module SafePgMigrations
       change_column_null create_table add_index remove_index
     ].each do |method|
       define_method method do |*args, &block|
-        log_blocking_queries { super(*args, &block) }
+        log_blocking_queries(method) { super(*args, &block) }
       end
     end
 
     private
 
-    def log_blocking_queries
+    def delay_before_logging(method)
+      timeout_delay =
+        if %i[add_index remove_index].include?(method)
+          SafePgMigrations.config.index_lock_timeout
+        else
+          SafePgMigrations.config.safe_timeout
+        end
+
+      timeout_delay - SafePgMigrations.config.blocking_activity_logger_margin
+    end
+
+    def log_blocking_queries(method)
       blocking_queries_retriever_thread =
         Thread.new do
-          sleep SafePgMigrations.config.blocking_activity_logger_delay
+          sleep delay_before_logging(method)
           SafePgMigrations.alternate_connection.query_values(SELECT_BLOCKING_QUERIES_SQL % raw_connection.backend_pid)
         end
 
@@ -65,6 +76,11 @@ module SafePgMigrations
         )
         SafePgMigrations.say '', true
         queries.each { |query| SafePgMigrations.say "  #{query}", true }
+        SafePgMigrations.say(
+          'Beware, some of those queries might run in a transaction. In this case the locking query might be '\
+          'located elsewhere in the transaction',
+          true
+        )
         SafePgMigrations.say '', true
       end
 
