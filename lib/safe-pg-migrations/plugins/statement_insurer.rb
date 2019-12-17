@@ -2,14 +2,18 @@
 
 module SafePgMigrations
   module StatementInsurer
+    PG_11_VERSION_NUM = 110_000
+
     %i[change_column_null add_foreign_key create_table].each do |method|
       define_method method do |*args, &block|
-        with_setting(:statement_timeout, SafePgMigrations.config.safe_timeout) { super(*args, &block) }
+        with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super(*args, &block) }
       end
     end
 
     def add_column(table_name, column_name, type, **options)
-      default = options.delete(:default)
+      need_default_value_backfill = SafePgMigrations.pg_version_num < PG_11_VERSION_NUM
+
+      default = options.delete(:default) if need_default_value_backfill
       null = options.delete(:null)
 
       if !default.nil? || null == false
@@ -18,7 +22,7 @@ module SafePgMigrations
 
       super
 
-      unless default.nil?
+      if need_default_value_backfill && !default.nil?
         SafePgMigrations.say_method_call(:change_column_default, table_name, column_name, default)
         change_column_default(table_name, column_name, default)
 
@@ -33,20 +37,18 @@ module SafePgMigrations
     end
 
     def add_index(table_name, column_name, **options)
-      if SafePgMigrations.enabled?
-        options[:algorithm] = :concurrently
-        SafePgMigrations.say_method_call(:add_index, table_name, column_name, **options)
-      end
-      without_statement_timeout { super }
+      options[:algorithm] = :concurrently
+      SafePgMigrations.say_method_call(:add_index, table_name, column_name, **options)
+
+      with_index_timeouts { super }
     end
 
     def remove_index(table_name, options = {})
       options = { column: options } unless options.is_a?(Hash)
-      if SafePgMigrations.enabled?
-        options[:algorithm] = :concurrently
-        SafePgMigrations.say_method_call(:remove_index, table_name, **options)
-      end
-      without_statement_timeout { super }
+      options[:algorithm] = :concurrently
+      SafePgMigrations.say_method_call(:remove_index, table_name, **options)
+
+      with_index_timeouts { super }
     end
 
     def backfill_column_default(table_name, column_name)
@@ -85,6 +87,14 @@ module SafePgMigrations
 
     def without_statement_timeout
       with_setting(:statement_timeout, 0) { yield }
+    end
+
+    def with_index_timeouts
+      without_statement_timeout do
+        with_setting(:lock_timeout, SafePgMigrations.config.pg_index_lock_timeout) do
+          yield
+        end
+      end
     end
   end
 end

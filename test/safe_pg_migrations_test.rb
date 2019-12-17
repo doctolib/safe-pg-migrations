@@ -7,7 +7,6 @@ class SafePgMigrationsTest < Minitest::Test
 
   def setup
     SafePgMigrations.instance_variable_set(:@config, nil)
-    SafePgMigrations.enabled = true
     @connection = ActiveRecord::Base.connection
     @verbose_was = ActiveRecord::Migration.verbose
     @connection.create_table(:schema_migrations) { |t| t.string :version }
@@ -20,12 +19,12 @@ class SafePgMigrationsTest < Minitest::Test
   def teardown
     ActiveRecord::SchemaMigration.drop_table
     @connection.execute('SET statement_timeout TO 0')
-    @connection.execute('SET lock_timeout TO 0')
+    @connection.execute("SET lock_timeout TO '30s'")
     @connection.drop_table(:users, if_exists: true)
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
-  def test_transaction_disabling
+  def test_remove_transaction
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         class << self
@@ -40,26 +39,16 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    SafePgMigrations.enabled = false
-    run_migration
-    assert @connection.table_exists?(:users)
-    assert_equal(
-      true,
-      @migration.class.did_open_transaction,
-      'Migrations are executed inside a transaction when SafePgMigrations is disabled'
-    )
-
-    run_migration(:down)
-    refute @connection.table_exists?(:users)
-
-    SafePgMigrations.enabled = true
     run_migration
     assert @connection.table_exists?(:users)
     assert_equal(
       false,
       @migration.class.did_open_transaction,
-      'Migrations are not executed inside a transaction when SafePgMigrations is enabled'
+      'Migrations are not executed inside a transaction with SafePgMigrations'
     )
+
+    run_migration(:down)
+    refute @connection.table_exists?(:users)
   end
 
   def test_statement_retry
@@ -86,8 +75,8 @@ class SafePgMigrationsTest < Minitest::Test
       end.new
 
     SafePgMigrations.config.retry_delay = 1.second
-    SafePgMigrations.config.safe_timeout = '500ms'
-    SafePgMigrations.config.blocking_activity_logger_delay = 0.1.seconds
+    SafePgMigrations.config.safe_timeout = 0.5.second
+    SafePgMigrations.config.blocking_activity_logger_margin = 0.1.seconds
 
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
     assert @connection.column_exists?(:users, :email, :string)
@@ -103,7 +92,7 @@ class SafePgMigrationsTest < Minitest::Test
       '   -> ',
       '   -> Retrying in 1 seconds...',
       '   -> Retrying now.',
-    ], calls[6..8]
+    ], calls[7..9]
   end
 
   def test_retry_if_lock_timeout
@@ -128,14 +117,14 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end
     assert_equal [
-      '   -> Retrying in 120 seconds...',
+      '   -> Retrying in 60 seconds...',
       '   -> Retrying now.',
-      '   -> Retrying in 120 seconds...',
+      '   -> Retrying in 60 seconds...',
       '   -> Retrying now.',
     ], calls[1..4].map(&:first)
   end
 
-  def test_add_column
+  def test_add_column_before_pg_11
     @connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -170,6 +159,40 @@ class SafePgMigrationsTest < Minitest::Test
       '   -> backfill_column_default("users", :admin)',
       '   -> change_column_null("users", :admin, false)',
     ], write_calls.map(&:first)[0...-3]
+  end
+
+  def test_add_column_after_pg_11
+    @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          add_column(:users, :admin, :boolean, default: false, null: false)
+        end
+      end.new
+
+    SafePgMigrations.stub(:get_pg_version_num, 110_000) do
+      execute_calls = nil
+      write_calls =
+        record_calls(@migration, :write) do
+          execute_calls = record_calls(@connection, :execute) { run_migration }
+        end
+      assert_calls [
+        # The column is added with the default without any trick
+        'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE',
+
+        # The not-null constraint is added.
+        "SET statement_timeout TO '5s'",
+        'ALTER TABLE "users" ALTER "admin" SET NOT NULL',
+        "SET statement_timeout TO '70s'",
+      ], execute_calls
+
+      assert_equal [
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
+        '   -> add_column("users", :admin, :boolean, {:default=>false})',
+        '   -> change_column_null("users", :admin, false)',
+      ], write_calls.map(&:first)[0...-3]
+    end
   end
 
   def test_remove_column_idem_potent
@@ -246,7 +269,9 @@ class SafePgMigrationsTest < Minitest::Test
 
       # An index is created because of the column reference.
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
       'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
     ], calls
 
@@ -276,7 +301,9 @@ class SafePgMigrationsTest < Minitest::Test
 
       # Create the index.
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
       'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '5s'",
 
       "SET statement_timeout TO '70s'",
@@ -298,16 +325,14 @@ class SafePgMigrationsTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
       'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
     ], calls
 
     run_migration(:down)
     refute @connection.index_exists?(:users, :email)
-
-    SafePgMigrations.enabled = false
-    calls = record_calls(@connection, :execute) { run_migration }
-    assert_equal 'CREATE INDEX "index_users_on_email" ON "users" ("email")', calls[3][0].squish
   end
 
   def test_add_index_idem_potent
@@ -323,9 +348,13 @@ class SafePgMigrationsTest < Minitest::Test
 
     assert_calls [
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
       'CREATE INDEX CONCURRENTLY "my_custom_index_name" ON "users" ("email") WHERE email IS NOT NULL',
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
     ], calls
   end
@@ -344,10 +373,16 @@ class SafePgMigrationsTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
+
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
       'DROP INDEX CONCURRENTLY "index_users_on_email"',
+      "SET lock_timeout TO '30s'",
       "SET statement_timeout TO '0'",
+
       'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
     ], calls
   end
@@ -368,7 +403,9 @@ class SafePgMigrationsTest < Minitest::Test
 
       # The index is created concurrently.
       'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
       'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
 
       # The foreign key is added.
@@ -406,6 +443,7 @@ class SafePgMigrationsTest < Minitest::Test
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         disable_ddl_transaction!
+
         def up
           transaction do
             with_setting(:statement_timeout, '1s') do
@@ -421,6 +459,27 @@ class SafePgMigrationsTest < Minitest::Test
     rescue StandardError => e
       assert_instance_of ActiveRecord::StatementInvalid, e.cause
       assert_includes e.cause.message, 'boom!'
+    end
+  end
+
+  def test_verbose_sql_logging
+    SafePgMigrations.stub(:verbose?, true) do
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def up
+            execute('SELECT * from pg_stat_activity')
+            execute('SELECT version()')
+          end
+        end.new
+
+      stdout, _stderr = capture_io { run_migration }
+      logs = stdout.split("\n").map(&:strip)
+
+      assert_match('SHOW lock_timeout', logs[0])
+      assert_match("SET lock_timeout TO '5s'", logs[1])
+      assert_match('SELECT * from pg_stat_activity', logs[2])
+      assert_match('SELECT version()', logs[3])
+      assert_match("SET lock_timeout TO '70s'", logs[4])
     end
   end
 
