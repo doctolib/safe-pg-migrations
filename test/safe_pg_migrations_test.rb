@@ -92,7 +92,7 @@ class SafePgMigrationsTest < Minitest::Test
       '   -> ',
       '   -> Retrying in 1 seconds...',
       '   -> Retrying now.',
-    ], calls[6..8]
+    ], calls[7..9]
   end
 
   def test_retry_if_lock_timeout
