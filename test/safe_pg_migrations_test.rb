@@ -359,6 +359,24 @@ class SafePgMigrationsTest < Minitest::Test
     ], calls
   end
 
+  def test_change_column_with_timeout
+    @connection.create_table(:users) { |t| t.string :email }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          change_column :users, :email, :text
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_calls [
+     "SET statement_timeout TO '5s'",
+     'ALTER TABLE "users" ALTER COLUMN "email" TYPE text',
+     "SET statement_timeout TO '70s'",
+    ], calls
+  end
+
   def test_add_index_idem_potent_invalid_index
     @connection.create_table(:users) { |t| t.string :email, index: true }
 
