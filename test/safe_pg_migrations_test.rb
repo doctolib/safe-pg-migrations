@@ -373,9 +373,9 @@ class SafePgMigrationsTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
 
     assert_calls [
-     "SET statement_timeout TO '5s'",
-     'ALTER TABLE "users" ALTER COLUMN "email" TYPE text',
-     "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "users" ALTER COLUMN "email" TYPE text',
+      "SET statement_timeout TO '70s'",
     ], calls
   end
 

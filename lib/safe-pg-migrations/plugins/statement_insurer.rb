@@ -10,7 +10,7 @@ module SafePgMigrations
       end
     end
 
-    def add_column(table_name, column_name, type, **options)
+    def add_column(table_name, column_name, type, **options) # rubocop:disable Metrics/CyclomaticComplexity
       need_default_value_backfill = SafePgMigrations.pg_version_num < PG_11_VERSION_NUM
 
       default = options.delete(:default) if need_default_value_backfill
