@@ -505,6 +505,9 @@ class SafePgMigrationsTest < Minitest::Test
       'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
+      "SET statement_timeout TO '70s'",
     ], calls
   end
 
