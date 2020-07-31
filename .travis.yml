@@ -6,7 +6,7 @@ rvm:
 services:
   - postgresql
 addons:
-  postgresql: "9.3"
+  postgresql: "9.6"
 
 before_script:
   - psql -c 'CREATE DATABASE safe_pg_migrations_test' -U postgres
