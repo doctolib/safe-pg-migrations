@@ -4,7 +4,7 @@ module SafePgMigrations
   module StatementInsurer
     PG_11_VERSION_NUM = 110_000
 
-    %i[change_column_null add_foreign_key create_table].each do |method|
+    %i[change_column_null change_column add_foreign_key create_table].each do |method|
       define_method method do |*args, &block|
         with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super(*args, &block) }
       end

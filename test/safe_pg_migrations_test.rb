@@ -133,32 +133,34 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    execute_calls = nil
-    write_calls =
-      record_calls(@migration, :write) do
-        execute_calls = record_calls(@connection, :execute) { run_migration }
-      end
-    assert_calls [
-      # The column is added without any default.
-      'ALTER TABLE "users" ADD "admin" boolean',
+    SafePgMigrations.stub(:get_pg_version_num, 96_000) do
+      execute_calls = nil
+      write_calls =
+        record_calls(@migration, :write) do
+          execute_calls = record_calls(@connection, :execute) { run_migration }
+        end
+      assert_calls [
+        # The column is added without any default.
+        'ALTER TABLE "users" ADD "admin" boolean',
 
-      # The default is added.
-      'ALTER TABLE "users" ALTER COLUMN "admin" SET DEFAULT FALSE',
+        # The default is added.
+        'ALTER TABLE "users" ALTER COLUMN "admin" SET DEFAULT FALSE',
 
-      # The not-null constraint is added.
-      "SET statement_timeout TO '5s'",
-      'ALTER TABLE "users" ALTER "admin" SET NOT NULL',
-      "SET statement_timeout TO '70s'",
-    ], execute_calls
+        # The not-null constraint is added.
+        "SET statement_timeout TO '5s'",
+        'ALTER TABLE "users" ALTER "admin" SET NOT NULL',
+        "SET statement_timeout TO '70s'",
+      ], execute_calls
 
-    assert_equal [
-      '== 8128 : migrating ===========================================================',
-      '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
-      '   -> add_column("users", :admin, :boolean, {})',
-      '   -> change_column_default("users", :admin, false)',
-      '   -> backfill_column_default("users", :admin)',
-      '   -> change_column_null("users", :admin, false)',
-    ], write_calls.map(&:first)[0...-3]
+      assert_equal [
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
+        '   -> add_column("users", :admin, :boolean, {})',
+        '   -> change_column_default("users", :admin, false)',
+        '   -> backfill_column_default("users", :admin)',
+        '   -> change_column_null("users", :admin, false)',
+      ], write_calls.map(&:first)[0...-3]
+    end
   end
 
   def test_add_column_after_pg_11
@@ -356,6 +358,24 @@ class SafePgMigrationsTest < Minitest::Test
       "SET lock_timeout TO '30s'",
       "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
+    ], calls
+  end
+
+  def test_change_column_with_timeout
+    @connection.create_table(:users) { |t| t.string :email }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          change_column :users, :email, :text
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_calls [
+     "SET statement_timeout TO '5s'",
+     'ALTER TABLE "users" ALTER COLUMN "email" TYPE text',
+     "SET statement_timeout TO '70s'",
     ], calls
   end
 
