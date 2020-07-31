@@ -316,6 +316,29 @@ class SafePgMigrationsTest < Minitest::Test
     refute @connection.table_exists?(:users)
   end
 
+  def test_add_foreign_key_with_validate_explicitly_false
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :user_id
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_foreign_key :messages, :users, validate: false
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+    assert_calls [
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ' \
+        'NOT VALID',
+      "SET statement_timeout TO '70s'",
+    ], calls
+  end
+
   def test_add_foreign_key
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
@@ -335,6 +358,9 @@ class SafePgMigrationsTest < Minitest::Test
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ' \
         'NOT VALID',
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
       "SET statement_timeout TO '70s'",
     ], calls
   end

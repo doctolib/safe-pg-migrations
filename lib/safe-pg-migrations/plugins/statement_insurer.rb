@@ -37,9 +37,11 @@ module SafePgMigrations
     end
 
     def add_foreign_key(table_name, column_name, **options)
-      options[:validate] ||= false
+      validate_present = options.key? :validate
+      options[:validate] = false unless validate_present
 
       with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super }
+      without_statement_timeout { validate_foreign_key table_name, column_name } unless validate_present
     end
 
     def add_index(table_name, column_name, **options)
