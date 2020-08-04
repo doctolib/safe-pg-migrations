@@ -26,6 +26,10 @@ module SafePgMigrations
       SafePgMigrations.say("/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.", true)
     end
 
+    def add_foreign_key(from_table, to_table, **options)
+      return super unless foreign_key_exists?(from_table, to_table)
+    end
+
     private
 
     def index_valid?(index_name)
