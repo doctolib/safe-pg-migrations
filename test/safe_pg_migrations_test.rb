@@ -428,7 +428,6 @@ class SafePgMigrationsTest < Minitest::Test
         record_calls(@migration, :write) do
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
-    binding.pry
 
     assert_calls [
       "SET statement_timeout TO '5s'",
