@@ -379,8 +379,11 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    calls = record_calls(@connection, :execute) { run_migration }
-    binding.pry
+    execute_calls = nil
+    write_calls =
+        record_calls(@migration, :write) do
+          execute_calls = record_calls(@connection, :execute) { run_migration }
+        end
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ' \
@@ -394,7 +397,16 @@ class SafePgMigrationsTest < Minitest::Test
       "SET statement_timeout TO 0",
       'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
       "SET statement_timeout TO '70s'",
-    ], calls
+    ], execute_calls
+
+    assert_equal [
+      "== 8128 : migrating ===========================================================",
+      "-- add_foreign_key(:messages, :users)",
+      ], write_calls.map(&:first)[0...2]
+    assert_equal [
+      "-- add_foreign_key(:messages, :users)",
+      "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement."
+      ], write_calls.map(&:first)[3...5]
   end
 
   def test_add_foreign_key_with_validation
