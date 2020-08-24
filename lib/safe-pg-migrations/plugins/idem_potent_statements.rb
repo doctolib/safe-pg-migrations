@@ -27,10 +27,12 @@ module SafePgMigrations
     end
 
     def add_foreign_key(from_table, to_table, **options)
-      options_or_to_table = options.slice(:name, :column)
-      return super unless foreign_key_exists?(from_table, options_or_to_table.empty? ? to_table : options_or_to_table)
+      return super unless foreign_key_exists?(from_table, options.slice(:name, :column).presence || to_table)
 
-      SafePgMigrations.say("/!\\ Foreign key '#{from_table}' -> '#{to_table}' already exists. Skipping statement.", true)
+      SafePgMigrations.say(
+        "/!\\ Foreign key '#{from_table}' -> '#{to_table}' already exists. Skipping statement.",
+        true
+      )
     end
 
     private
