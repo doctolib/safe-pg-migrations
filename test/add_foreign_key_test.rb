@@ -75,6 +75,36 @@ class AddForeignKeyTest < MiniTest::Test
     ], calls
   end
 
+  def test_add_foreign_key_with_options
+    @connection.create_table(:users, id: false) do |t|
+      t.string :email
+      t.bigint :real_id, primary_key: true
+      t.bigint :other_id
+    end
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :author_id
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_foreign_key :messages, :users, primary_key: :real_id, column: :author_id, name: :message_user_key
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+    assert_calls [
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
+      'REFERENCES "users" ("real_id") NOT VALID',
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
+      "SET statement_timeout TO '70s'",
+    ], calls
+  end
+
   def test_add_foreign_key_idem_potent
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
