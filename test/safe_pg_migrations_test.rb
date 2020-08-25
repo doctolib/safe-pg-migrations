@@ -3,8 +3,6 @@
 require 'test_helper'
 
 class SafePgMigrationsTest < Minitest::Test
-  DUMMY_MIGRATION_VERSION = 8128
-
   def setup
     SafePgMigrations.instance_variable_set(:@config, nil)
     @connection = ActiveRecord::Base.connection
@@ -431,7 +429,10 @@ class SafePgMigrationsTest < Minitest::Test
       # The foreign key is added.
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
-        'REFERENCES "users" ("id")',
+        'REFERENCES "users" ("id") NOT VALID',
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
       "SET statement_timeout TO '70s'",
     ], calls
   end
@@ -501,53 +502,5 @@ class SafePgMigrationsTest < Minitest::Test
       assert_match('SELECT version()', logs[3])
       assert_match("SET lock_timeout TO '70s'", logs[4])
     end
-  end
-
-  def run_migration(direction = :up)
-    @migration.version = DUMMY_MIGRATION_VERSION
-    ActiveRecord::Migrator.new(direction, [@migration]).migrate
-  end
-
-  def assert_calls(expected, actual)
-    assert_equal [
-      "SET lock_timeout TO '5s'",
-      *expected,
-      "SET lock_timeout TO '70s'",
-    ], actual[0...-4].map(&:first).map(&:squish)
-  end
-
-  # Records method calls on an object. Behaves like a test spy.
-  #
-  # Example usage:
-  #
-  #   record_calls(foo, :bar) { foo.bar(1, 2); foo.bar(3, 4) }
-  #
-  # Example return:
-  #
-  #   [[1, 2], [3, 4]]
-  #
-  def record_calls(object, method)
-    calls = []
-    recorder =
-      lambda {
-        object.stubs(method).with do |*args|
-          calls << args
-          # Temporarily unstub the method so that we can call the original method.
-          object.unstub(method)
-          begin
-            # Call the original method.
-            object.send(method, *args)
-          ensure
-            # Register the recorder again.
-            recorder.call
-          end
-          true
-        end
-      }
-    recorder.call
-    yield
-    calls
-  ensure
-    object.unstub(method)
   end
 end
