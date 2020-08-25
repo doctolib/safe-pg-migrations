@@ -41,7 +41,9 @@ module SafePgMigrations
       options[:validate] = false unless validate_present
 
       with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super }
-      without_statement_timeout { validate_foreign_key from_table, to_table } unless validate_present
+
+      options_or_to_table = options.slice(:name, :column).presence || to_table
+      without_statement_timeout { validate_foreign_key from_table, options_or_to_table } unless validate_present
     end
 
     def add_index(table_name, column_name, **options)
