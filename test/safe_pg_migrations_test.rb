@@ -106,13 +106,11 @@ class SafePgMigrationsTest < Minitest::Test
     @connection.expects(:sleep).times(4)
     calls =
       record_calls(@migration, :write) do
-        begin
-          run_migration
-          flunk 'run_migration should raise'
-        rescue StandardError => e
-          assert_instance_of ActiveRecord::LockWaitTimeout, e.cause
-          assert_includes e.cause.message, 'canceling statement due to lock timeout'
-        end
+        run_migration
+        flunk 'run_migration should raise'
+      rescue StandardError => e
+        assert_instance_of ActiveRecord::LockWaitTimeout, e.cause
+        assert_includes e.cause.message, 'canceling statement due to lock timeout'
       end
     assert_equal [
       '   -> Retrying in 60 seconds...',
