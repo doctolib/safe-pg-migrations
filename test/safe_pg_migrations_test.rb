@@ -193,6 +193,27 @@ class SafePgMigrationsTest < Minitest::Test
     end
   end
 
+  def test_add_column_idem_potent
+    @connection.create_table(:users) { |t| t.string :email }
+    @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            2.times { add_column :users, :name, :string }
+          end
+        end.new
+    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- add_column(:users, :name, :string)',
+    ], write_calls[0...2]
+
+    assert_equal [
+      '-- add_column(:users, :name, :string)',
+      "   -> /!\\ Column 'name' already exists in 'users'. Skipping statement.",
+    ], write_calls[3..4]
+  end
+
   def test_remove_column_idem_potent
     @connection.create_table(:users) { |t| t.string :email, index: true }
     @migration =
