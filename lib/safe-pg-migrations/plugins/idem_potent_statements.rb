@@ -12,6 +12,12 @@ module SafePgMigrations
       super
     end
 
+    def add_column(table_name, column_name, type, options = {})
+      return super unless column_exists?(table_name, column_name)
+
+      SafePgMigrations.say("/!\\ Column '#{column_name}' already exists in '#{table_name}'. Skipping statement.", true)
+    end
+
     def remove_column(table_name, column_name, type = nil, options = {})
       return super if column_exists?(table_name, column_name)
 
