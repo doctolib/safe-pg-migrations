@@ -196,11 +196,11 @@ class SafePgMigrationsTest < Minitest::Test
   def test_add_column_idem_potent
     @connection.create_table(:users) { |t| t.string :email }
     @migration =
-        Class.new(ActiveRecord::Migration::Current) do
-          def change
-            2.times { add_column :users, :name, :string }
-          end
-        end.new
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { add_column :users, :name, :string }
+        end
+      end.new
     write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
 
     assert_equal [
