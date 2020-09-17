@@ -1,21 +1,72 @@
 env:
-  RUBY_VERSION: 2.4
+  RUBY_VERSION: 2.6.x
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
-  POSTGRES_DB: postgres
+  POSTGRES_DB: safe_pg_migrations_test
+  PGPASSWORD: postgres
 
 name: Rake tests
-on: [push,pull_request]
+on: pull_request
+
 jobs:
   rubocop-test:
     name: Rubocop
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-ruby@v1
+      - uses: ThHareau/checkout@v1
+      - uses: ThHareau/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
+      - uses: ThHareau/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+      - name: bundle
+        run: |
+          gem install bundler
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
       - name: Install Rubocop
         run: gem install rubocop
       - name: Check code
-        run: rubocop
+        run: bundle exec rubocop
+  unit-test:
+    name: UnitTest
+    runs-on: ubuntu-18.04
+    # Service containers to run with `container-job`
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: safe_pg_migrations_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: ThHareau/checkout@v1
+      - name: Set up Ruby
+        uses: ThHareau/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+      - uses: ThHareau/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+      - name: bundle
+        run: |
+          gem install bundler
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+      - name: Run tests
+        run: bundle exec rake test
