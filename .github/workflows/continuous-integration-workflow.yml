@@ -38,7 +38,7 @@ jobs:
     # Service containers to run with `container-job`
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:9.6
         env:
           POSTGRES_DB: safe_pg_migrations_test
           POSTGRES_PASSWORD: postgres
