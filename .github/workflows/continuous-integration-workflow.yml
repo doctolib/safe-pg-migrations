@@ -13,11 +13,11 @@ jobs:
     name: Rubocop
     runs-on: ubuntu-18.04
     steps:
-      - uses: ThHareau/checkout@v1
-      - uses: ThHareau/setup-ruby@v1
+      - uses: doctolib/checkout@v1
+      - uses: doctolib/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
-      - uses: ThHareau/cache@v2
+      - uses: doctolib/cache@v2
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
@@ -52,12 +52,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: ThHareau/checkout@v1
+      - uses: doctolib/checkout@v1
       - name: Set up Ruby
-        uses: ThHareau/setup-ruby@v1
+        uses: doctolib/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
-      - uses: ThHareau/cache@v2
+      - uses: doctolib/cache@v2
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
