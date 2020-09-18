@@ -10,7 +10,7 @@ module SafePgMigrations
       end
     end
 
-    def add_column(table_name, column_name, type, **options) # rubocop:disable Metrics/CyclomaticComplexity
+    def add_column(table_name, column_name, type, **options)
       need_default_value_backfill = SafePgMigrations.pg_version_num < PG_11_VERSION_NUM
 
       default = options.delete(:default) if need_default_value_backfill
@@ -22,18 +22,8 @@ module SafePgMigrations
 
       super
 
-      if need_default_value_backfill && !default.nil?
-        SafePgMigrations.say_method_call(:change_column_default, table_name, column_name, default)
-        change_column_default(table_name, column_name, default)
-
-        SafePgMigrations.say_method_call(:backfill_column_default, table_name, column_name)
-        backfill_column_default(table_name, column_name)
-      end
-
-      if null == false # rubocop:disable Style/GuardClause
-        SafePgMigrations.say_method_call(:change_column_null, table_name, column_name, null)
-        change_column_null(table_name, column_name, null)
-      end
+      default_backfill(table_name, column_name, default) if need_default_value_backfill && !default.nil?
+      change_column_null_if_needed table_name, column_name, null
     end
 
     def add_foreign_key(from_table, to_table, **options)
@@ -105,6 +95,23 @@ module SafePgMigrations
           yield
         end
       end
+    end
+  end
+
+  private
+
+  def default_backfill(table_name, column_name, default)
+    SafePgMigrations.say_method_call(:change_column_default, table_name, column_name, default)
+    change_column_default(table_name, column_name, default)
+
+    SafePgMigrations.say_method_call(:backfill_column_default, table_name, column_name)
+    backfill_column_default(table_name, column_name)
+  end
+
+  def change_column_null_if_needed(table_name, column_name, null)
+    if null == false # rubocop:disable Style/GuardClause
+      SafePgMigrations.say_method_call(:change_column_null, table_name, column_name, null)
+      change_column_null(table_name, column_name, null)
     end
   end
 end
