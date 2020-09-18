@@ -6,18 +6,22 @@ env:
   PGPASSWORD: postgres
 
 name: Rake tests
-on: pull_request
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   rubocop-test:
     name: Rubocop
     runs-on: ubuntu-18.04
     steps:
-      - uses: doctolib/checkout@v1
-      - uses: doctolib/setup-ruby@v1
+      - uses: doctolib/github-actions-checkout@v1
+      - uses: doctolib/github-actions-setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
-      - uses: doctolib/cache@v2
+      - uses: doctolib/github-actions-cache@v2
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
@@ -52,12 +56,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: doctolib/checkout@v1
+      - uses: doctolib/github-actions-checkout@v1
       - name: Set up Ruby
-        uses: doctolib/setup-ruby@v1
+        uses: doctolib/github-actions-setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
-      - uses: doctolib/cache@v2
+      - uses: doctolib/github-actions-cache@v2
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
