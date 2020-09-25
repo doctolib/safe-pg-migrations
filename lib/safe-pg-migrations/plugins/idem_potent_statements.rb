@@ -42,6 +42,15 @@ module SafePgMigrations
       )
     end
 
+    def create_table(table_name, comment: nil, **options)
+      return super unless table_exists?(table_name)
+
+      SafePgMigrations.say(
+        "/!\\ Table '#{table_name}' already exists. Skipping statement.",
+        true
+      )
+    end
+
     private
 
     def index_valid?(index_name)
