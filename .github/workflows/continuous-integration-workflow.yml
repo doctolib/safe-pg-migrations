@@ -5,7 +5,7 @@ env:
   POSTGRES_DB: safe_pg_migrations_test
   PGPASSWORD: postgres
 
-name: Rake tests
+name: Rake CI
 on:
   push:
     branches:
