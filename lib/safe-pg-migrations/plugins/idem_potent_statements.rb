@@ -3,7 +3,7 @@
 module SafePgMigrations
   module IdemPotentStatements
     def add_index(table_name, column_name, **options)
-      index_name = options.key?(:name) ?      options[:name].to_s : index_name(table_name, index_column_names(column_name))
+      index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, index_column_names(column_name))
       return super unless index_name_exists?(table_name, index_name)
 
       return if index_valid?(index_name)
