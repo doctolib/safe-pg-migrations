@@ -91,6 +91,8 @@ Note that if a migration fails, it won't be rollbacked. This can result in migra
 
 ### Safe `add_column`
 
+<details><summary>
+
 #### Pre Postgres 11 behavior
 
 Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
@@ -113,6 +115,7 @@ Beware though, when adding a volatile default value:
 add_column :users, :created_at, default: 'clock_timestamp()'
 ```
 PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
+</summary></details>
 
 ### Concurrent indexes
 
