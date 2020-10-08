@@ -91,31 +91,32 @@ Note that if a migration fails, it won't be rollbacked. This can result in migra
 
 ### Safe `add_column`
 
+
+#### Pre Postgres 11 behavior
+
+Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
+
+**Safe PG Migrations** makes it safe by:
+
+1.  Adding the column without the default value and the not null constraint,
+2.  Then set the default value on the column,
+3.  Then backfilling the column,
+4.  And then adding the not null constraint with a short statement timeout.
+
+Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
+
+#### Postgres 11 behavior
+
 <details>
     <summary>details</summary>
 
-    #### Pre Postgres 11 behavior
-    
-    Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
-    
-    **Safe PG Migrations** makes it safe by:
-    
-    1.  Adding the column without the default value and the not null constraint,
-    2.  Then set the default value on the column,
-    3.  Then backfilling the column,
-    4.  And then adding the not null constraint with a short statement timeout.
-    
-    Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
-    
-    #### Postgres 11 behavior
-    
-    **Safe PG Migrations** gracefully handle the upgrade to PG11 by **not** backfilling default value for existing rows, as the [database engine is now natively handling it](https://www.postgresql.org/docs/11/ddl-alter.html#DDL-ALTER-ADDING-A-COLUMN).
-    
-    Beware though, when adding a volatile default value: 
-    ```ruby
-    add_column :users, :created_at, default: 'clock_timestamp()'
-    ```
-    PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
+**Safe PG Migrations** gracefully handle the upgrade to PG11 by **not** backfilling default value for existing rows, as the [database engine is now natively handling it](https://www.postgresql.org/docs/11/ddl-alter.html#DDL-ALTER-ADDING-A-COLUMN).
+
+Beware though, when adding a volatile default value: 
+```ruby
+add_column :users, :created_at, default: 'clock_timestamp()'
+```
+PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
 
 </details>
 
