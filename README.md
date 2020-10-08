@@ -137,14 +137,13 @@ If you still get lock timeout while adding / removing indexes, it might be for o
 
 <details><summary>safe <code>add_foreign_key</code> (and <code>add_reference</code>)</summary>
 
-Adding a foreign key requires by default a `SHARE ROW EXCLUSIVE` lock, which conflicts with insert, update and delete statements for both referencing and referenced tables. In other words, **it is impossible to write in the tables** while the migration is running.
+Adding a foreign key requires a `SHARE ROW EXCLUSIVE` lock, which **prevent writing in the tables** while the migration is running.
 
-Adding the constraint is rather fast, the major part of the migration is spent on validating the new constraint. Thus safe-pg-migrations ensures that adding a foreign key is safe by splitting the addition of the foreign key in two parts: 
+Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint. Thus safe-pg-migrations ensures that adding a foreign key holds blocking locks for the least amount of time by splitting the foreign key creation in two steps: 
 
-1. adding the constraint *without validation*;
-2. validating the constraint.  
+1. adding the constraint *without validation*, will not validate existing rows;
+2. validating the constraint, will validate existing rows in the table, without blocking read or write on the table
 
-Indeed the validation of a constraint does not require any lock preventing reading or writing on the tables.
 </details>
 
 <details><summary>Retry after lock timeout</summary>
