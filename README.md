@@ -122,7 +122,7 @@ Note: the addition of the not null constraint may timeout. In that case, you may
 
 </details>
 
-<details><summary>Concurrent indexes</summary>
+<details><summary>Safe <code>add_index</code> and <code>remove_index</code></summary>
 
 Creating an index requires a `SHARE` lock on the target table which blocks all write on the table while the index is created (which can take some time on a large table). This is usually not practical in a live environment. Thus, **Safe PG Migrations** ensures indexes are created concurrently.
 
