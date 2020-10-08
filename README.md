@@ -195,6 +195,7 @@ So you can actually check that the `CREATE INDEX` statement will be performed co
 *Nb: The `SHOW` statements are used by **Safe PG Migrations** to query settings for their original values in order to restore them after the work is done*
 
 </details>
+
 ## Configuration
 
 **Safe PG Migrations** can be customized, here is an example of a Rails initializer (the values are the default ones):
