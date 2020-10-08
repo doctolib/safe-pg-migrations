@@ -91,9 +91,8 @@ Note that if a migration fails, it won't be rollbacked. This can result in migra
 
 ### Safe `add_column`
 
-
-#### Pre Postgres 11 behavior
-
+<details>
+<summary>Pre Postgres 11 behavior</summary>
 Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
 
 **Safe PG Migrations** makes it safe by:
@@ -104,11 +103,9 @@ Adding a column with a default value and a not-null constraint is [dangerous](ht
 4.  And then adding the not null constraint with a short statement timeout.
 
 Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
-
-#### Postgres 11 behavior
-
+</details>
 <details>
-    <summary>details</summary>
+    <summary>Postgres 11 behavior</summary>
 
 **Safe PG Migrations** gracefully handle the upgrade to PG11 by **not** backfilling default value for existing rows, as the [database engine is now natively handling it](https://www.postgresql.org/docs/11/ddl-alter.html#DDL-ALTER-ADDING-A-COLUMN).
 
