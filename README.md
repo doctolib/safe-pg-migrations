@@ -67,25 +67,22 @@ Active Record means developers don't have to be proficient in SQL to interact wi
 
 ## Feature set
 
-### Lock timeout
+<details><summary>Lock timeout</summary>
 
-<details><summary>Click to see details</summary>
 Most DDL operations (e.g. adding a column, removing a column or adding a default value to a column) take an `ACCESS EXCLUSIVE` lock on the table they are altering. While these operations wait to acquire their lock, other statements are blocked. Before running a migration, **Safe PG Migrations** sets a short lock timeout (default to 5 seconds) so that statements are not blocked for too long.
 
 See [PostgreSQL Alter Table and Long Transactions](http://www.joshuakehn.com/2017/9/9/postgresql-alter-table-and-long-transactions.html) and [Migrations and Long Transactions](https://www.fin.com/post/2018/1/migrations-and-long-transactions) for detailed explanations of the matter.
 </details>
 
-### Statement timeout
+<details><summary>Statement timeout</summary>
 
-<details><summary>Click to see details</summary>
 Adding a foreign key or a not-null constraint can take a lot of time on a large table. The problem is that those operations take `ACCESS EXCLUSIVE` locks. We clearly don't want them to hold these locks for too long. Thus, **Safe PG Migrations** runs them with a short statement timeout (default to 5 seconds).
 
 See [Zero-downtime Postgres migrations - the hard parts](https://gocardless.com/blog/zero-downtime-postgres-migrations-the-hard-parts/) for a detailed explanation on the subject.
 </details>
 
-### Prevent wrapping migrations in transaction
+<details><summary>Prevent wrapping migrations in transaction</summary>
 
-<details><summary>Click to see details</summary>
 When **Safe PG Migrations** is used, migrations are not wrapped in a transaction. This is for several reasons:
 
 - We want to release locks as soon as possible.
@@ -96,23 +93,9 @@ Note that if a migration fails, it won't be rollbacked. This can result in migra
 
 </details>
 
-### Safe `add_column`
-
 <details>
-<summary>Pre Postgres 11 behavior</summary>
-Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
-
-**Safe PG Migrations** makes it safe by:
-
-1.  Adding the column without the default value and the not null constraint,
-2.  Then set the default value on the column,
-3.  Then backfilling the column,
-4.  And then adding the not null constraint with a short statement timeout.
-
-Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
+<summary>Safe <code>add_column</code></summary>
 </details>
-<details>
-    <summary>Postgres 11 behavior</summary>
 
 **Safe PG Migrations** gracefully handle the upgrade to PG11 by **not** backfilling default value for existing rows, as the [database engine is now natively handling it](https://www.postgresql.org/docs/11/ddl-alter.html#DDL-ALTER-ADDING-A-COLUMN).
 
@@ -121,12 +104,22 @@ Beware though, when adding a volatile default value:
 add_column :users, :created_at, default: 'clock_timestamp()'
 ```
 PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
+    
+>    **Note: Pre-postgre 11**
+>
+>    Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
+>    
+>    **Safe PG Migrations** makes it safe by:
+>    
+>    1.  Adding the column without the default value and the not null constraint,
+>    2.  Then set the default value on the column,
+>    3.  Then backfilling the column,
+>    4.  And then adding the not null constraint with a short statement timeout.
+>    
+>    Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
+>
 
-</details>
-
-### Concurrent indexes
-
-<details><summary>Click to see details</summary>
+<details><summary>Concurrent indexes</summary>
 
 Creating an index requires a `SHARE` lock on the target table which blocks all write on the table while the index is created (which can take some time on a large table). This is usually not practical in a live environment. Thus, **Safe PG Migrations** ensures indexes are created concurrently.
 
@@ -139,21 +132,17 @@ If you still get lock timeout while adding / removing indexes, it might be for o
 
 </details>
 
-### Retry after lock timeout
-<details><summary>Click to see details</summary>
+<details><summary>Retry after lock timeout</summary>
+
 When a statement fails with a lock timeout, **Safe PG Migrations** retries it (5 times max) [list of retryable statments](https://github.com/doctolib/safe-pg-migrations/blob/66933256252b6bbf12e404b829a361dbba30e684/lib/safe-pg-migrations/plugins/statement_retrier.rb#L5)
 </details>
 
-### Blocking activity logging
-
-<details><summary>Click to see details</summary>
+<details><summary>Blocking activity logging</summary>
 
 If a statement fails with a lock timeout, **Safe PG Migrations** will try to tell you what was the blocking statement.
 </details>
 
-### Verbose SQL logging
-
-<details><summary>Click to see details</summary>
+<details><summary>Verbose SQL logging</summary>
 
 For any operation, **Safe PG Migrations** can output the performed SQL queries. This feature is enabled by default in a production Rails environment. If you want to explicit enable it, for example in your development environment you can use:
 ```bash
