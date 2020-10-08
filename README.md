@@ -91,7 +91,7 @@ Note that if a migration fails, it won't be rollbacked. This can result in migra
 
 ### Safe `add_column`
 
-<details><summary>
+<details><summary>details</summary>
 
 #### Pre Postgres 11 behavior
 
@@ -115,7 +115,7 @@ Beware though, when adding a volatile default value:
 add_column :users, :created_at, default: 'clock_timestamp()'
 ```
 PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
-</summary></details>
+</details>
 
 ### Concurrent indexes
 
