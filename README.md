@@ -104,22 +104,21 @@ add_column :users, :created_at, default: 'clock_timestamp()'
 ```
 PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
 
-</details>
+<blockquote>
+**Note: Pre-postgre 11**
+Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
 
-    
->    **Note: Pre-postgre 11**
->
->    Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
->    
->    **Safe PG Migrations** makes it safe by:
->    
->    1.  Adding the column without the default value and the not null constraint,
->    2.  Then set the default value on the column,
->    3.  Then backfilling the column,
->    4.  And then adding the not null constraint with a short statement timeout.
->    
->    Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
->
+**Safe PG Migrations** makes it safe by:
+
+1.  Adding the column without the default value and the not null constraint,
+2.  Then set the default value on the column,
+3.  Then backfilling the column,
+4.  And then adding the not null constraint with a short statement timeout.
+
+Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
+</blockquote>    
+
+</details>
 
 <details><summary>Concurrent indexes</summary>
 
