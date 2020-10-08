@@ -1,4 +1,4 @@
-# safe-pg-migrations [![Build Status](https://travis-ci.org/doctolib/safe-pg-migrations.svg?branch=master)](https://travis-ci.org/doctolib/safe-pg-migrations)
+# safe-pg-migrations
 
 ActiveRecord migrations for Postgres made safe.
 
