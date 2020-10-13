@@ -41,6 +41,7 @@ jobs:
     strategy:
       matrix:
         postgres: [ 9.6, 11.7 ]
+        ruby: [ 2.5.x, 2.6.x, 2.7.1 ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
@@ -61,7 +62,7 @@ jobs:
       - name: Set up Ruby
         uses: doctolib/github-actions-setup-ruby@v1
         with:
-          ruby-version: ${{ env.RUBY_VERSION }}
+          ruby-version: ${{ matrix.ruby }}
       - uses: doctolib/github-actions-cache@v2
         with:
           path: vendor/bundle
