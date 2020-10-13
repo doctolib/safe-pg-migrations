@@ -27,7 +27,7 @@ class Minitest::Test
 
   def run_migration(direction = :up)
     @migration.version = DUMMY_MIGRATION_VERSION
-    ActiveRecord::Migrator.new(direction, [@migration]).migrate
+    ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration).migrate
   end
 
   def assert_calls(expected, actual)
@@ -35,7 +35,7 @@ class Minitest::Test
       "SET lock_timeout TO '5s'",
       *expected,
       "SET lock_timeout TO '70s'",
-    ], actual[0...-4].map(&:first).map(&:squish)
+    ], actual.map(&:first).map(&:squish).reverse.drop_while { |call| %w[BEGIN COMMIT].include? call }.reverse
   end
 
   # Records method calls on an object. Behaves like a test spy.

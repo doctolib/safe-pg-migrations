@@ -144,7 +144,7 @@ class SafePgMigrationsTest < Minitest::Test
 
         # The not-null constraint is added.
         "SET statement_timeout TO '5s'",
-        'ALTER TABLE "users" ALTER "admin" SET NOT NULL',
+        'ALTER TABLE "users" ALTER COLUMN "admin" SET NOT NULL',
         "SET statement_timeout TO '70s'",
       ], execute_calls
 
@@ -180,7 +180,7 @@ class SafePgMigrationsTest < Minitest::Test
 
         # The not-null constraint is added.
         "SET statement_timeout TO '5s'",
-        'ALTER TABLE "users" ALTER "admin" SET NOT NULL',
+        'ALTER TABLE "users" ALTER COLUMN "admin" SET NOT NULL',
         "SET statement_timeout TO '70s'",
       ], execute_calls
 
