@@ -38,9 +38,12 @@ jobs:
     name: UnitTest
     runs-on: ubuntu-18.04
     # Service containers to run with `container-job`
+    strategy:
+      matrix:
+        postgres: [ 9.6, 11.7 ]
     services:
       postgres:
-        image: postgres:9.6
+        image: postgres:${{ matrix.postgres }}
         env:
           POSTGRES_DB: safe_pg_migrations_test
           POSTGRES_PASSWORD: postgres
