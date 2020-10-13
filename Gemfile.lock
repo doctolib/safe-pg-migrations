@@ -44,7 +44,7 @@ GEM
     pry-coolline (0.2.5)
       coolline (~> 0.5)
     rainbow (3.0.0)
-    rake (12.3.1)
+    rake (13.0.1)
     rubocop (0.59.2)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
