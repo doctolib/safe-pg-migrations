@@ -17,7 +17,7 @@ module SafePgMigrations
       null = options.delete(:null)
 
       if !default.nil? || null == false
-        SafePgMigrations.say_method_call(:add_column, table_name, column_name, type, **options)
+        SafePgMigrations.say_method_call(:add_column, table_name, column_name, type, options)
       end
 
       super
@@ -48,7 +48,7 @@ module SafePgMigrations
 
     def add_index(table_name, column_name, **options)
       options[:algorithm] = :concurrently
-      SafePgMigrations.say_method_call(:add_index, table_name, column_name, **options)
+      SafePgMigrations.say_method_call(:add_index, table_name, column_name, options)
 
       with_index_timeouts { super }
     end
@@ -56,7 +56,7 @@ module SafePgMigrations
     def remove_index(table_name, options = {})
       options = { column: options } unless options.is_a?(Hash)
       options[:algorithm] = :concurrently
-      SafePgMigrations.say_method_call(:remove_index, table_name, **options)
+      SafePgMigrations.say_method_call(:remove_index, table_name, options)
 
       with_index_timeouts { super }
     end
