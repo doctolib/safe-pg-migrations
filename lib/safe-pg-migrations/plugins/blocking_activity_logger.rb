@@ -75,7 +75,7 @@ module SafePgMigrations
           "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:", true
         )
         SafePgMigrations.say '', true
-        queries.each { |query, start_time| SafePgMigrations.say "  #{query} -- [#{format_start_time start_time}]", true }
+        queries.each { |query, start_time| SafePgMigrations.say "#{format_start_time start_time}:  #{query}", true }
         SafePgMigrations.say(
           'Beware, some of those queries might run in a transaction. In this case the locking query might be '\
           'located elsewhere in the transaction',
@@ -89,7 +89,7 @@ module SafePgMigrations
 
     def format_start_time(start_time, reference_time = Time.now)
       duration = (reference_time - start_time).round
-      "started at #{start_time}, #{duration} #{'second'.pluralize(duration)} ago"
+      "transaction started #{duration} #{'second'.pluralize(duration)} ago"
     end
   end
 end
