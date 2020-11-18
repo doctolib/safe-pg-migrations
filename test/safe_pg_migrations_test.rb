@@ -85,7 +85,7 @@ class SafePgMigrationsTest < Minitest::Test
       '   -> Statement was being blocked by the following query:',
       '   -> ',
     ], calls[0..4]
-    assert_includes calls[5], '   ->   BEGIN; SELECT 1 FROM users'
+    assert_match(/   ->   BEGIN; SELECT 1 FROM users \[started at .*, 1 second ago]/, calls[5])
     assert_equal [
       '   -> ',
       '   -> Retrying in 1 seconds...',
