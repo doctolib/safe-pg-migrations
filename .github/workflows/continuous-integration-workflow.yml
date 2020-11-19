@@ -41,7 +41,7 @@ jobs:
     strategy:
       matrix:
         postgres: [ 9.6, 11.7 ]
-        ruby: [ 2.5.x, 2.6.x, 2.7.1 ]
+        ruby: [ 2.5, 2.6, 2.7 ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
@@ -58,7 +58,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: doctolib/github-actions-checkout@v1
+      - uses: doctolib/github-actions-checkout@v2
       - name: Set up Ruby
         uses: doctolib/github-actions-setup-ruby@v1
         with:
