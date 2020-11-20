@@ -3,7 +3,7 @@
 module SafePgMigrations
   module BlockingActivityLogger
     SELECT_BLOCKING_QUERIES_SQL = <<~SQL.squish
-      SELECT blocking_activity.query
+      SELECT blocking_activity.query, blocked_activity.xact_start as start
       FROM pg_catalog.pg_locks           blocked_locks
       JOIN pg_catalog.pg_stat_activity   blocked_activity
         ON blocked_activity.pid = blocked_locks.pid
@@ -50,7 +50,7 @@ module SafePgMigrations
       blocking_queries_retriever_thread =
         Thread.new do
           sleep delay_before_logging(method)
-          SafePgMigrations.alternate_connection.query_values(SELECT_BLOCKING_QUERIES_SQL % raw_connection.backend_pid)
+          SafePgMigrations.alternate_connection.query(SELECT_BLOCKING_QUERIES_SQL % raw_connection.backend_pid)
         end
 
       yield
@@ -75,7 +75,7 @@ module SafePgMigrations
           "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:", true
         )
         SafePgMigrations.say '', true
-        queries.each { |query| SafePgMigrations.say "  #{query}", true }
+        queries.each { |query, start_time| SafePgMigrations.say "#{format_start_time start_time}:  #{query}", true }
         SafePgMigrations.say(
           'Beware, some of those queries might run in a transaction. In this case the locking query might be '\
           'located elsewhere in the transaction',
@@ -85,6 +85,11 @@ module SafePgMigrations
       end
 
       raise
+    end
+
+    def format_start_time(start_time, reference_time = Time.now)
+      duration = (reference_time - start_time).round
+      "transaction started #{duration} #{'second'.pluralize(duration)} ago"
     end
   end
 end
