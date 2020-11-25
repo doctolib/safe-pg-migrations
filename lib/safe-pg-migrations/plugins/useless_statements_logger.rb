@@ -15,9 +15,5 @@ module SafePgMigrations
       end
       super
     end
-
-    def self.warn(message, *args)
-      SafePgMigrations.say "/!\\ No need to explicitly #{message}, safe-pg-migrations does it for you", *args
-    end
   end
 end
