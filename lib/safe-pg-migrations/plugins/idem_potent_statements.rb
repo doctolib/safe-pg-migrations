@@ -51,7 +51,7 @@ module SafePgMigrations
 
       yield td if block_given?
 
-      SafePgMigrations.say(td.indexes.empty? ? 'Skipping statement' : 'Creating indexes', true)
+      SafePgMigrations.say(td.indexes.empty? ? '-- Skipping statement' : '-- Creating indexes', true)
 
       td.indexes.each do |column_name, index_options|
         add_index(table_name, column_name, index_options)

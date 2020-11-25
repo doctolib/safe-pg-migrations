@@ -209,8 +209,9 @@ class SafePgMigrationsTest < Minitest::Test
     assert_equal [
       '== 8128 : migrating ===========================================================',
       '-- create_table(:users)',
-      "   -> /!\\ Table 'users' already exists. Skipping statement.",
-    ], write_calls[0...3]
+      "   -> /!\\ Table 'users' already exists.",
+      '   -> -- Skipping statement',
+    ], write_calls[0...4]
   end
 
   def test_add_column_idem_potent
