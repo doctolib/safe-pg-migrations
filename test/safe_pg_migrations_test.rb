@@ -510,4 +510,24 @@ class SafePgMigrationsTest < Minitest::Test
       assert_match("SET lock_timeout TO '70s'", logs[4])
     end
   end
+
+  def test_useless_statement_warning
+    @connection.create_table(:users) { |t| t.string :email }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        disable_ddl_transaction!
+
+        def change
+          add_index :users, :email, algorithm: :concurrently
+        end
+      end.new
+
+    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+
+    assert_includes write_calls, '/!\ No need to explicitly disable DDL transaction, safe-pg-migrations does it for you'
+    assert_includes(
+      write_calls,
+      '/!\ No need to explicitly use `algorithm: :concurrently`, safe-pg-migrations does it for you'
+    )
+  end
 end
