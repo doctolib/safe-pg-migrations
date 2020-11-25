@@ -35,7 +35,11 @@ class Minitest::Test
       "SET lock_timeout TO '5s'",
       *expected,
       "SET lock_timeout TO '70s'",
-    ], actual.map(&:first).map(&:squish).reverse.drop_while { |call| %w[BEGIN COMMIT].include? call }.reverse
+    ], flat_calls(actual)
+  end
+
+  def flat_calls(calls)
+    calls.map(&:first).map(&:squish).reverse.drop_while { |call| %w[BEGIN COMMIT].include? call }.reverse
   end
 
   # Records method calls on an object. Behaves like a test spy.

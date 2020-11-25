@@ -57,12 +57,16 @@ class SafePgMigrationsTest < Minitest::Test
 
   def test_create_table_idempotence
     # Simulates an interruption between the table creation and the index creation
-    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:users) do |t|
+      t.string :name, index: true
+      t.string :email
+    end
 
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           create_table(:users) do |t|
+            t.string :name, index: true
             t.string :email, index: true
           end
         end
@@ -73,7 +77,13 @@ class SafePgMigrationsTest < Minitest::Test
     refute_empty indexes
     assert_equal 'index_users_on_email', indexes.first.name
 
+    refute_includes flat_calls(calls), 'CREATE INDEX CONCURRENTLY "index_users_on_name" ON "users" ("name")'
+
     assert_calls [
+      "SET statement_timeout TO '5s'",
+      'SET statement_timeout TO 0',
+      "SET lock_timeout TO '30s'",
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '5s'",
       'SET statement_timeout TO 0',
       "SET lock_timeout TO '30s'",
