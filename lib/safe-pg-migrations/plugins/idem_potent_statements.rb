@@ -43,12 +43,19 @@ module SafePgMigrations
     end
 
     def create_table(table_name, comment: nil, **options)
-      return super unless table_exists?(table_name)
+      return super if options[:force] || !table_exists?(table_name)
 
-      SafePgMigrations.say(
-        "/!\\ Table '#{table_name}' already exists. Skipping statement.",
-        true
-      )
+      SafePgMigrations.say "/!\\ Table '#{table_name}' already exists.", true
+
+      td = create_table_definition(table_name, **options)
+
+      yield td if block_given?
+
+      SafePgMigrations.say(td.indexes.empty? ? '-- Skipping statement' : '-- Creating indexes', true)
+
+      td.indexes.each do |column_name, index_options|
+        add_index(table_name, column_name, index_options)
+      end
     end
 
     private

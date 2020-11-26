@@ -209,8 +209,9 @@ class SafePgMigrationsTest < Minitest::Test
     assert_equal [
       '== 8128 : migrating ===========================================================',
       '-- create_table(:users)',
-      "   -> /!\\ Table 'users' already exists. Skipping statement.",
-    ], write_calls[0...3]
+      "   -> /!\\ Table 'users' already exists.",
+      '   -> -- Skipping statement',
+    ], write_calls[0...4]
   end
 
   def test_add_column_idem_potent
@@ -317,39 +318,6 @@ class SafePgMigrationsTest < Minitest::Test
     run_migration(:down)
     refute @connection.column_exists?(:users, :email)
     refute @connection.column_exists?(:users, :user)
-  end
-
-  def test_create_table
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def change
-          create_table(:users) do |t|
-            t.string :email
-            t.references :user, foreign_key: true
-          end
-        end
-      end.new
-
-    calls = record_calls(@connection, :execute) { run_migration }
-    assert_calls [
-      "SET statement_timeout TO '5s'",
-
-      # Create the table with constraints.
-      'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying, "user_id" bigint, ' \
-        'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
-
-      # Create the index.
-      'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
-      'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
-      "SET lock_timeout TO '5s'",
-      "SET statement_timeout TO '5s'",
-
-      "SET statement_timeout TO '70s'",
-    ], calls
-
-    run_migration(:down)
-    refute @connection.table_exists?(:users)
   end
 
   def test_add_index
