@@ -35,7 +35,10 @@ class UselessStatementLoggerTest < MiniTest::Unit::TestCase
 
     write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
 
-    assert_includes write_calls, '/!\ No need to explicitly use `disable_ddl_transaction`, safe-pg-migrations does it for you'
+    assert_includes(
+      write_calls,
+      '/!\ No need to explicitly use `disable_ddl_transaction`, safe-pg-migrations does it for you'
+    )
   end
 
   def test_no_warning_when_no_ddl_transaction
