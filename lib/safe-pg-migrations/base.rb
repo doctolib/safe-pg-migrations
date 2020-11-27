@@ -80,7 +80,7 @@ module SafePgMigrations
     end
 
     def disable_ddl_transaction
-      UselessStatementsLogger.disable_ddl_transaction if super
+      UselessStatementsLogger.warn_useless '`disable_ddl_transaction`' if super
       true
     end
 
