@@ -25,31 +25,22 @@ module SafePgMigrations
     SQL
 
     %i[
-      add_column remove_column add_foreign_key remove_foreign_key change_column_default
-      change_column_null create_table add_index remove_index
+      add_column remove_column add_foreign_key remove_foreign_key change_column_default change_column_null create_table
     ].each do |method|
       define_method method do |*args, &block|
-        log_blocking_queries(method) { super(*args, &block) }
+        log_blocking_queries { super(*args, &block) }
       end
     end
 
     private
 
-    def delay_before_logging(method)
-      timeout_delay =
-        if %i[add_index remove_index].include?(method)
-          SafePgMigrations.config.index_lock_timeout
-        else
-          SafePgMigrations.config.safe_timeout
-        end
+    def log_blocking_queries
+      delay_before_logging =
+        SafePgMigrations.config.safe_timeout - SafePgMigrations.config.blocking_activity_logger_margin
 
-      timeout_delay - SafePgMigrations.config.blocking_activity_logger_margin
-    end
-
-    def log_blocking_queries(method)
       blocking_queries_retriever_thread =
         Thread.new do
-          sleep delay_before_logging(method)
+          sleep delay_before_logging
           SafePgMigrations.alternate_connection.query(SELECT_BLOCKING_QUERIES_SQL % raw_connection.backend_pid)
         end
 
