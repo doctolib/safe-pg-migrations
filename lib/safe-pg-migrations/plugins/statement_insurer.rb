@@ -50,7 +50,7 @@ module SafePgMigrations
       options[:algorithm] = :concurrently
       SafePgMigrations.say_method_call(:add_index, table_name, column_name, options)
 
-      with_index_timeouts { super }
+      without_timeout { super }
     end
 
     def remove_index(table_name, options = {})
@@ -58,7 +58,7 @@ module SafePgMigrations
       options[:algorithm] = :concurrently
       SafePgMigrations.say_method_call(:remove_index, table_name, options)
 
-      with_index_timeouts { super }
+      without_timeout { super }
     end
 
     def backfill_column_default(table_name, column_name)
@@ -103,7 +103,7 @@ module SafePgMigrations
       with_setting(:lock_timeout, 0) { yield }
     end
 
-    def with_index_timeouts
+    def without_timeout
       without_statement_timeout { without_lock_timeout { yield } }
     end
   end
