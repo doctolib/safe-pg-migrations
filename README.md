@@ -122,7 +122,7 @@ Note: the addition of the not null constraint may timeout. In that case, you may
 
 </details>
 
-<details><summary>Safe <code>add_index</code> and <code>remove_index</code></summary>
+<details><summary id="safe_add_remove_index">Safe <code>add_index</code> and <code>remove_index</code></summary>
 
 Creating an index requires a `SHARE` lock on the target table which blocks all write on the table while the index is created (which can take some time on a large table). This is usually not practical in a live environment. Thus, **Safe PG Migrations** ensures indexes are created concurrently.
 
@@ -135,7 +135,7 @@ If you still get lock timeout while adding / removing indexes, it might be for o
 
 </details>
 
-<details><summary>safe <code>add_foreign_key</code> (and <code>add_reference</code>)</summary>
+<details><summary id="safe_add_foreign_key">safe <code>add_foreign_key</code> (and <code>add_reference</code>)</summary>
 
 Adding a foreign key requires a `SHARE ROW EXCLUSIVE` lock, which **prevent writing in the tables** while the migration is running.
 
