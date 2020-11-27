@@ -25,17 +25,16 @@ module SafePgMigrations
     SQL
 
     %i[
-      add_column remove_column add_foreign_key remove_foreign_key change_column_default
-      change_column_null create_table add_index remove_index
+      add_column remove_column add_foreign_key remove_foreign_key change_column_default change_column_null create_table
     ].each do |method|
       define_method method do |*args, &block|
-        log_blocking_queries(method) { super(*args, &block) }
+        log_blocking_queries { super(*args, &block) }
       end
     end
 
     private
 
-    def log_blocking_queries(method)
+    def log_blocking_queries
       delay_before_logging =
         SafePgMigrations.config.safe_timeout - SafePgMigrations.config.blocking_activity_logger_margin
 

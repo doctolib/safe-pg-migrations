@@ -332,7 +332,7 @@ class SafePgMigrationsTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO 0",
+      'SET lock_timeout TO 0',
       'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
       "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
