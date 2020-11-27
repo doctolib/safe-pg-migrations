@@ -309,7 +309,7 @@ class SafePgMigrationsTest < Minitest::Test
 
       # An index is created because of the column reference.
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
+      'SET lock_timeout TO 0',
       'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
       "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
@@ -332,7 +332,7 @@ class SafePgMigrationsTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
+      "SET lock_timeout TO 0",
       'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
       "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
@@ -355,12 +355,12 @@ class SafePgMigrationsTest < Minitest::Test
 
     assert_calls [
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
+      'SET lock_timeout TO 0',
       'CREATE INDEX CONCURRENTLY "my_custom_index_name" ON "users" ("email") WHERE email IS NOT NULL',
       "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
+      'SET lock_timeout TO 0',
       "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
     ], calls
@@ -398,12 +398,12 @@ class SafePgMigrationsTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
+      'SET lock_timeout TO 0',
 
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
+      'SET lock_timeout TO 0',
       'DROP INDEX CONCURRENTLY "index_users_on_email"',
-      "SET lock_timeout TO '30s'",
+      "SET lock_timeout TO '0'",
       "SET statement_timeout TO '0'",
 
       'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
@@ -428,7 +428,7 @@ class SafePgMigrationsTest < Minitest::Test
 
       # The index is created concurrently.
       'SET statement_timeout TO 0',
-      "SET lock_timeout TO '30s'",
+      'SET lock_timeout TO 0',
       'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
       "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",

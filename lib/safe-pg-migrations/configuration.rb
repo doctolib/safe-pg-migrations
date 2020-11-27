@@ -5,7 +5,6 @@ require 'active_support/core_ext/numeric/time'
 module SafePgMigrations
   class Configuration
     attr_accessor :safe_timeout
-    attr_accessor :index_lock_timeout
     attr_accessor :blocking_activity_logger_margin
     attr_accessor :batch_size
     attr_accessor :retry_delay
@@ -13,7 +12,6 @@ module SafePgMigrations
 
     def initialize
       self.safe_timeout = 5.seconds
-      self.index_lock_timeout = 30.seconds
       self.blocking_activity_logger_margin = 1.second
       self.batch_size = 1000
       self.retry_delay = 1.minute
@@ -22,10 +20,6 @@ module SafePgMigrations
 
     def pg_safe_timeout
       pg_duration(safe_timeout)
-    end
-
-    def pg_index_lock_timeout
-      pg_duration(index_lock_timeout)
     end
 
     def pg_duration(duration)

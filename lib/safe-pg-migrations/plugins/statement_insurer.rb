@@ -99,12 +99,12 @@ module SafePgMigrations
       with_setting(:statement_timeout, 0) { yield }
     end
 
+    def without_lock_timeout
+      with_setting(:lock_timeout, 0) { yield }
+    end
+
     def with_index_timeouts
-      without_statement_timeout do
-        with_setting(:lock_timeout, SafePgMigrations.config.pg_index_lock_timeout) do
-          yield
-        end
-      end
+      without_statement_timeout { without_lock_timeout { yield } }
     end
   end
 end
