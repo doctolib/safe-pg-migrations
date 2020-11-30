@@ -4,7 +4,7 @@ require 'test_helper'
 
 class SafePgMigrationsTest < MigrationTest
   def test_remove_transaction
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         class << self
           attr_accessor :did_open_transaction
@@ -18,21 +18,21 @@ class SafePgMigrationsTest < MigrationTest
         end
       end.new
 
-    run_migration
+    run_migration migration
     assert connection.table_exists?(:users)
     assert_equal(
       false,
-      @migration.class.did_open_transaction,
+      migration.class.did_open_transaction,
       'Migrations are not executed inside a transaction with SafePgMigrations'
     )
 
-    run_migration(:down)
+    run_migration migration, :down
     refute connection.table_exists?(:users)
   end
 
   def test_statement_retry
     connection.create_table(:users)
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
           # Simulate a blocking transaction from another connection.
@@ -57,7 +57,7 @@ class SafePgMigrationsTest < MigrationTest
     SafePgMigrations.config.safe_timeout = 0.5.second
     SafePgMigrations.config.blocking_activity_logger_margin = 0.1.seconds
 
-    calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+    calls = record_calls(migration, :write) { run_migration migration }.map(&:first)
     assert connection.column_exists?(:users, :email, :string)
     assert_equal [
       '== 8128 : migrating ===========================================================',
@@ -75,7 +75,7 @@ class SafePgMigrationsTest < MigrationTest
   end
 
   def test_retry_if_lock_timeout
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
           connection.send(:retry_if_lock_timeout) do
@@ -86,8 +86,8 @@ class SafePgMigrationsTest < MigrationTest
 
     connection.expects(:sleep).times(4)
     calls =
-      record_calls(@migration, :write) do
-        run_migration
+      record_calls(migration, :write) do
+        run_migration migration
         flunk 'run_migration should raise'
       rescue StandardError => e
         assert_instance_of ActiveRecord::LockWaitTimeout, e.cause
@@ -103,7 +103,7 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_add_column_before_pg_11
     connection.create_table(:users)
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
           add_column(:users, :admin, :boolean, default: false, null: false)
@@ -113,8 +113,8 @@ class SafePgMigrationsTest < MigrationTest
     SafePgMigrations.stub(:get_pg_version_num, 96_000) do
       execute_calls = nil
       write_calls =
-        record_calls(@migration, :write) do
-          execute_calls = record_calls(connection, :execute) { run_migration }
+        record_calls migration, :write do
+          execute_calls = record_calls(connection, :execute) { run_migration migration }
         end
       assert_calls [
         # The column is added without any default.
@@ -142,7 +142,7 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_add_column_after_pg_11
     connection.create_table(:users)
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
           add_column(:users, :admin, :boolean, default: false, null: false)
@@ -152,8 +152,8 @@ class SafePgMigrationsTest < MigrationTest
     SafePgMigrations.stub(:get_pg_version_num, 110_000) do
       execute_calls = nil
       write_calls =
-        record_calls(@migration, :write) do
-          execute_calls = record_calls(connection, :execute) { run_migration }
+        record_calls(migration, :write) do
+          execute_calls = record_calls(connection, :execute) { run_migration migration }
         end
       assert_calls [
         # The column is added with the default without any trick
@@ -176,7 +176,7 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_create_table_idem_potent
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           create_table :users do |t|
@@ -185,7 +185,7 @@ class SafePgMigrationsTest < MigrationTest
         end
       end.new
 
-    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+    write_calls = record_calls(migration, :write) { run_migration migration }.map(&:first)
 
     assert_equal [
       '== 8128 : migrating ===========================================================',
@@ -197,13 +197,13 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_add_column_idem_potent
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           2.times { add_column :users, :name, :string }
         end
       end.new
-    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+    write_calls = record_calls(migration, :write) { run_migration migration }.map(&:first)
 
     assert_equal [
       '== 8128 : migrating ===========================================================',
@@ -218,14 +218,14 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_remove_column_idem_potent
     connection.create_table(:users) { |t| t.string :email, index: true }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           2.times { remove_column :users, :email }
         end
       end.new
 
-    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+    write_calls = record_calls(migration, :write) { run_migration migration }.map(&:first)
     refute connection.index_exists?(:users, :email)
 
     assert_equal [
@@ -244,14 +244,14 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_remove_index_idem_potent
     connection.create_table(:users) { |t| t.string(:email, index: true) }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           2.times { remove_index :users, :email }
         end
       end.new
 
-    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+    write_calls = record_calls(migration, :write) { run_migration migration }.map(&:first)
     refute connection.index_exists?(:users, :email)
 
     assert_equal [
@@ -272,7 +272,7 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_change_table
     connection.create_table(:users)
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           change_table(:users) do |t|
@@ -282,7 +282,7 @@ class SafePgMigrationsTest < MigrationTest
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       # Both columns are added.
       'ALTER TABLE "users" ADD "email" character varying',
@@ -296,21 +296,21 @@ class SafePgMigrationsTest < MigrationTest
       "SET statement_timeout TO '70s'",
     ], calls
 
-    run_migration(:down)
+    run_migration migration, :down
     refute connection.column_exists?(:users, :email)
     refute connection.column_exists?(:users, :user)
   end
 
   def test_add_index
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_index(:users, :email)
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       'SET statement_timeout TO 0',
       'SET lock_timeout TO 0',
@@ -319,20 +319,20 @@ class SafePgMigrationsTest < MigrationTest
       "SET statement_timeout TO '70s'",
     ], calls
 
-    run_migration(:down)
+    run_migration migration, :down
     refute connection.index_exists?(:users, :email)
   end
 
   def test_add_index_idem_potent
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           2.times { add_index(:users, :email, name: :my_custom_index_name, where: 'email IS NOT NULL') }
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
 
     assert_calls [
       'SET statement_timeout TO 0',
@@ -349,14 +349,14 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_change_column_with_timeout
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           change_column :users, :email, :text
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
 
     assert_calls [
       "SET statement_timeout TO '5s'",
@@ -368,7 +368,7 @@ class SafePgMigrationsTest < MigrationTest
   def test_add_index_idem_potent_invalid_index
     connection.create_table(:users) { |t| t.string :email, index: true }
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_index(:users, :email)
@@ -376,7 +376,7 @@ class SafePgMigrationsTest < MigrationTest
       end.new
 
     connection.stubs(:index_valid?).returns(false)
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       'SET statement_timeout TO 0',
       'SET lock_timeout TO 0',
@@ -395,14 +395,14 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_add_belongs_to
     connection.create_table(:users)
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_belongs_to(:users, :user, foreign_key: true)
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       # The column is added.
       'ALTER TABLE "users" ADD "user_id" bigint',
@@ -427,7 +427,7 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_backfill_column_default
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
           backfill_column_default(:users, :email)
@@ -439,7 +439,7 @@ class SafePgMigrationsTest < MigrationTest
 
     SafePgMigrations.config.batch_size = 2
     connection.change_column_default(:users, :email, 'michel@example.org')
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_equal 5, connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
     assert_calls [
       'UPDATE "users" SET "email" = DEFAULT WHERE id IN (1,2)',
@@ -449,7 +449,7 @@ class SafePgMigrationsTest < MigrationTest
   end
 
   def test_with_setting_inside_a_failed_transaction
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         disable_ddl_transaction!
 
@@ -463,7 +463,7 @@ class SafePgMigrationsTest < MigrationTest
       end.new
 
     begin
-      run_migration
+      run_migration migration
       flunk 'run_migration should raise'
     rescue StandardError => e
       assert_instance_of ActiveRecord::StatementInvalid, e.cause
@@ -473,7 +473,7 @@ class SafePgMigrationsTest < MigrationTest
 
   def test_verbose_sql_logging
     SafePgMigrations.stub(:verbose?, true) do
-      @migration =
+      migration =
         Class.new(ActiveRecord::Migration::Current) do
           def up
             execute('SELECT * from pg_stat_activity')
@@ -481,7 +481,7 @@ class SafePgMigrationsTest < MigrationTest
           end
         end.new
 
-      stdout, _stderr = capture_io { run_migration }
+      stdout, _stderr = capture_io { run_migration migration }
       logs = stdout.split("\n").map(&:strip)
 
       assert_match('SHOW lock_timeout', logs[0])

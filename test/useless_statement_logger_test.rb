@@ -4,7 +4,7 @@ require 'test_helper'
 
 class UselessStatementLoggerTest < MigrationTest
   def test_ddl_transactions
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         disable_ddl_transaction!
 
@@ -13,7 +13,7 @@ class UselessStatementLoggerTest < MigrationTest
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(SafePgMigrations, :say) { run_migration migration }.map(&:first)
 
     assert_includes(
       write_calls,
@@ -22,28 +22,28 @@ class UselessStatementLoggerTest < MigrationTest
   end
 
   def test_no_warning_when_no_ddl_transaction
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           create_table(:users) { |t| t.string :email }
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(SafePgMigrations, :say) { run_migration migration }.map(&:first)
 
     refute_includes write_calls, '/!\ No need to explicitly disable DDL transaction, safe-pg-migrations does it for you'
   end
 
   def test_add_index_concurrently
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_index :users, :email, algorithm: :concurrently
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(SafePgMigrations, :say) { run_migration migration }.map(&:first)
 
     assert_includes(
       write_calls,
@@ -53,14 +53,14 @@ class UselessStatementLoggerTest < MigrationTest
 
   def test_no_warning_when_no_index_concurrently
     connection.create_table(:users) { |t| t.string :email }
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_index :users, :email
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(SafePgMigrations, :say) { run_migration migration }.map(&:first)
 
     refute_includes(
       write_calls,
@@ -75,14 +75,14 @@ class UselessStatementLoggerTest < MigrationTest
       t.bigint :user_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users, validate: false
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(SafePgMigrations, :say) { run_migration migration }.map(&:first)
 
     assert_includes(
       write_calls,
@@ -97,14 +97,14 @@ class UselessStatementLoggerTest < MigrationTest
       t.bigint :user_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(SafePgMigrations, :say) { run_migration migration }.map(&:first)
 
     refute_includes(
       write_calls,

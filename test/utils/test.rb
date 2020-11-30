@@ -30,9 +30,8 @@ class MiniTest::Test
   end
 
   def drop_all_tables
-    connection.tables.reject { |t| t == 'ar_internal_metadata' }.each do |t|
-      puts "Dropping #{t}"
-      connection.drop_table t, if_exists: true, force: :cascade
-    end
+    connection.tables
+      .reject { |t| t == 'ar_internal_metadata' }
+      .each { |t| connection.drop_table t, if_exists: true, force: :cascade }
   end
 end

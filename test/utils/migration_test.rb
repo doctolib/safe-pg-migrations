@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class MigrationTest < Minitest::Test
-  def run_migration(direction = :up)
-    @migration.version = DUMMY_MIGRATION_VERSION
-    ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration).migrate
+  def run_migration(migration, direction = :up)
+    migration.version = DUMMY_MIGRATION_VERSION
+    ActiveRecord::Migrator.new(direction, [migration], ActiveRecord::SchemaMigration).migrate
   end
 
   def assert_calls(expected, actual)

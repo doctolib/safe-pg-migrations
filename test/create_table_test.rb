@@ -4,7 +4,7 @@ require 'test_helper'
 
 class SafePgMigrationsTest < MigrationTest
   def test_create_table
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           create_table(:users) do |t|
@@ -14,7 +14,7 @@ class SafePgMigrationsTest < MigrationTest
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       "SET statement_timeout TO '5s'",
 
@@ -32,7 +32,7 @@ class SafePgMigrationsTest < MigrationTest
       "SET statement_timeout TO '70s'",
     ], calls
 
-    run_migration(:down)
+    run_migration migration, :down
     refute connection.table_exists?(:users)
   end
 
@@ -43,7 +43,7 @@ class SafePgMigrationsTest < MigrationTest
       t.string :email
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           create_table(:users) do |t|
@@ -53,7 +53,7 @@ class SafePgMigrationsTest < MigrationTest
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     indexes = ActiveRecord::Base.connection.indexes :users
     refute_empty indexes
     assert_equal 'index_users_on_email', indexes.first.name

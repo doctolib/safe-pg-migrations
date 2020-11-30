@@ -10,14 +10,14 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :user_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users, validate: false
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
@@ -33,14 +33,14 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :user_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
@@ -63,14 +63,14 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :author_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users, primary_key: :real_id, column: :author_id, name: :message_user_key
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
@@ -89,7 +89,7 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :user_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           2.times { add_foreign_key :messages, :users }
@@ -98,8 +98,8 @@ class AddForeignKeyTest < MigrationTest
 
     execute_calls = nil
     write_calls =
-      record_calls(@migration, :write) do
-        execute_calls = record_calls(connection, :execute) { run_migration }
+      record_calls(migration, :write) do
+        execute_calls = record_calls(connection, :execute) { run_migration migration }
       end
     assert_calls [
       "SET statement_timeout TO '5s'",
@@ -131,7 +131,7 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :author_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           2.times { add_foreign_key :messages, :users, column: :author_id }
@@ -140,8 +140,8 @@ class AddForeignKeyTest < MigrationTest
 
     execute_calls = nil
     write_calls =
-      record_calls(@migration, :write) do
-        execute_calls = record_calls(connection, :execute) { run_migration }
+      record_calls(migration, :write) do
+        execute_calls = record_calls(connection, :execute) { run_migration migration }
       end
 
     assert_calls [
@@ -174,7 +174,7 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :user_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users
@@ -184,8 +184,8 @@ class AddForeignKeyTest < MigrationTest
 
     execute_calls = nil
     write_calls =
-      record_calls(@migration, :write) do
-        execute_calls = record_calls(connection, :execute) { run_migration }
+      record_calls(migration, :write) do
+        execute_calls = record_calls(connection, :execute) { run_migration migration }
       end
 
     assert_calls [
@@ -220,7 +220,7 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :conversation_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users, column: :author_id
@@ -230,8 +230,8 @@ class AddForeignKeyTest < MigrationTest
 
     execute_calls = nil
     write_calls =
-      record_calls(@migration, :write) do
-        execute_calls = record_calls(connection, :execute) { run_migration }
+      record_calls(migration, :write) do
+        execute_calls = record_calls(connection, :execute) { run_migration migration }
       end
 
     assert_calls [
@@ -265,14 +265,14 @@ class AddForeignKeyTest < MigrationTest
       t.bigint :user_id
     end
 
-    @migration =
+    migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
           add_foreign_key :messages, :users, validate: true
         end
       end.new
 
-    calls = record_calls(connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration migration }
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
