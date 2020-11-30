@@ -8,6 +8,7 @@ class MiniTest::Test
   def setup
     SafePgMigrations.instance_variable_set(:@config, nil)
     @verbose_was = ActiveRecord::Migration.verbose
+    drop_all_tables
     connection.create_table(:schema_migrations) { |t| t.string :version }
     ActiveRecord::SchemaMigration.create_table
     ActiveRecord::Migration.verbose = false
