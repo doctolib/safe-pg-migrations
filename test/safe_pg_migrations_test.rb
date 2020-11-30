@@ -2,26 +2,7 @@
 
 require 'test_helper'
 
-class SafePgMigrationsTest < Minitest::Test
-  def setup
-    SafePgMigrations.instance_variable_set(:@config, nil)
-    @connection = ActiveRecord::Base.connection
-    @verbose_was = ActiveRecord::Migration.verbose
-    @connection.create_table(:schema_migrations) { |t| t.string :version }
-    ActiveRecord::SchemaMigration.create_table
-    ActiveRecord::Migration.verbose = false
-    @connection.execute("SET statement_timeout TO '70s'")
-    @connection.execute("SET lock_timeout TO '70s'")
-  end
-
-  def teardown
-    ActiveRecord::SchemaMigration.drop_table
-    @connection.execute('SET statement_timeout TO 0')
-    @connection.execute("SET lock_timeout TO '30s'")
-    @connection.drop_table(:users, if_exists: true)
-    ActiveRecord::Migration.verbose = @verbose_was
-  end
-
+class SafePgMigrationsTest < MigrationTest
   def test_remove_transaction
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -38,7 +19,7 @@ class SafePgMigrationsTest < Minitest::Test
       end.new
 
     run_migration
-    assert @connection.table_exists?(:users)
+    assert connection.table_exists?(:users)
     assert_equal(
       false,
       @migration.class.did_open_transaction,
@@ -46,11 +27,11 @@ class SafePgMigrationsTest < Minitest::Test
     )
 
     run_migration(:down)
-    refute @connection.table_exists?(:users)
+    refute connection.table_exists?(:users)
   end
 
   def test_statement_retry
-    @connection.create_table(:users)
+    connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
@@ -77,7 +58,7 @@ class SafePgMigrationsTest < Minitest::Test
     SafePgMigrations.config.blocking_activity_logger_margin = 0.1.seconds
 
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
-    assert @connection.column_exists?(:users, :email, :string)
+    assert connection.column_exists?(:users, :email, :string)
     assert_equal [
       '== 8128 : migrating ===========================================================',
       '-- add_column(:users, :email, :string)',
@@ -103,7 +84,7 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    @connection.expects(:sleep).times(4)
+    connection.expects(:sleep).times(4)
     calls =
       record_calls(@migration, :write) do
         run_migration
@@ -121,7 +102,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_add_column_before_pg_11
-    @connection.create_table(:users)
+    connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
@@ -133,7 +114,7 @@ class SafePgMigrationsTest < Minitest::Test
       execute_calls = nil
       write_calls =
         record_calls(@migration, :write) do
-          execute_calls = record_calls(@connection, :execute) { run_migration }
+          execute_calls = record_calls(connection, :execute) { run_migration }
         end
       assert_calls [
         # The column is added without any default.
@@ -160,7 +141,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_add_column_after_pg_11
-    @connection.create_table(:users)
+    connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
@@ -172,7 +153,7 @@ class SafePgMigrationsTest < Minitest::Test
       execute_calls = nil
       write_calls =
         record_calls(@migration, :write) do
-          execute_calls = record_calls(@connection, :execute) { run_migration }
+          execute_calls = record_calls(connection, :execute) { run_migration }
         end
       assert_calls [
         # The column is added with the default without any trick
@@ -194,7 +175,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_create_table_idem_potent
-    @connection.create_table(:users) { |t| t.string :email }
+    connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -215,7 +196,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_add_column_idem_potent
-    @connection.create_table(:users) { |t| t.string :email }
+    connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -236,7 +217,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_remove_column_idem_potent
-    @connection.create_table(:users) { |t| t.string :email, index: true }
+    connection.create_table(:users) { |t| t.string :email, index: true }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -245,7 +226,7 @@ class SafePgMigrationsTest < Minitest::Test
       end.new
 
     write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
-    refute @connection.index_exists?(:users, :email)
+    refute connection.index_exists?(:users, :email)
 
     assert_equal [
       '== 8128 : migrating ===========================================================',
@@ -258,11 +239,11 @@ class SafePgMigrationsTest < Minitest::Test
     ], write_calls[3..4]
 
     assert_equal write_calls.length, 8
-    refute @connection.index_exists?(:users, :email)
+    refute connection.index_exists?(:users, :email)
   end
 
   def test_remove_index_idem_potent
-    @connection.create_table(:users) { |t| t.string(:email, index: true) }
+    connection.create_table(:users) { |t| t.string(:email, index: true) }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -271,7 +252,7 @@ class SafePgMigrationsTest < Minitest::Test
       end.new
 
     write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
-    refute @connection.index_exists?(:users, :email)
+    refute connection.index_exists?(:users, :email)
 
     assert_equal [
       '== 8128 : migrating ===========================================================',
@@ -286,11 +267,11 @@ class SafePgMigrationsTest < Minitest::Test
     ], write_calls[4...7]
 
     assert_equal write_calls.length, 10
-    refute @connection.index_exists?(:users, :email)
+    refute connection.index_exists?(:users, :email)
   end
 
   def test_change_table
-    @connection.create_table(:users)
+    connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -301,7 +282,7 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    calls = record_calls(@connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration }
     assert_calls [
       # Both columns are added.
       'ALTER TABLE "users" ADD "email" character varying',
@@ -316,12 +297,12 @@ class SafePgMigrationsTest < Minitest::Test
     ], calls
 
     run_migration(:down)
-    refute @connection.column_exists?(:users, :email)
-    refute @connection.column_exists?(:users, :user)
+    refute connection.column_exists?(:users, :email)
+    refute connection.column_exists?(:users, :user)
   end
 
   def test_add_index
-    @connection.create_table(:users) { |t| t.string :email }
+    connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -329,7 +310,7 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    calls = record_calls(@connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration }
     assert_calls [
       'SET statement_timeout TO 0',
       'SET lock_timeout TO 0',
@@ -339,11 +320,11 @@ class SafePgMigrationsTest < Minitest::Test
     ], calls
 
     run_migration(:down)
-    refute @connection.index_exists?(:users, :email)
+    refute connection.index_exists?(:users, :email)
   end
 
   def test_add_index_idem_potent
-    @connection.create_table(:users) { |t| t.string :email }
+    connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -351,7 +332,7 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    calls = record_calls(@connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration }
 
     assert_calls [
       'SET statement_timeout TO 0',
@@ -367,7 +348,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_change_column_with_timeout
-    @connection.create_table(:users) { |t| t.string :email }
+    connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -375,7 +356,7 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    calls = record_calls(@connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration }
 
     assert_calls [
       "SET statement_timeout TO '5s'",
@@ -385,7 +366,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_add_index_idem_potent_invalid_index
-    @connection.create_table(:users) { |t| t.string :email, index: true }
+    connection.create_table(:users) { |t| t.string :email, index: true }
 
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -394,8 +375,8 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    @connection.stubs(:index_valid?).returns(false)
-    calls = record_calls(@connection, :execute) { run_migration }
+    connection.stubs(:index_valid?).returns(false)
+    calls = record_calls(connection, :execute) { run_migration }
     assert_calls [
       'SET statement_timeout TO 0',
       'SET lock_timeout TO 0',
@@ -413,7 +394,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_add_belongs_to
-    @connection.create_table(:users)
+    connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
@@ -421,7 +402,7 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    calls = record_calls(@connection, :execute) { run_migration }
+    calls = record_calls(connection, :execute) { run_migration }
     assert_calls [
       # The column is added.
       'ALTER TABLE "users" ADD "user_id" bigint',
@@ -445,7 +426,7 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   def test_backfill_column_default
-    @connection.create_table(:users) { |t| t.string :email }
+    connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
@@ -453,13 +434,13 @@ class SafePgMigrationsTest < Minitest::Test
         end
       end.new
 
-    @connection.execute 'INSERT INTO users (id) values (GENERATE_SERIES(1, 5))'
-    assert_equal 5, @connection.query_value('SELECT count(*) FROM users WHERE email IS NULL')
+    connection.execute 'INSERT INTO users (id) values (GENERATE_SERIES(1, 5))'
+    assert_equal 5, connection.query_value('SELECT count(*) FROM users WHERE email IS NULL')
 
     SafePgMigrations.config.batch_size = 2
-    @connection.change_column_default(:users, :email, 'michel@example.org')
-    calls = record_calls(@connection, :execute) { run_migration }
-    assert_equal 5, @connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
+    connection.change_column_default(:users, :email, 'michel@example.org')
+    calls = record_calls(connection, :execute) { run_migration }
+    assert_equal 5, connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
     assert_calls [
       'UPDATE "users" SET "email" = DEFAULT WHERE id IN (1,2)',
       'UPDATE "users" SET "email" = DEFAULT WHERE id IN (3,4)',
