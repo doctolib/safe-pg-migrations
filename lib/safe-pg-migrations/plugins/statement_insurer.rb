@@ -4,7 +4,7 @@ module SafePgMigrations
   module StatementInsurer
     PG_11_VERSION_NUM = 110_000
 
-    %i[change_column_null change_column create_table].each do |method|
+    %i[change_column_null change_column].each do |method|
       define_method method do |*args, &block|
         with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super(*args, &block) }
       end
@@ -46,8 +46,25 @@ module SafePgMigrations
       without_statement_timeout { validate_foreign_key from_table, options_or_to_table } unless validate_present
     end
 
+    def create_table(*)
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) do
+        super do |td|
+          yield td if block_given?
+          td.indexes.map! do |key, index_options|
+            index_options[:algorithm] ||= nil
+            [key, index_options]
+          end
+        end
+      end
+    end
+
     def add_index(table_name, column_name, **options)
-      options[:algorithm] = :concurrently
+      if options.key? :algorithm
+        options.delete :algorithm unless options[:algorithm]
+      else
+        options[:algorithm] = :concurrently
+      end
+
       SafePgMigrations.say_method_call(:add_index, table_name, column_name, options)
 
       without_timeout { super }
