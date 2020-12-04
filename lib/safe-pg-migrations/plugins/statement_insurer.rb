@@ -51,7 +51,7 @@ module SafePgMigrations
         super do |td|
           yield td if block_given?
           td.indexes.map! do |key, index_options|
-            index_options[:algorithm] ||= nil
+            index_options[:algorithm] ||= :default
             [key, index_options]
           end
         end
@@ -59,8 +59,8 @@ module SafePgMigrations
     end
 
     def add_index(table_name, column_name, **options)
-      if options.key? :algorithm
-        options.delete :algorithm unless options[:algorithm]
+      if options[:algorithm] == :default
+        options.delete :algorithm
       else
         options[:algorithm] = :concurrently
       end
