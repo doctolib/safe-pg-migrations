@@ -16,6 +16,8 @@ Just drop this line in your Gemfile:
 gem 'safe-pg-migrations'
 ```
 
+**Note: Do not run migrations via PgBouncer connection if it is configured to use transactional or statement pooling modes. You must run migrations via a direct Postgres connection, or configure PgBouncer to use session pooling mode.**
+
 ## Example
 
 Consider the following migration:
