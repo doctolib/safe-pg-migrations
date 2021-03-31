@@ -32,7 +32,7 @@ module SafePgMigrations
         backfill_column_default(table_name, column_name)
       end
 
-      if apply_not_null_constraint_separately && null == false # rubocop:disable Style/GuardClause
+      if null == false # rubocop:disable Style/GuardClause
         SafePgMigrations.say_method_call(:change_column_null, table_name, column_name, null)
         change_column_null(table_name, column_name, null)
       end
