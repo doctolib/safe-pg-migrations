@@ -175,20 +175,13 @@ class SafePgMigrationsTest < Minitest::Test
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
       assert_calls [
-        # The column is added with the default without any trick
-        'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE',
-
-        # The not-null constraint is added.
-        "SET statement_timeout TO '5s'",
-        'ALTER TABLE "users" ALTER COLUMN "admin" SET NOT NULL',
-        "SET statement_timeout TO '70s'",
+        # The column is added with the default and not null constraint without any tricks
+        'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
       ], execute_calls
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
         '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
-        '   -> add_column("users", :admin, :boolean, {:default=>false})',
-        '   -> change_column_null("users", :admin, false)',
       ], write_calls.map(&:first)[0...-3]
     end
   end
