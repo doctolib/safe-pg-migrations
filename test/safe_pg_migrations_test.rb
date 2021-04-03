@@ -120,7 +120,101 @@ class SafePgMigrationsTest < Minitest::Test
     ], calls[1..4].map(&:first)
   end
 
-  def test_add_column_before_pg_11
+  def test_add_column_before_pg_11_without_null_or_default_value
+    @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          add_column(:users, :admin, :boolean)
+        end
+      end.new
+
+    SafePgMigrations.stub(:get_pg_version_num, 96_000) do
+      execute_calls = nil
+      write_calls =
+        record_calls(@migration, :write) do
+          execute_calls = record_calls(@connection, :execute) { run_migration }
+        end
+      assert_calls [
+        # The column is added without any default.
+        'ALTER TABLE "users" ADD "admin" boolean',
+      ], execute_calls
+
+      assert_equal [
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean)',
+      ], write_calls.map(&:first)[0...-3]
+    end
+  end
+
+  def test_add_column_before_pg_11_with_null_constraint
+    @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          add_column(:users, :admin, :boolean, null: false)
+        end
+      end.new
+
+    SafePgMigrations.stub(:get_pg_version_num, 96_000) do
+      execute_calls = nil
+      write_calls =
+        record_calls(@migration, :write) do
+          execute_calls = record_calls(@connection, :execute) { run_migration }
+        end
+      assert_calls [
+        # The column is added without any default.
+        'ALTER TABLE "users" ADD "admin" boolean',
+
+        # The not-null constraint is added.
+        "SET statement_timeout TO '5s'",
+        'ALTER TABLE "users" ALTER COLUMN "admin" SET NOT NULL',
+        "SET statement_timeout TO '70s'",
+      ], execute_calls
+
+      assert_equal [
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean, {:null=>false})',
+        '   -> add_column("users", :admin, :boolean, {})',
+        '   -> change_column_null("users", :admin, false)',
+      ], write_calls.map(&:first)[0...-3]
+    end
+  end
+
+  def test_add_column_before_pg_11_with_default_value
+    @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          add_column(:users, :admin, :boolean, default: false)
+        end
+      end.new
+
+    SafePgMigrations.stub(:get_pg_version_num, 96_000) do
+      execute_calls = nil
+      write_calls =
+        record_calls(@migration, :write) do
+          execute_calls = record_calls(@connection, :execute) { run_migration }
+        end
+      assert_calls [
+        # The column is added without any default.
+        'ALTER TABLE "users" ADD "admin" boolean',
+
+        # The default is added.
+        'ALTER TABLE "users" ALTER COLUMN "admin" SET DEFAULT FALSE',
+      ], execute_calls
+
+      assert_equal [
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean, {:default=>false})',
+        '   -> add_column("users", :admin, :boolean, {})',
+        '   -> change_column_default("users", :admin, false)',
+        '   -> backfill_column_default("users", :admin)',
+      ], write_calls.map(&:first)[0...-3]
+    end
+  end
+
+  def test_add_column_before_pg_11_with_null_and_default_value
     @connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
