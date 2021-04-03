@@ -10,13 +10,11 @@ module SafePgMigrations
       end
     end
 
-    # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     def add_column(table_name, column_name, type, **options)
-      need_default_value_backfill = SafePgMigrations.pg_version_num < PG_11_VERSION_NUM
-      apply_not_null_constraint_separately = SafePgMigrations.pg_version_num < PG_11_VERSION_NUM
+      return super if SafePgMigrations.pg_version_num >= PG_11_VERSION_NUM
 
-      default = options.delete(:default) if need_default_value_backfill
-      null = options.delete(:null) if apply_not_null_constraint_separately
+      default = options.delete(:default)
+      null = options.delete(:null)
 
       if !default.nil? || null == false
         SafePgMigrations.say_method_call(:add_column, table_name, column_name, type, options)
@@ -24,7 +22,7 @@ module SafePgMigrations
 
       super
 
-      if need_default_value_backfill && !default.nil?
+      unless default.nil?
         SafePgMigrations.say_method_call(:change_column_default, table_name, column_name, default)
         change_column_default(table_name, column_name, default)
 
@@ -37,7 +35,6 @@ module SafePgMigrations
         change_column_null(table_name, column_name, null)
       end
     end
-    # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
     def add_foreign_key(from_table, to_table, **options)
       validate_present = options.key? :validate
