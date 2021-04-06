@@ -10,10 +10,10 @@ module SafePgMigrations
       end
     end
 
-    def add_column(table_name, column_name, type, **options) # rubocop:disable Metrics/CyclomaticComplexity
-      need_default_value_backfill = SafePgMigrations.pg_version_num < PG_11_VERSION_NUM
+    def add_column(table_name, column_name, type, **options)
+      return super if SafePgMigrations.pg_version_num >= PG_11_VERSION_NUM
 
-      default = options.delete(:default) if need_default_value_backfill
+      default = options.delete(:default)
       null = options.delete(:null)
 
       if !default.nil? || null == false
@@ -22,7 +22,7 @@ module SafePgMigrations
 
       super
 
-      if need_default_value_backfill && !default.nil?
+      unless default.nil?
         SafePgMigrations.say_method_call(:change_column_default, table_name, column_name, default)
         change_column_default(table_name, column_name, default)
 
