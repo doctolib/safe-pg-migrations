@@ -63,7 +63,7 @@ Under the hood, **Safe PG Migrations** patches `ActiveRecord::Migration` and ext
 
 ## Motivation
 
-Writing a safe migration can be daunting. Numerous articles have been written on the topic and a few gems are trying to address the problem. Even for someone who has a pretty good command of Postgres, remembering all the subtleties of explicit locking is not a piece of cake.
+Writing a safe migration can be daunting. Numerous articles, [including ours](https://medium.com/doctolib/stop-worrying-about-postgresql-locks-in-your-rails-migrations-3426027e9cc9), have been written on the topic and a few gems are trying to address the problem. Even for someone who has a pretty good command of Postgres, remembering all the subtleties of explicit locking is not a piece of cake.
 
 Active Record means developers don't have to be proficient in SQL to interact with a database. In the same way, **Safe PG Migrations** was created so that developers don't have to understand the ins and outs of Postgres to write a safe migration.
 
@@ -254,3 +254,4 @@ Interesting reads:
 - [Rails migrations with no downtime](https://pedro.herokuapp.com/past/2011/7/13/rails_migrations_with_no_downtime/)
 - [Safe Operations For High Volume PostgreSQL](https://www.braintreepayments.com/blog/safe-operations-for-high-volume-postgresql/)
 - [Rails Migrations with Zero Downtime](https://blog.codeship.com/rails-migrations-zero-downtime/)
+- [Stop worrying about PostgreSQL locks in your Rails migrations](https://medium.com/doctolib/stop-worrying-about-postgresql-locks-in-your-rails-migrations-3426027e9cc9)
