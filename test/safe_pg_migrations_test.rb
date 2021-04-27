@@ -49,33 +49,22 @@ class SafePgMigrationsTest < Minitest::Test
     refute @connection.table_exists?(:users)
   end
 
-  def test_statement_retry
+  def test_blocking_activity_logger_filtered
+    SafePgMigrations.config.blocking_activity_logger_verbose = false
+
     @connection.create_table(:users)
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def up
-          # Simulate a blocking transaction from another connection.
-          thread_lock = Concurrent::CountDownLatch.new
-          thread =
-            Thread.new do
-              ActiveRecord::Base.connection.execute('BEGIN; SELECT 1 FROM users')
-              thread_lock.count_down
-              sleep 1
-              ActiveRecord::Base.connection.commit_db_transaction
-            end
+    @migration = simulate_blocking_transaction_from_another_connection
 
-          thread_lock.wait # Wait for the above transaction to start.
+    calls = record_calls(@migration, :write) { run_migration }.join
+    assert_includes calls, 'lock type: relation'
+    assert_includes calls, 'lock mode: AccessExclusiveLock'
+    assert_includes calls, 'lock pid:'
+    assert_includes calls, 'lock transactionid: null'
+    refute_includes calls, 'Statement was being blocked by the following query'
+  end
 
-          add_column :users, :email, :string
-
-          thread.join
-        end
-      end.new
-
-    SafePgMigrations.config.retry_delay = 1.second
-    SafePgMigrations.config.safe_timeout = 0.5.second
-    SafePgMigrations.config.blocking_activity_logger_margin = 0.1.seconds
-
+  def test_statement_retry
+    @migration = simulate_blocking_transaction_from_another_connection
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
     assert @connection.column_exists?(:users, :email, :string)
     assert_equal [
@@ -596,5 +585,34 @@ class SafePgMigrationsTest < Minitest::Test
       assert_match('SELECT version()', logs[3])
       assert_match("SET lock_timeout TO '70s'", logs[4])
     end
+  end
+
+  private
+  
+  def simulate_blocking_transaction_from_another_connection
+    SafePgMigrations.config.retry_delay = 1.second
+    SafePgMigrations.config.safe_timeout = 0.5.second
+    SafePgMigrations.config.blocking_activity_logger_margin = 0.1.seconds
+
+    @connection.create_table(:users)
+    
+    Class.new(ActiveRecord::Migration::Current) do
+      def up
+        thread_lock = Concurrent::CountDownLatch.new
+        thread =
+          Thread.new do
+            ActiveRecord::Base.connection.execute('BEGIN; SELECT 1 FROM users')
+            thread_lock.count_down
+            sleep 1
+            ActiveRecord::Base.connection.commit_db_transaction
+          end
+
+        thread_lock.wait # Wait for the above transaction to start.
+
+        add_column :users, :email, :string
+
+        thread.join
+      end
+    end.new
   end
 end

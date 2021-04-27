@@ -79,10 +79,7 @@ module SafePgMigrations
       if queries.empty?
         SafePgMigrations.say 'Could not find any blocking query.', true
       else
-        SafePgMigrations.say(
-          "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:", true
-        )
-        SafePgMigrations.say '', true
+
         output_blocking_queries(queries)
         SafePgMigrations.say(
           'Beware, some of those queries might run in a transaction. In this case the locking query might be '\
@@ -97,16 +94,20 @@ module SafePgMigrations
 
     def output_blocking_queries(queries)
       if SafePgMigrations.config.blocking_activity_logger_verbose
+        SafePgMigrations.say(
+          "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:", true
+        )
+        SafePgMigrations.say '', true
         queries.each do |query, start_time|
           SafePgMigrations.say "#{format_start_time start_time}:  #{query}", true
         end
       else
         queries.each do |start_time, locktype, mode, pid, transactionid|
           SafePgMigrations.say format_start_time(start_time), true
-          SafePgMigrations.say "lock type: #{locktype || 'null'}"
-          SafePgMigrations.say "lock mode: #{mode || 'null'}"
-          SafePgMigrations.say "lock pid: #{pid || 'null'}"
-          SafePgMigrations.say "lock transactionid: #{transactionid || 'null'}"
+          SafePgMigrations.say "lock type: #{locktype || 'null'}", true
+          SafePgMigrations.say "lock mode: #{mode || 'null'}", true
+          SafePgMigrations.say "lock pid: #{pid || 'null'}", true
+          SafePgMigrations.say "lock transactionid: #{transactionid || 'null'}", true
         end
       end
     end
