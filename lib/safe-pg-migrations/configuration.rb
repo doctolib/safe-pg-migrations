@@ -6,6 +6,7 @@ module SafePgMigrations
   class Configuration
     attr_accessor :safe_timeout
     attr_accessor :blocking_activity_logger_margin
+    attr_accessor :blocking_activity_logger_verbose
     attr_accessor :batch_size
     attr_accessor :retry_delay
     attr_accessor :max_tries
@@ -13,6 +14,7 @@ module SafePgMigrations
     def initialize
       self.safe_timeout = 5.seconds
       self.blocking_activity_logger_margin = 1.second
+      self.blocking_activity_logger_verbose = true
       self.batch_size = 1000
       self.retry_delay = 1.minute
       self.max_tries = 5
