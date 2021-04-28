@@ -588,14 +588,14 @@ class SafePgMigrationsTest < Minitest::Test
   end
 
   private
-  
+
   def simulate_blocking_transaction_from_another_connection
     SafePgMigrations.config.retry_delay = 1.second
     SafePgMigrations.config.safe_timeout = 0.5.second
     SafePgMigrations.config.blocking_activity_logger_margin = 0.1.seconds
 
     @connection.create_table(:users)
-    
+
     Class.new(ActiveRecord::Migration::Current) do
       def up
         thread_lock = Concurrent::CountDownLatch.new

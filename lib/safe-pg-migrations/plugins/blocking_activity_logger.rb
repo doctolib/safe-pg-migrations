@@ -2,18 +2,18 @@
 
 module SafePgMigrations
   module BlockingActivityLogger
-    FILTERED_COLUMNS = %w(
+    FILTERED_COLUMNS = %w[
       blocked_activity.xact_start
       blocked_locks.locktype
       blocked_locks.mode
       blocking_activity.pid
       blocked_locks.transactionid
-    ).freeze
+    ].freeze
 
-    VERBOSE_COLUMNS = %w(
+    VERBOSE_COLUMNS = %w[
       blocking_activity.query
       blocked_activity.xact_start
-    ).freeze
+    ].freeze
 
     %i[
       add_column remove_column add_foreign_key remove_foreign_key change_column_default change_column_null create_table
