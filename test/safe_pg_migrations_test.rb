@@ -60,7 +60,6 @@ class SafePgMigrationsTest < Minitest::Test
     assert_includes calls, 'lock mode: AccessExclusiveLock'
     assert_includes calls, 'lock pid:'
     assert_includes calls, 'lock transactionid: null'
-    refute_includes calls, 'Statement was being blocked by the following query'
   end
 
   def test_statement_retry
