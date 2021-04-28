@@ -105,7 +105,7 @@ module SafePgMigrations
               "lock mode: #{mode || 'null'}, " \
               "lock pid: #{pid || 'null'}, " \
               "lock transactionid: #{transactionid || 'null'}",
-            true,
+            true
           )
         end
       end
