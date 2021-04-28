@@ -208,6 +208,8 @@ So you can actually check that the `CREATE INDEX` statement will be performed co
 ```ruby
 SafePgMigrations.config.safe_timeout = 5.seconds # Lock and statement timeout used for all DDL operations except from CREATE / DROP INDEX
 
+SafePgMigrations.config.blocking_activity_logger_verbose = true # Outputs the raw blocking queries on timeout. When false, outputs information about the lock instead
+
 SafePgMigrations.config.blocking_activity_logger_margin = 1.second # Delay to output blocking queries before timeout. Must be shorter than safe_timeout
 
 SafePgMigrations.config.batch_size = 1000 # Size of the batches used for backfilling when adding a column with a default value pre-PG11
