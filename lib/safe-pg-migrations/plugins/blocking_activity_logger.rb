@@ -23,12 +23,10 @@ module SafePgMigrations
       end
     end
 
-    def add_index(table_name, column_name, **options)
-      if options[:algorithm] == :concurrently
-        log_blocking_queries { super(table_name, column_name, **options) }
-      else
-        super(table_name, column_name, **options)
-      end
+    def add_index(*args, **options)
+      return super if options[:algorithm] != :concurrently
+
+      log_blocking_queries { super }
     end
 
     private
@@ -106,7 +104,7 @@ module SafePgMigrations
         SafePgMigrations.say 'Could not find any blocking query.', true
       else
         SafePgMigrations.say(
-          "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:", true
+          "Statement is being blocked by the following #{'query'.pluralize(queries.size)}:", true
         )
         SafePgMigrations.say '', true
         output_blocking_queries(queries)
@@ -139,9 +137,9 @@ module SafePgMigrations
       duration = (reference_time - start_time).round
       "transaction started #{duration} #{'second'.pluralize(duration)} ago"
     end
-    
+
     def delay_before_logging
-      @_delay_before_logging ||= SafePgMigrations.config.safe_timeout - SafePgMigrations.config.blocking_activity_logger_margin
+      SafePgMigrations.config.safe_timeout - SafePgMigrations.config.blocking_activity_logger_margin
     end
   end
 end
