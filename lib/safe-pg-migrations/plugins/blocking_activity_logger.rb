@@ -64,7 +64,7 @@ module SafePgMigrations
         Thread.new do
           sleep delay_before_logging
           loop do
-            queries = SafePgMigrations.alternate_connection.query(SELECT_BLOCKING_QUERIES_SQL % raw_connection.backend_pid)
+            queries = SafePgMigrations.alternate_connection.query(select_blocking_queries_sql % raw_connection.backend_pid)
             log_queries(queries)
             sleep SafePgMigrations.config.retry_delay
           end
