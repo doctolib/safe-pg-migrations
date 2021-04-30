@@ -56,18 +56,34 @@ class Minitest::Test
     calls = []
     recorder =
       lambda {
-        object.stubs(method).with do |*args|
-          calls << args
-          # Temporarily unstub the method so that we can call the original method.
-          object.unstub(method)
-          begin
-            # Call the original method.
-            object.send(method, *args)
-          ensure
-            # Register the recorder again.
-            recorder.call
+        if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7')
+          object.stubs(method).with do |*args, **kwargs|
+            calls << args + (kwargs.empty? ? [] : [kwargs])
+            # Temporarily unstub the method so that we can call the original method.
+            object.unstub(method)
+            begin
+              # Call the original method.
+              object.send(method, *args, **kwargs)
+            ensure
+              # Register the recorder again.
+              recorder.call
+            end
+            true
           end
-          true
+        else
+          object.stubs(method).with do |*args|
+            calls << args
+            # Temporarily unstub the method so that we can call the original method.
+            object.unstub(method)
+            begin
+              # Call the original method.
+              object.send(method, *args)
+            ensure
+              # Register the recorder again.
+              recorder.call
+            end
+            true
+          end
         end
       }
     recorder.call

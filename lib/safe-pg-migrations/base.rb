@@ -55,10 +55,12 @@ module SafePgMigrations
 
       current_migration.say(*args)
     end
+    ruby2_keywords :say if respond_to?(:ruby2_keywords, true)
 
     def say_method_call(method, *args)
       say "#{method}(#{args.map(&:inspect) * ', '})", true
     end
+    ruby2_keywords :say_method_call if respond_to?(:ruby2_keywords, true)
 
     def verbose?
       return ENV['SAFE_PG_MIGRATIONS_VERBOSE'] == '1' if ENV['SAFE_PG_MIGRATIONS_VERBOSE']
@@ -91,6 +93,7 @@ module SafePgMigrations
 
         safety_assured { super(*args) }
       end
+      ruby2_keywords method if respond_to?(:ruby2_keywords, true)
     end
   end
 end
