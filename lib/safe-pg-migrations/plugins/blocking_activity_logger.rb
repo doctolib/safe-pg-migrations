@@ -26,7 +26,9 @@ module SafePgMigrations
         Thread.new do
           loop do
             sleep SafePgMigrations.config.retry_delay
-            log_queries SafePgMigrations.alternate_connection.query(select_blocking_queries_sql % raw_connection.backend_pid)
+            log_queries SafePgMigrations.alternate_connection.query(
+              select_blocking_queries_sql % raw_connection.backend_pid
+            )
           end
         end
 

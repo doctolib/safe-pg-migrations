@@ -67,7 +67,7 @@ class BlockingActivityLoggerTest < Minitest::Unit::TestCase
     @migration = blocking_migration_on_add_index
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
 
-    assert_equal 2, calls.count { |line| line&.include? 'Statement is being blocked by the following query' }
+    assert_equal(2, calls.count { |line| line&.include? 'Statement is being blocked by the following query' })
     assert_match(/\s*-> transaction started 0 seconds ago:\s*BEGIN; UPDATE users SET name = 'stan'/, calls[5])
     assert_match(/\s*-> transaction started 1 second ago:\s*BEGIN; UPDATE users SET name = 'stan'/, calls[10])
   end
@@ -80,7 +80,7 @@ class BlockingActivityLoggerTest < Minitest::Unit::TestCase
     @migration = blocking_migration_on_add_index
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
 
-    assert_equal 2, calls.count { |line| line&.include? 'Statement is being blocked by the following query' }
+    assert_equal(2, calls.count { |line| line&.include? 'Statement is being blocked by the following query' })
     assert_includes calls.join, 'lock type: relation'
     assert_includes calls.join, 'lock mode: ShareUpdateExclusiveLock'
     assert_includes calls.join, 'lock pid:'
