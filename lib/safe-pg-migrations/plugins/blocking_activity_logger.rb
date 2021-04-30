@@ -35,7 +35,7 @@ module SafePgMigrations
       columns = SafePgMigrations.config.blocking_activity_logger_verbose ? VERBOSE_COLUMNS : FILTERED_COLUMNS
 
       <<~SQL.squish
-        SELECT #{columns.join(', ')}
+        SELECT DISTINCT #{columns.join(', ')}
         FROM pg_catalog.pg_locks           blocked_locks
         JOIN pg_catalog.pg_stat_activity   blocked_activity
           ON blocked_activity.pid = blocked_locks.pid
@@ -54,17 +54,16 @@ module SafePgMigrations
         JOIN pg_catalog.pg_stat_activity   blocking_activity
           ON blocking_activity.pid = blocking_locks.pid
         WHERE blocked_locks.pid = %d
+          AND blocked_locks.granted
       SQL
     end
 
     def log_blocking_queries
       blocking_queries_retriever_thread =
         Thread.new do
-          sleep delay_before_logging
           loop do
-            queries = SafePgMigrations.alternate_connection.query(select_blocking_queries_sql % raw_connection.backend_pid)
-            log_queries(queries)
             sleep SafePgMigrations.config.retry_delay
+            log_queries SafePgMigrations.alternate_connection.query(select_blocking_queries_sql % raw_connection.backend_pid)
           end
         end
 

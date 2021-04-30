@@ -67,9 +67,24 @@ class BlockingActivityLoggerTest < Minitest::Unit::TestCase
     @migration = blocking_migration_on_add_index
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
 
-    assert_equal 2, calls.count { |line| line&.include? 'Statement is being blocked by the following queries' }
+    assert_equal 2, calls.count { |line| line&.include? 'Statement is being blocked by the following query' }
     assert_match(/\s*-> transaction started 0 seconds ago:\s*BEGIN; UPDATE users SET name = 'stan'/, calls[5])
-    assert_match(/\s*-> transaction started 1 second ago:\s*BEGIN; UPDATE users SET name = 'stan'/, calls[11])
+    assert_match(/\s*-> transaction started 1 second ago:\s*BEGIN; UPDATE users SET name = 'stan'/, calls[10])
+  end
+
+  def test_add_index_filtered
+    SafePgMigrations.config.blocking_activity_logger_verbose = false
+    SafePgMigrations.config.retry_delay = 0.4.second
+
+    @connection.create_table(:users) { |t| t.string :name }
+    @migration = blocking_migration_on_add_index
+    calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+
+    assert_equal 2, calls.count { |line| line&.include? 'Statement is being blocked by the following query' }
+    assert_includes calls.join, 'lock type: relation'
+    assert_includes calls.join, 'lock mode: ShareUpdateExclusiveLock'
+    assert_includes calls.join, 'lock pid:'
+    assert_includes calls.join, 'lock transactionid: null'
   end
 
   private
@@ -82,7 +97,7 @@ class BlockingActivityLoggerTest < Minitest::Unit::TestCase
           Thread.new do
             ActiveRecord::Base.connection.execute("BEGIN; UPDATE users SET name = 'stan'")
             thread_lock.count_down
-            sleep 1.1
+            sleep 1
             ActiveRecord::Base.connection.commit_db_transaction
           end
 
@@ -103,7 +118,7 @@ class BlockingActivityLoggerTest < Minitest::Unit::TestCase
           Thread.new do
             ActiveRecord::Base.connection.execute('BEGIN; SELECT 1 FROM users')
             thread_lock.count_down
-            sleep 1.1
+            sleep 1
             ActiveRecord::Base.connection.commit_db_transaction
           end
 
