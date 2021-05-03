@@ -22,6 +22,12 @@ module SafePgMigrations
       log_blocking_queries { super }
     end
 
+    def remove_index(*args, **options)
+      return super if options[:algorithm] != :concurrently
+
+      log_blocking_queries { super }
+    end
+
     private
 
     def log_blocking_queries
