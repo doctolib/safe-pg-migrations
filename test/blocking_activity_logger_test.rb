@@ -44,6 +44,7 @@ class BlockingActivityLoggerTest < Minitest::Unit::TestCase
 
     @migration = blocking_access_exclusive_migration
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+
     assert @connection.column_exists?(:users, :email, :string)
     assert_equal [
       '== 8128 : migrating ===========================================================',
@@ -80,7 +81,7 @@ class BlockingActivityLoggerTest < Minitest::Unit::TestCase
     @migration = blocking_migration_on_add_index
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
 
-    assert_equal(2, calls.count { |line| line&.include? 'Statement is being blocked by the following query' })
+    assert_equal(2, calls.count { |line| line&.include? 'Statement is being blocked by the following quer' })
     assert_includes calls.join, 'lock type: relation'
     assert_includes calls.join, 'lock mode: ShareUpdateExclusiveLock'
     assert_includes calls.join, 'lock pid:'

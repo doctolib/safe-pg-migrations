@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
+require_relative 'helpers/blocking_activity_formatter'
+require_relative 'helpers/blocking_activity_selector'
+
 module SafePgMigrations
   module BlockingActivityLogger
-    include SafePgMigrations::Helpers::BlockingActivitySelector
-    include SafePgMigrations::Helpers::BlockingActivityFormatter
+    include ::SafePgMigrations::Helpers::BlockingActivitySelector
+    include ::SafePgMigrations::Helpers::BlockingActivityFormatter
 
     %i[
       add_column remove_column add_foreign_key remove_foreign_key change_column_default change_column_null create_table

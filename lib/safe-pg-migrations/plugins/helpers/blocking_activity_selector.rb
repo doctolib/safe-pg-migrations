@@ -39,7 +39,6 @@ module SafePgMigrations
           JOIN pg_catalog.pg_stat_activity   blocking_activity
             ON blocking_activity.pid = blocking_locks.pid
           WHERE blocked_locks.pid = %d
-            AND blocked_locks.granted
         SQL
       end
     end
