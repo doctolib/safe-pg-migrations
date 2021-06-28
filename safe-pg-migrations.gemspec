@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.description = 'Make your PG migrations safe.'
 
   s.version = SafePgMigrations::VERSION
+  s.required_ruby_version = '>= 2.5', '< 4'
 
   s.authors  = ['Matthieu Prat', 'Romain Choquet']
   s.email    = 'matthieuprat@gmail.com'
