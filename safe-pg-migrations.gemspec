@@ -9,7 +9,6 @@ Gem::Specification.new do |s|
   s.description = 'Make your PG migrations safe.'
 
   s.version = SafePgMigrations::VERSION
-  s.required_ruby_version = '>= 2.5', '< 4'
 
   s.authors  = ['Matthieu Prat', 'Romain Choquet']
   s.email    = 'matthieuprat@gmail.com'
@@ -21,7 +20,7 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.platform              = Gem::Platform::RUBY
-  s.required_ruby_version = '>= 2.5'
+  s.required_ruby_version = '>= 2.5', '< 4'
 
   s.add_dependency 'activerecord', '>= 5.2'
   s.add_dependency 'activesupport', '>= 5.2'
