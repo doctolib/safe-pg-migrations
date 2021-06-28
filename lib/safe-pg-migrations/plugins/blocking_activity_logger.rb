@@ -21,6 +21,7 @@ module SafePgMigrations
       define_method method do |*args, &block|
         log_blocking_queries { super(*args, &block) }
       end
+      ruby2_keywords method
     end
 
     private

@@ -2,22 +2,27 @@
 
 module SafePgMigrations
   module UselessStatementsLogger
-    def self.warn_useless(action, link = nil, *args)
-      SafePgMigrations.say "/!\\ No need to explicitly use #{action}, safe-pg-migrations does it for you", *args
-      SafePgMigrations.say "\t see #{link} for more details", *args if link
+    class << self
+      ruby2_keywords def warn_useless(action, link = nil, *args)
+        SafePgMigrations.say "/!\\ No need to explicitly use #{action}, safe-pg-migrations does it for you", *args
+        SafePgMigrations.say "\t see #{link} for more details", *args if link
+      end
     end
 
-    def add_index(*, **options)
+    ruby2_keywords def add_index(*args)
+      options = args.last.is_a?(Hash) ? args.last : {}
       warn_for_index(**options)
       super
     end
 
-    def remove_index(table_name, options = {})
-      warn_for_index(options) if options.is_a? Hash
+    ruby2_keywords def remove_index(table_name, *args)
+      options = args.last.is_a?(Hash) ? args.last : {}
+      warn_for_index(**options) unless options.empty?
       super
     end
 
-    def add_foreign_key(*, **options)
+    ruby2_keywords def add_foreign_key(*args)
+      options = args.last.is_a?(Hash) ? args.last : {}
       if options[:validate] == false
         UselessStatementsLogger.warn_useless '`validate: :false`', 'https://github.com/doctolib/safe-pg-migrations#safe_add_foreign_key'
       end

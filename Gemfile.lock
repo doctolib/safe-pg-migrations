@@ -4,6 +4,7 @@ PATH
     safe-pg-migrations (1.2.3)
       activerecord (>= 5.2)
       activesupport (>= 5.2)
+      ruby2_keywords (>= 0.0.4)
 
 GEM
   remote: https://rubygems.org/
@@ -53,6 +54,7 @@ GEM
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.10.0)
+    ruby2_keywords (0.0.4)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
     unicode-display_width (1.4.0)
