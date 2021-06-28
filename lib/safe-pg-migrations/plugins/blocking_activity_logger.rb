@@ -21,7 +21,7 @@ module SafePgMigrations
       define_method method do |*args, &block|
         log_blocking_queries { super(*args, &block) }
       end
-      ruby2_keywords method if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords method
     end
 
     private

@@ -8,10 +8,10 @@ module SafePgMigrations
       define_method method do |*args, &block|
         with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super(*args, &block) }
       end
-      ruby2_keywords method if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords method
     end
 
-    def add_column(table_name, column_name, type, *args) # rubocop:disable Metrics/CyclomaticComplexity
+    ruby2_keywords def add_column(table_name, column_name, type, *args) # rubocop:disable Metrics/CyclomaticComplexity
       options = args.last.is_a?(Hash) ? args.last : {}
       return super if SafePgMigrations.pg_version_num >= PG_11_VERSION_NUM
 
@@ -37,9 +37,8 @@ module SafePgMigrations
         change_column_null(table_name, column_name, null)
       end
     end
-    ruby2_keywords :add_column if respond_to?(:ruby2_keywords, true)
 
-    def add_foreign_key(from_table, to_table, *args)
+    ruby2_keywords def add_foreign_key(from_table, to_table, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       validate_present = options.key? :validate
       options[:validate] = false unless validate_present
@@ -52,9 +51,8 @@ module SafePgMigrations
       suboptions = options.slice(:name, :column)
       without_statement_timeout { validate_foreign_key from_table, suboptions.present? ? nil : to_table, **suboptions }
     end
-    ruby2_keywords :add_foreign_key if respond_to?(:ruby2_keywords, true)
 
-    def create_table(*)
+    ruby2_keywords def create_table(*)
       with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) do
         super do |td|
           yield td if block_given?
@@ -65,7 +63,6 @@ module SafePgMigrations
         end
       end
     end
-    ruby2_keywords :create_table if respond_to?(:ruby2_keywords, true)
 
     def add_index(table_name, column_name, **options)
       if options[:algorithm] == :default
@@ -79,14 +76,13 @@ module SafePgMigrations
       without_timeout { super(table_name, column_name, **options) }
     end
 
-    def remove_index(table_name, *args)
+    ruby2_keywords def remove_index(table_name, *args)
       options = args.last.is_a?(Hash) ? args.last : { column: args.last }
       options[:algorithm] = :concurrently unless options.key?(:algorithm)
       SafePgMigrations.say_method_call(:remove_index, table_name, **options)
 
       without_timeout { super(table_name, **options) }
     end
-    ruby2_keywords :remove_index if respond_to?(:ruby2_keywords, true)
 
     def backfill_column_default(table_name, column_name)
       quoted_table_name = quote_table_name(table_name)

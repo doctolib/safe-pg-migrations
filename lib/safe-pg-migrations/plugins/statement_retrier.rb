@@ -10,7 +10,7 @@ module SafePgMigrations
       define_method method do |*args, &block|
         retry_if_lock_timeout { super(*args, &block) }
       end
-      ruby2_keywords method if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords method
     end
 
     private

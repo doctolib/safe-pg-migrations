@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activerecord', '>= 5.2'
   s.add_dependency 'activesupport', '>= 5.2'
+  s.add_dependency 'ruby2_keywords', '>= 0.0.4'
 
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'minitest'

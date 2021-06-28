@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'ruby2_keywords'
 require 'safe-pg-migrations/configuration'
 require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
@@ -50,17 +51,15 @@ module SafePgMigrations
       @alternate_connection = nil
     end
 
-    def say(*args)
+    ruby2_keywords def say(*args)
       return unless current_migration
 
       current_migration.say(*args)
     end
-    ruby2_keywords :say if respond_to?(:ruby2_keywords, true)
 
-    def say_method_call(method, *args)
+    ruby2_keywords def say_method_call(method, *args)
       say "#{method}(#{args.map(&:inspect) * ', '})", true
     end
-    ruby2_keywords :say_method_call if respond_to?(:ruby2_keywords, true)
 
     def verbose?
       return ENV['SAFE_PG_MIGRATIONS_VERBOSE'] == '1' if ENV['SAFE_PG_MIGRATIONS_VERBOSE']
@@ -93,7 +92,7 @@ module SafePgMigrations
 
         safety_assured { super(*args) }
       end
-      ruby2_keywords method if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords method
     end
   end
 end

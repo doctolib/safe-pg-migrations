@@ -2,7 +2,7 @@
 
 module SafePgMigrations
   module IdemPotentStatements
-    def add_index(table_name, column_name, *args)
+    ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, index_column_names(column_name))
       return super unless index_name_exists?(table_name, index_name)
@@ -12,23 +12,20 @@ module SafePgMigrations
       remove_index(table_name, name: index_name)
       super
     end
-    ruby2_keywords :add_index if respond_to?(:ruby2_keywords, true)
 
-    def add_column(table_name, column_name, type, *)
+    ruby2_keywords def add_column(table_name, column_name, type, *)
       return super unless column_exists?(table_name, column_name)
 
       SafePgMigrations.say("/!\\ Column '#{column_name}' already exists in '#{table_name}'. Skipping statement.", true)
     end
-    ruby2_keywords :add_column if respond_to?(:ruby2_keywords, true)
 
-    def remove_column(table_name, column_name, type = nil, *)
+    ruby2_keywords def remove_column(table_name, column_name, type = nil, *)
       return super if column_exists?(table_name, column_name)
 
       SafePgMigrations.say("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.", true)
     end
-    ruby2_keywords :remove_column if respond_to?(:ruby2_keywords, true)
 
-    def remove_index(table_name, *args)
+    ruby2_keywords def remove_index(table_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, options)
 
@@ -36,9 +33,8 @@ module SafePgMigrations
 
       SafePgMigrations.say("/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.", true)
     end
-    ruby2_keywords :remove_index if respond_to?(:ruby2_keywords, true)
 
-    def add_foreign_key(from_table, to_table, *args)
+    ruby2_keywords def add_foreign_key(from_table, to_table, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       suboptions = options.slice(:name, :column)
       return super unless foreign_key_exists?(from_table, suboptions.present? ? nil : to_table, **suboptions)
@@ -48,11 +44,9 @@ module SafePgMigrations
         true
       )
     end
-    ruby2_keywords :add_foreign_key if respond_to?(:ruby2_keywords, true)
 
-    def create_table(table_name, *args)
+    ruby2_keywords def create_table(table_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
-      options.delete(:comment)
       return super if options[:force] || !table_exists?(table_name)
 
       SafePgMigrations.say "/!\\ Table '#{table_name}' already exists.", true
@@ -67,7 +61,6 @@ module SafePgMigrations
         add_index(table_name, column_name, **index_options)
       end
     end
-    ruby2_keywords :create_table if respond_to?(:ruby2_keywords, true)
 
     private
 
