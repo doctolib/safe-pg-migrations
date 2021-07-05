@@ -2,6 +2,8 @@
 
 ActiveRecord migrations for Postgres made safe.
 
+![safe-pg-migoosration](./logo.png)
+
 ## Requirements
 
 - Ruby 2.5+
