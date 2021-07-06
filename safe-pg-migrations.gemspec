@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
     'homepage_uri' => 'https://github.com/doctolib/safe-pg-migrations#safe-pg-migrations',
     'mailing_list_uri' => 'https://doctolib.engineering/engineering-news-ruby-rails-react',
     'source_code_uri' => 'https://github.com/doctolib/safe-pg-migrations',
-    'contributors_uri' => 'https://github.com/doctolib/safe-pg-migrations/graphs/contributors'
+    'contributors_uri' => 'https://github.com/doctolib/safe-pg-migrations/graphs/contributors',
   }
 
   s.files        = Dir['LICENSE', 'README.md', 'lib/**/*']
