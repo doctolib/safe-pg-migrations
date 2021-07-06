@@ -10,9 +10,16 @@ Gem::Specification.new do |s|
 
   s.version = SafePgMigrations::VERSION
 
-  s.authors  = ['Matthieu Prat', 'Romain Choquet']
-  s.email    = 'matthieuprat@gmail.com'
+  s.authors  = ['Matthieu Prat', 'Romain Choquet', 'Thomas Hareau']
   s.homepage = 'https://github.com/doctolib/safe-pg-migrations'
+
+  s.metadata = {
+    bug_tracker_uri: 'https://github.com/doctolib/safe-pg-migrations/issues',
+    homepage_uri: 'https://github.com/doctolib/safe-pg-migrations#safe-pg-migrations',
+    mailing_list_uri: 'https://doctolib.engineering/engineering-news-ruby-rails-react',
+    source_code_uri: 'https://github.com/doctolib/safe-pg-migrations',
+    contributors_uri: 'https://github.com/doctolib/safe-pg-migrations/graphs/contributors'
+  }
 
   s.files        = Dir['LICENSE', 'README.md', 'lib/**/*']
   s.require_path = 'lib'
