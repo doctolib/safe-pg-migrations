@@ -17,11 +17,11 @@ jobs:
     name: Rubocop
     runs-on: ubuntu-18.04
     steps:
-      - uses: checkout@v1
-      - uses: setup-ruby@v1
+      - uses: actions/checkout@v1
+      - uses: actions/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
-      - uses: cache@v2
+      - uses: actions/cache@v2
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
@@ -58,12 +58,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: checkout@v2
+      - uses: actions/checkout@v2
       - name: Set up Ruby
-        uses: setup-ruby@v1
+        uses: actions/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-      - uses: cache@v2
+      - uses: actions/cache@v2
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
