@@ -139,7 +139,7 @@ If you still get lock timeout while adding / removing indexes, it might be for o
 
 </details>
 
-<details><summary id="safe_add_foreign_key">safe <code>add_foreign_key</code> (and <code>add_reference</code>)</summary>
+<details><summary id="safe_add_foreign_key">Safe <code>add_foreign_key</code> (and <code>add_reference</code>)</summary>
 
 Adding a foreign key requires a `SHARE ROW EXCLUSIVE` lock, which **prevent writing in the tables** while the migration is running.
 
