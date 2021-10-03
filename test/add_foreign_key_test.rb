@@ -2,7 +2,7 @@
 
 require 'test_helper'
 
-class AddForeignKeyTest < MiniTest::Test
+class AddForeignKeyTest < Minitest::Test
   DUMMY_MIGRATION_VERSION = 8128
 
   def setup
