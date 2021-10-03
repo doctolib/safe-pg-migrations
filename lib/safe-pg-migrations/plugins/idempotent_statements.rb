@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module IdemPotentStatements
+  module IdempotentStatements
     ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, index_column_names(column_name))

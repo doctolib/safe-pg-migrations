@@ -105,7 +105,7 @@ class AddForeignKeyTest < MiniTest::Test
     ], calls
   end
 
-  def test_add_foreign_key_idem_potent
+  def test_add_foreign_key_idempotent
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
       t.string :message
@@ -147,7 +147,7 @@ class AddForeignKeyTest < MiniTest::Test
     ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
-  def test_add_foreign_key_idem_potent_with_column_option
+  def test_add_foreign_key_idempotent_with_column_option
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
       t.string :message
@@ -190,7 +190,7 @@ class AddForeignKeyTest < MiniTest::Test
     ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
-  def test_add_foreign_key_idem_potent_with_other_options
+  def test_add_foreign_key_idempotent_with_other_options
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
       t.string :message
@@ -234,7 +234,7 @@ class AddForeignKeyTest < MiniTest::Test
     ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
-  def test_add_foreign_key_idem_potent_different_tables
+  def test_add_foreign_key_idempotent_different_tables
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:conversations) { |t| t.string :subject }
     @connection.create_table(:messages) do |t|
