@@ -150,6 +150,14 @@ Adding the constraint itself is rather fast, the major part of the time is spent
 
 </details>
 
+<details><summary id="safe_rename_table">Safe <code>rename_table</code></summary>
+
+Renaming a table is a sequence of operation executed inside a DDL transaction:
+1. Rename the table
+2. Create a simple view with the old table name querying the new table
+
+After a successful deployment, you have to clean up the unused view with the old table name.
+
 <details><summary>Retry after lock timeout</summary>
 
 When a statement fails with a lock timeout, **Safe PG Migrations** retries it (5 times max) [list of retriable statements](https://github.com/doctolib/safe-pg-migrations/blob/66933256252b6bbf12e404b829a361dbba30e684/lib/safe-pg-migrations/plugins/statement_retrier.rb#L5)

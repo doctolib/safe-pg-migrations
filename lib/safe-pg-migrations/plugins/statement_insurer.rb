@@ -84,6 +84,30 @@ module SafePgMigrations
       without_timeout { super(table_name, **options) }
     end
 
+    ruby2_keywords def rename_table(table_name, new_name, skip_view: false)
+      # raise 'DDL transaction is disabled' unless in_transaction?
+
+      super(table_name, new_name) # Actually rename the table
+      return if skip_view
+
+      quoted_table_name = quote_table_name(table_name)
+      quoted_new_name = quote_table_name(new_name)
+      # FIXME: this is not automatically reversible
+      execute <<~SQL.squish
+        CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}
+      SQL
+
+      change_table_comment(new_name, "TODO: remove after the next deployment, superseded by #{quoted_new_name}")
+    end
+
+    ruby2_keywords def rollback_rename_table(table_name, new_name)
+      quoted_table_name = quote_table_name(table_name)
+      execute <<~SQL.squish
+        DROP VIEW #{quoted_table_name}
+      SQL
+      rename_table(new_name, table_name, skip_view: true)
+    end
+
     def backfill_column_default(table_name, column_name)
       quoted_table_name = quote_table_name(table_name)
       quoted_column_name = quote_column_name(column_name)

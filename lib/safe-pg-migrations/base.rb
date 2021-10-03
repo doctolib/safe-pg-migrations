@@ -6,6 +6,7 @@ require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
 require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
+require 'safe-pg-migrations/plugins/statement_reverter'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
 
@@ -85,7 +86,10 @@ module SafePgMigrations
       true
     end
 
-    SAFE_METHODS = %i[execute add_column add_index add_reference add_belongs_to change_column_null].freeze
+    SAFE_METHODS = %i[
+      execute add_column add_index add_reference add_belongs_to change_column_null
+      rename_table
+    ].freeze
     SAFE_METHODS.each do |method|
       define_method method do |*args|
         return super(*args) unless respond_to?(:safety_assured)
