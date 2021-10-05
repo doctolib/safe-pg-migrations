@@ -6,14 +6,14 @@ require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
 require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
-require 'safe-pg-migrations/plugins/idem_potent_statements'
+require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
 
 module SafePgMigrations
   # Order matters: the bottom-most plugin will have precedence
   PLUGINS = [
     BlockingActivityLogger,
-    IdemPotentStatements,
+    IdempotentStatements,
     StatementRetrier,
     StatementInsurer,
     UselessStatementsLogger,

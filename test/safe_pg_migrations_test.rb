@@ -268,7 +268,7 @@ class SafePgMigrationsTest < Minitest::Test
     end
   end
 
-  def test_create_table_idem_potent
+  def test_create_table_idempotent
     @connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -289,7 +289,7 @@ class SafePgMigrationsTest < Minitest::Test
     ], write_calls[0...4]
   end
 
-  def test_add_column_idem_potent
+  def test_add_column_idempotent
     @connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -310,7 +310,7 @@ class SafePgMigrationsTest < Minitest::Test
     ], write_calls[3..4]
   end
 
-  def test_remove_column_idem_potent
+  def test_remove_column_idempotent
     @connection.create_table(:users) { |t| t.string :email, index: true }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -336,7 +336,7 @@ class SafePgMigrationsTest < Minitest::Test
     refute @connection.index_exists?(:users, :email)
   end
 
-  def test_remove_index_idem_potent
+  def test_remove_index_idempotent
     @connection.create_table(:users) { |t| t.string(:email, index: true) }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -417,7 +417,7 @@ class SafePgMigrationsTest < Minitest::Test
     refute @connection.index_exists?(:users, :email)
   end
 
-  def test_add_index_idem_potent
+  def test_add_index_idempotent
     @connection.create_table(:users) { |t| t.string :email }
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -459,7 +459,7 @@ class SafePgMigrationsTest < Minitest::Test
     ], calls
   end
 
-  def test_add_index_idem_potent_invalid_index
+  def test_add_index_idempotent_invalid_index
     @connection.create_table(:users) { |t| t.string :email, index: true }
 
     @migration =
