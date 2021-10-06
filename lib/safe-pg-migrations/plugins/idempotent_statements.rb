@@ -34,6 +34,12 @@ module SafePgMigrations
       SafePgMigrations.say("/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.", true)
     end
 
+    def rename_table(table_name, new_name)
+      return super if table_exists?(table_name)
+
+      SafePgMigrations.say("/!\\ Table '#{table_name}' not found. Skipping statement.", true)
+    end
+
     ruby2_keywords def add_foreign_key(from_table, to_table, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       suboptions = options.slice(:name, :column)
