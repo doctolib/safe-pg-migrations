@@ -152,9 +152,10 @@ Adding the constraint itself is rather fast, the major part of the time is spent
 
 <details><summary id="safe_rename_table">Safe <code>rename_table</code></summary>
 
-Renaming a table is a sequence of operation executed inside a DDL transaction:
+Renaming a table is an atomic sequence of operations (executed inside an explicit DDL transaction):
+
 1. Rename the table
-2. Create a simple view with the old table name querying the new table
+2. Create a [simple view](https://www.postgresql.org/docs/9.3/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS) with the old table name querying the renamed table, allowing queries with the old name to still work properly.
 
 After a successful deployment, you have to clean up the unused view with the old table name.
 
