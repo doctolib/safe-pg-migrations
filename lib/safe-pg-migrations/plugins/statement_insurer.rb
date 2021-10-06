@@ -89,17 +89,22 @@ module SafePgMigrations
       quoted_new_name = quote_table_name(new_name)
 
       all_or_nothing_transaction do
-        if SafePgMigrations.current_migration.reverting?
-          execute "DROP VIEW #{quoted_new_name}"
-        end
-
         super(table_name, new_name) # Actually rename the table
 
-        SafePgMigrations.current_migration.up_only do
-          execute "CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}"
-          comment = "TODO: remove after the next deployment, superseded by #{quoted_new_name}"
-          execute "COMMENT ON VIEW #{quoted_table_name} IS '#{comment}'"
-        end
+        execute "CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}"
+
+        comment = "TODO: remove after the next deployment, superseded by #{quoted_new_name}"
+        execute "COMMENT ON VIEW #{quoted_table_name} IS '#{comment}'"
+      end
+    end
+
+    def revert_rename_table(table_name, new_name)
+      quoted_table_name = quote_table_name(table_name)
+
+      all_or_nothing_transaction do
+        execute "DROP VIEW #{quoted_table_name}"
+
+        method(:rename_table).super_method.call(new_name, table_name) # Rename the table back to the original
       end
     end
 

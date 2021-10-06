@@ -7,6 +7,7 @@ module SafePgMigrations
     initializer 'safe_pg_migrations.insert_into_active_record' do
       ActiveSupport.on_load :active_record do
         ActiveRecord::Migration.prepend(SafePgMigrations::Migration)
+        ActiveRecord::Migration::CommandRecorder.prepend(SafePgMigrations::CommandRecorder)
       end
     end
   end

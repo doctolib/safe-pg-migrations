@@ -19,6 +19,7 @@ ActiveRecord::Base.establish_connection
 ActiveRecord::InternalMetadata.create_table
 
 ActiveRecord::Migration.prepend(SafePgMigrations::Migration)
+ActiveRecord::Migration::CommandRecorder.prepend(SafePgMigrations::CommandRecorder)
 
 class Minitest::Test
   DUMMY_MIGRATION_VERSION = 8128
