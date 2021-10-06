@@ -2,7 +2,7 @@
 
 ActiveRecord migrations for Postgres made safe.
 
-![safe-pg-migoosration](./logo.png)
+![safe-pg-migrations](./logo.png)
 
 ## Requirements
 
@@ -93,7 +93,7 @@ When **Safe PG Migrations** is used, migrations are not wrapped in a transaction
 - In order to be able to retry statements that have failed because of a lock timeout, we have to be outside a transaction.
 - In order to add an index concurrently, we have to be outside a transaction.
 
-Note that if a migration fails, it won't be rollbacked. This can result in migrations being partially applied. In that case, they need to be manually reverted.
+Note that if a migration fails, it won't be rolled back. This can result in migrations being partially applied. In that case, they need to be manually reverted.
 
 </details>
 
@@ -110,7 +110,7 @@ PG will still needs to update every row of the table, and will most likely state
 
 <blockquote>
 
-**Note: Pre-postgre 11**
+**Note: Pre-postgres 11**
 Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
 
 **Safe PG Migrations** makes it safe by:
@@ -122,7 +122,7 @@ Adding a column with a default value and a not-null constraint is [dangerous](ht
 
 Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
 
-</blockquote>    
+</blockquote>
 
 </details>
 
@@ -152,7 +152,7 @@ Adding the constraint itself is rather fast, the major part of the time is spent
 
 <details><summary>Retry after lock timeout</summary>
 
-When a statement fails with a lock timeout, **Safe PG Migrations** retries it (5 times max) [list of retryable statments](https://github.com/doctolib/safe-pg-migrations/blob/66933256252b6bbf12e404b829a361dbba30e684/lib/safe-pg-migrations/plugins/statement_retrier.rb#L5)
+When a statement fails with a lock timeout, **Safe PG Migrations** retries it (5 times max) [list of retriable statements](https://github.com/doctolib/safe-pg-migrations/blob/66933256252b6bbf12e404b829a361dbba30e684/lib/safe-pg-migrations/plugins/statement_retrier.rb#L5)
 </details>
 
 <details><summary>Blocking activity logging</summary>
@@ -221,7 +221,7 @@ SafePgMigrations.config.retry_delay = 1.minute # Delay between retries for retry
 SafePgMigrations.config.max_tries = 5 # Number of retries before abortion of the migration
 ```
 
-## Runnings tests
+## Running tests
 
 ```bash
 bundle
