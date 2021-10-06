@@ -158,6 +158,16 @@ Renaming a table is an atomic sequence of operations (executed inside an explici
 2. Create a [simple view](https://www.postgresql.org/docs/9.3/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS) with the old table name querying the renamed table, allowing queries with the old name to still work properly.
 
 After a successful deployment, you have to clean up the unused view with the old table name.
+To make the temporary view removal migration reversible:
+```ruby
+def up
+  execute 'DROP VIEW old_table_name'
+end
+
+def down
+  execute 'CREATE VIEW old_table_name AS SELECT * FROM new_table_name'
+end
+```
 
 <details><summary>Retry after lock timeout</summary>
 
