@@ -85,21 +85,51 @@ module SafePgMigrations
     end
 
     def rename_table(table_name, new_name)
-      # raise 'DDL transaction is disabled' unless in_transaction?
-
       quoted_table_name = quote_table_name(table_name)
       quoted_new_name = quote_table_name(new_name)
 
-      if SafePgMigrations.current_migration.reverting?
-        execute "DROP VIEW #{quoted_new_name}"
+      all_or_nothing_transaction do
+        if SafePgMigrations.current_migration.reverting?
+          execute "DROP VIEW #{quoted_new_name}"
+        end
+
+        super(table_name, new_name) # Actually rename the table
+
+        SafePgMigrations.current_migration.up_only do
+          execute "CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}"
+          comment = "TODO: remove after the next deployment, superseded by #{quoted_new_name}"
+          execute "COMMENT ON VIEW #{quoted_table_name} IS '#{comment}'"
+        end
       end
+    end
 
-      super(table_name, new_name) # Actually rename the table
-
-      SafePgMigrations.current_migration.up_only do
-        execute "CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}"
-        comment = "TODO: remove after the next deployment, superseded by #{quoted_new_name}"
-        execute "COMMENT ON VIEW #{quoted_table_name} IS '#{comment}'"
+    # When user opts for wrapping their code in an explicit transaction,
+    # they expect it to roll back if any part of it failed. However,
+    # Active Record's `transaction` behaviour for nested transactions
+    # does not allow for that. `transaction` block swallows the
+    # `ActiveRecord::Rollback` exception. Depending on the `requires_new`
+    # option, nested transaction (savepoint) is either rolled back,
+    # or just incomplete.
+    #
+    # @example user migration with atomic approach taken (rather than idempotent)
+    #
+    #   def change
+    #     # Only add column if renaming the table worked
+    #     ActiveRecord::Base.transaction do
+    #       rename_table :users, :accounts
+    #       add_column :users, :primary, :boolean
+    #     end
+    #   end
+    def all_or_nothing_transaction
+      if transaction_open?
+        # Execute the code in the existing transaction. If `yield` results
+        # in a rollback, the whole transaction is rolled back.
+        yield
+      else
+        # Open a new transaction
+        transaction(requires_new: true, joinable: false) do
+          yield
+        end
       end
     end
 
