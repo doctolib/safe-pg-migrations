@@ -40,7 +40,7 @@ class RenameTableTest < Minitest::Test
       'ALTER TABLE "public"."foo_id_seq" RENAME TO "bar_id_seq"',
       'CREATE VIEW "foo" AS SELECT * FROM "bar"',
       "COMMENT ON VIEW \"foo\" IS 'TODO: remove after the next deployment, superseded by \"bar\"'",
-      'COMMIT'
+      'COMMIT',
     ], calls
 
     @connection.exec_query('SELECT * FROM foo') # `table_exists?` won't work with a view
