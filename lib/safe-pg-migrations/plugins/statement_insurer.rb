@@ -91,7 +91,7 @@ module SafePgMigrations
       quoted_new_name = quote_table_name(new_name)
 
       if SafePgMigrations.current_migration.reverting?
-        execute <<~SQL.squish
+        execute <<~SQL
           DROP VIEW #{quoted_table_name}
         SQL
       end
@@ -99,7 +99,7 @@ module SafePgMigrations
       super(table_name, new_name) # Actually rename the table
 
       SafePgMigrations.current_migration.up_only do
-        execute <<~SQL.squish
+        execute <<~SQL
           CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}
         SQL
 
