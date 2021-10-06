@@ -91,7 +91,7 @@ module SafePgMigrations
       quoted_new_name = quote_table_name(new_name)
 
       if SafePgMigrations.current_migration.reverting?
-        execute "DROP VIEW #{quoted_table_name}"
+        execute "DROP VIEW #{quoted_new_name}"
       end
 
       super(table_name, new_name) # Actually rename the table
