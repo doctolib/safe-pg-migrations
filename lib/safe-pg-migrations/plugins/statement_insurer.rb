@@ -91,17 +91,13 @@ module SafePgMigrations
       quoted_new_name = quote_table_name(new_name)
 
       if SafePgMigrations.current_migration.reverting?
-        execute <<~SQL
-          DROP VIEW #{quoted_table_name}
-        SQL
+        execute "DROP VIEW #{quoted_table_name}"
       end
 
       super(table_name, new_name) # Actually rename the table
 
       SafePgMigrations.current_migration.up_only do
-        execute <<~SQL
-          CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}
-        SQL
+        execute "CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}"
 
         change_table_comment(new_name, "TODO: remove after the next deployment, superseded by #{quoted_new_name}")
       end
