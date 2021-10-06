@@ -114,10 +114,11 @@ module SafePgMigrations
     # @example user migration with atomic approach taken (rather than idempotent)
     #
     #   def change
-    #     # Only add column if renaming the table worked
+    #     # Only add the column if renaming the table worked.
+    #     # Otherwise, rollback table renaming.
     #     ActiveRecord::Base.transaction do
     #       rename_table :users, :accounts
-    #       add_column :users, :primary, :boolean
+    #       add_column :accounts, :primary, :boolean
     #     end
     #   end
     def all_or_nothing_transaction
