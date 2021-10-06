@@ -98,8 +98,8 @@ module SafePgMigrations
 
       SafePgMigrations.current_migration.up_only do
         execute "CREATE VIEW #{quoted_table_name} AS SELECT * FROM #{quoted_new_name}"
-
-        change_table_comment(new_name, "TODO: remove after the next deployment, superseded by #{quoted_new_name}")
+        comment = "TODO: remove after the next deployment, superseded by #{quoted_new_name}"
+        execute "COMMENT ON VIEW #{quoted_table_name} IS '#{comment}'"
       end
     end
 
