@@ -19,7 +19,7 @@ class RenameTableTest < Minitest::Test
     ActiveRecord::SchemaMigration.drop_table
     @connection.execute('SET statement_timeout TO 0')
     @connection.execute("SET lock_timeout TO '30s'")
-    @connection.drop_table(:foo, if_exists: true)
+    @connection.drop_table(:foo)
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
@@ -34,11 +34,13 @@ class RenameTableTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
 
     assert_calls [
+      'BEGIN',
       'ALTER TABLE "foo" RENAME TO "bar"',
       'ALTER INDEX "foo_pkey" RENAME TO "bar_pkey"',
       'ALTER TABLE "public"."foo_id_seq" RENAME TO "bar_id_seq"',
       'CREATE VIEW "foo" AS SELECT * FROM "bar"',
-      "COMMENT ON TABLE \"bar\" IS 'TODO: remove after the next deployment, superseded by \"bar\"'",
+      "COMMENT ON VIEW \"foo\" IS 'TODO: remove after the next deployment, superseded by \"bar\"'",
+      'COMMIT'
     ], calls
 
     @connection.exec_query('SELECT * FROM foo') # `table_exists?` won't work with a view
@@ -48,22 +50,4 @@ class RenameTableTest < Minitest::Test
     assert @connection.table_exists?(:foo)
     refute @connection.table_exists?(:bar)
   end
-
-  # def test_rename_table_with_disabled_ddl_transaction
-  #   @migration =
-  #     Class.new(ActiveRecord::Migration::Current) do
-  #       disable_ddl_transaction!
-
-  #       def change
-  #         rename_table(:foo, :bar)
-  #       end
-  #     end.new
-
-  #   begin
-  #     run_migration
-  #     flunk 'rename_table with a disable DDL transaction should fail'
-  #   rescue => e
-  #     assert_includes e.message, 'DDL transaction is disabled'
-  #   end
-  # end
 end
