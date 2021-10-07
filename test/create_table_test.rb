@@ -2,7 +2,7 @@
 
 require 'test_helper'
 
-class SafePgMigrationsTest < Minitest::Test
+class CreateTableTest < Minitest::Test
   def setup
     SafePgMigrations.instance_variable_set(:@config, nil)
     @connection = ActiveRecord::Base.connection
