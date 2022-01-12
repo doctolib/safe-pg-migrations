@@ -76,4 +76,4 @@ DEPENDENCIES
   safe-pg-migrations!
 
 BUNDLED WITH
-   1.16.5
+   2.3.3
