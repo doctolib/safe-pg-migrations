@@ -52,7 +52,6 @@ class SafePgMigrationsTest < Minitest::Test
   def test_blocking_activity_logger_filtered
     SafePgMigrations.config.blocking_activity_logger_verbose = false
 
-    @connection.create_table(:users)
     @migration = simulate_blocking_transaction_from_another_connection
 
     calls = record_calls(@migration, :write) { run_migration }.join
