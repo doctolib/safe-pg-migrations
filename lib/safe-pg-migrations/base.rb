@@ -8,7 +8,7 @@ require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
-require 'safe-pg-migrations/plugins/old_rails_version_support'
+require 'safe-pg-migrations/plugins/legacy_active_record_support'
 
 module SafePgMigrations
   # Order matters: the bottom-most plugin will have precedence
@@ -18,7 +18,7 @@ module SafePgMigrations
     StatementRetrier,
     StatementInsurer,
     UselessStatementsLogger,
-    OldRailsVersionSupport,
+    LegacyActiveRecordSupport,
   ].freeze
 
   class << self

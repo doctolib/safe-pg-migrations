@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module OldRailsVersionSupport
+  module LegacyActiveRecordSupport
     ACTIVE_RECORD_VERSION = ActiveRecord::VERSION::STRING
 
     ruby2_keywords def validate_foreign_key(from_table, to_table = nil, **options)
