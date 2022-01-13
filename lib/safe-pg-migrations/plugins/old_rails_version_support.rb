@@ -16,7 +16,7 @@ module SafePgMigrations
       if ACTIVE_RECORD_VERSION < '6'
         super(from_table, to_table || options)
       else
-        super(*args, **options)
+        super(from_table, to_table, **options)
       end
     end
   end
