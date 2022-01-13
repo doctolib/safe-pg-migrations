@@ -46,11 +46,11 @@ class AddForeignKeyTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_add_foreign_key
@@ -69,14 +69,14 @@ class AddForeignKeyTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_add_foreign_key_with_options
@@ -99,14 +99,14 @@ class AddForeignKeyTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
       'REFERENCES "users" ("real_id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_add_foreign_key_idempotent
@@ -129,26 +129,26 @@ class AddForeignKeyTest < Minitest::Test
         execute_calls = record_calls(@connection, :execute) { run_migration }
       end
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-                   "SET statement_timeout TO '70s'",
-                   "SET statement_timeout TO '5s'",
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-                   "SET statement_timeout TO '70s'",
-                 ], execute_calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+      "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO '5s'",
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+      "SET statement_timeout TO '70s'",
+    ], execute_calls
 
     assert_equal [
-                   '== 8128 : migrating ===========================================================',
-                   '-- add_foreign_key(:messages, :users)',
-                   '-- add_foreign_key(:messages, :users)',
-                   "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
-                 ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+      '== 8128 : migrating ===========================================================',
+      '-- add_foreign_key(:messages, :users)',
+      '-- add_foreign_key(:messages, :users)',
+      "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
+    ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
   def test_add_foreign_key_idempotent_with_column_option
@@ -172,26 +172,26 @@ class AddForeignKeyTest < Minitest::Test
       end
 
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
-                   "SET statement_timeout TO '70s'",
-                   "SET statement_timeout TO '5s'",
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
-                   "SET statement_timeout TO '70s'",
-                 ], execute_calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
+      "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO '5s'",
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
+      "SET statement_timeout TO '70s'",
+    ], execute_calls
 
     assert_equal [
-                   '== 8128 : migrating ===========================================================',
-                   '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
-                   '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
-                   "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
-                 ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+      '== 8128 : migrating ===========================================================',
+      '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+      '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+      "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
+    ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
   def test_add_foreign_key_idempotent_with_other_options
@@ -216,26 +216,26 @@ class AddForeignKeyTest < Minitest::Test
       end
 
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-                   "SET statement_timeout TO '70s'",
-                   "SET statement_timeout TO '5s'",
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-                   "SET statement_timeout TO '70s'",
-                 ], execute_calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+      "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO '5s'",
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+      "SET statement_timeout TO '70s'",
+    ], execute_calls
 
     assert_equal [
-                   '== 8128 : migrating ===========================================================',
-                   '-- add_foreign_key(:messages, :users)',
-                   '-- add_foreign_key(:messages, :users, {:on_delete=>:cascade})',
-                   "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
-                 ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+      '== 8128 : migrating ===========================================================',
+      '-- add_foreign_key(:messages, :users)',
+      '-- add_foreign_key(:messages, :users, {:on_delete=>:cascade})',
+      "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
+    ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
   def test_add_foreign_key_idempotent_different_tables
@@ -262,27 +262,27 @@ class AddForeignKeyTest < Minitest::Test
       end
 
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
-                   "SET statement_timeout TO '70s'",
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_7f927086d2" FOREIGN KEY ("conversation_id") ' \
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
+      "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_7f927086d2" FOREIGN KEY ("conversation_id") ' \
       'REFERENCES "conversations" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_7f927086d2"',
-                   "SET statement_timeout TO '70s'",
-                 ], execute_calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_7f927086d2"',
+      "SET statement_timeout TO '70s'",
+    ], execute_calls
 
     assert_equal [
-                   '== 8128 : migrating ===========================================================',
-                   '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
-                   '-- add_foreign_key(:messages, :conversations)',
-                 ], write_calls.map(&:first).values_at(0, 1, 3)
+      '== 8128 : migrating ===========================================================',
+      '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+      '-- add_foreign_key(:messages, :conversations)',
+    ], write_calls.map(&:first).values_at(0, 1, 3)
   end
 
   def test_add_foreign_key_with_validation
@@ -301,10 +301,10 @@ class AddForeignKeyTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_add_reference
