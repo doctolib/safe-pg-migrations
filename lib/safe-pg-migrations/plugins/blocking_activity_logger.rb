@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module BlockingActivityLogger
+  module BlockingActivityLogger # rubocop:disable Metrics/ModuleLength
     FILTERED_COLUMNS = %w[
       blocked_activity.xact_start
       blocked_locks.locktype
