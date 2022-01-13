@@ -14,6 +14,10 @@ class AddForeignKeyTest < Minitest::Test
     ActiveRecord::Migration.verbose = false
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
+
+    @connection.drop_table(:messages, if_exists: true)
+    @connection.drop_table(:conversations, if_exists: true)
+    @connection.drop_table(:users, if_exists: true)
   end
 
   def teardown
@@ -310,7 +314,7 @@ class AddForeignKeyTest < Minitest::Test
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
-          add_reference(:reviews, :restaurant, foreign_key: true)
+          add_reference(:messages, :user, foreign_key: true)
         end
       end.new
 
