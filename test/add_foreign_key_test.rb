@@ -14,6 +14,10 @@ class AddForeignKeyTest < Minitest::Test
     ActiveRecord::Migration.verbose = false
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
+
+    @connection.drop_table(:messages, if_exists: true)
+    @connection.drop_table(:conversations, if_exists: true)
+    @connection.drop_table(:users, if_exists: true)
   end
 
   def teardown
@@ -301,5 +305,19 @@ class AddForeignKeyTest < Minitest::Test
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
       "SET statement_timeout TO '70s'",
     ], calls
+  end
+
+  def test_add_reference
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:messages) { |t| t.string :message }
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_reference(:messages, :user, foreign_key: true)
+        end
+      end.new
+
+    record_calls(@connection, :execute) { run_migration }
   end
 end
