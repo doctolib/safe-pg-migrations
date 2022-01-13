@@ -12,7 +12,9 @@ require 'pry'
 
 require 'safe-pg-migrations/base'
 
-ENV['DATABASE_URL'] ||= "postgres://#{ENV['USER']}@localhost/safe_pg_migrations_test"
+ENV['POSTGRES_USER'] ||= ENV['USER']
+ENV['POSTGRES_DB'] ||= 'safe_pg_migrations_test'
+ENV['DATABASE_URL'] ||= "postgres://#{ENV['POSTGRES_USER']}@localhost/#{ENV['POSTGRES_DB']}"
 
 ActiveRecord::Base.logger = ActiveSupport::Logger.new('debug.log', 0, 100 * 1024 * 1024)
 ActiveRecord::Base.establish_connection
