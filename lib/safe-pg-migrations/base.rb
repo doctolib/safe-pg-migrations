@@ -85,7 +85,16 @@ module SafePgMigrations
       true
     end
 
-    SAFE_METHODS = %i[execute add_column add_index add_reference add_belongs_to change_column_null].freeze
+    SAFE_METHODS = %i[
+      execute
+      add_column
+      add_index
+      add_reference
+      add_belongs_to
+      change_column_null
+      add_foreign_key
+    ].freeze
+
     SAFE_METHODS.each do |method|
       define_method method do |*args|
         return super(*args) unless respond_to?(:safety_assured)
