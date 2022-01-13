@@ -225,7 +225,7 @@ SafePgMigrations.config.max_tries = 5 # Number of retries before abortion of the
 
 ```bash
 bundle
-psql -h localhost -U postgres -c 'CREATE DATABASE safe_pg_migrations_test'
+psql -h localhost -c 'CREATE DATABASE safe_pg_migrations_test'
 rake test
 ```
 
