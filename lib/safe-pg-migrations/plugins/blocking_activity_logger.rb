@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module BlockingActivityLogger
+  module BlockingActivityLogger # rubocop:disable Metrics/ModuleLength
     FILTERED_COLUMNS = %w[
       blocked_activity.xact_start
       blocked_locks.locktype
@@ -113,6 +113,7 @@ module SafePgMigrations
     end
 
     def format_start_time(start_time, reference_time = Time.now)
+      start_time = Time.parse(start_time) unless start_time.is_a? Time
       duration = (reference_time - start_time).round
       "transaction started #{duration} #{'second'.pluralize(duration)} ago"
     end
