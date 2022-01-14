@@ -3,7 +3,6 @@
 require 'test_helper'
 
 class SafePgMigrationsTest < Minitest::Test
-
   def test_remove_transaction
     @migration =
       Class.new(ActiveRecord::Migration::Current) do

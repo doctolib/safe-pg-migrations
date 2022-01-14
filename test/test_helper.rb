@@ -53,10 +53,10 @@ class Minitest::Test
 
   def assert_calls(expected, actual)
     assert_equal [
-                   "SET lock_timeout TO '5s'",
-                   *expected,
-                   "SET lock_timeout TO '70s'",
-                 ], flat_calls(actual)
+      "SET lock_timeout TO '5s'",
+      *expected,
+      "SET lock_timeout TO '70s'",
+    ], flat_calls(actual)
   end
 
   def flat_calls(calls)

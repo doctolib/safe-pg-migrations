@@ -19,20 +19,20 @@ class StatementInsurerTest < Minitest::Test
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
       assert_calls [
-                     # The column is added without any default.
-                     'ALTER TABLE "users" ADD "admin" boolean',
+        # The column is added without any default.
+        'ALTER TABLE "users" ADD "admin" boolean',
 
-                     # The default is added.
-                     'ALTER TABLE "users" ALTER COLUMN "admin" SET DEFAULT FALSE',
-                   ], execute_calls
+        # The default is added.
+        'ALTER TABLE "users" ALTER COLUMN "admin" SET DEFAULT FALSE',
+      ], execute_calls
 
       assert_equal [
-                     '== 8128 : migrating ===========================================================',
-                     '-- add_column(:users, :admin, :boolean, {:default=>false})',
-                     '   -> add_column("users", :admin, :boolean, {})',
-                     '   -> change_column_default("users", :admin, false)',
-                     '   -> backfill_column_default("users", :admin)',
-                   ], write_calls.map(&:first)[0...-3]
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean, {:default=>false})',
+        '   -> add_column("users", :admin, :boolean, {})',
+        '   -> change_column_default("users", :admin, false)',
+        '   -> backfill_column_default("users", :admin)',
+      ], write_calls.map(&:first)[0...-3]
     end
   end
 
@@ -52,14 +52,14 @@ class StatementInsurerTest < Minitest::Test
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
       assert_calls [
-                     # The column is added without any default.
-                     'ALTER TABLE "users" ADD "admin" boolean',
-                   ], execute_calls
+        # The column is added without any default.
+        'ALTER TABLE "users" ADD "admin" boolean',
+      ], execute_calls
 
       assert_equal [
-                     '== 8128 : migrating ===========================================================',
-                     '-- add_column(:users, :admin, :boolean)',
-                   ], write_calls.map(&:first)[0...-3]
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean)',
+      ], write_calls.map(&:first)[0...-3]
     end
   end
 
@@ -79,14 +79,14 @@ class StatementInsurerTest < Minitest::Test
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
       assert_calls [
-                     # The column is added with the default and not null constraint without any tricks
-                     'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
-                   ], execute_calls
+        # The column is added with the default and not null constraint without any tricks
+        'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
+      ], execute_calls
 
       assert_equal [
-                     '== 8128 : migrating ===========================================================',
-                     '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
-                   ], write_calls.map(&:first)[0...-3]
+        '== 8128 : migrating ===========================================================',
+        '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
+      ], write_calls.map(&:first)[0...-3]
     end
   end
 
@@ -102,10 +102,10 @@ class StatementInsurerTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
 
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "users" ALTER COLUMN "email" TYPE text',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "users" ALTER COLUMN "email" TYPE text',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_add_belongs_to
@@ -119,25 +119,25 @@ class StatementInsurerTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   # The column is added.
-                   'ALTER TABLE "users" ADD "user_id" bigint',
+      # The column is added.
+      'ALTER TABLE "users" ADD "user_id" bigint',
 
-                   # The index is created concurrently.
-                   'SET statement_timeout TO 0',
-                   'SET lock_timeout TO 0',
-                   'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
-                   "SET lock_timeout TO '5s'",
-                   "SET statement_timeout TO '70s'",
+      # The index is created concurrently.
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+      'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
+      "SET lock_timeout TO '5s'",
+      "SET statement_timeout TO '70s'",
 
-                   # The foreign key is added.
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
+      # The foreign key is added.
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_backfill_column_default
@@ -157,10 +157,10 @@ class StatementInsurerTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
     assert_equal 5, @connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
     assert_calls [
-                   'UPDATE "users" SET "email" = DEFAULT WHERE id IN (1,2)',
-                   'UPDATE "users" SET "email" = DEFAULT WHERE id IN (3,4)',
-                   'UPDATE "users" SET "email" = DEFAULT WHERE id IN (5)',
-                 ], calls
+      'UPDATE "users" SET "email" = DEFAULT WHERE id IN (1,2)',
+      'UPDATE "users" SET "email" = DEFAULT WHERE id IN (3,4)',
+      'UPDATE "users" SET "email" = DEFAULT WHERE id IN (5)',
+    ], calls
   end
 
   def test_add_foreign_key_with_validate_explicitly_false
@@ -179,11 +179,11 @@ class StatementInsurerTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_add_foreign_key
@@ -202,14 +202,14 @@ class StatementInsurerTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
       'REFERENCES "users" ("id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_add_foreign_key_with_options
@@ -232,16 +232,15 @@ class StatementInsurerTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
       'REFERENCES "users" ("real_id") NOT VALID',
-                   "SET statement_timeout TO '70s'",
-                   'SET statement_timeout TO 0',
-                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
-
 
   def test_add_foreign_key_with_validation
     @connection.create_table(:users) { |t| t.string :email }
@@ -259,10 +258,10 @@ class StatementInsurerTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
-                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '5s'",
+      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 
   def test_create_table
@@ -278,21 +277,21 @@ class StatementInsurerTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-                   "SET statement_timeout TO '5s'",
+      "SET statement_timeout TO '5s'",
 
-                   # Create the table with constraints.
-                   'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying, "user_id" bigint, ' \
+      # Create the table with constraints.
+      'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying, "user_id" bigint, ' \
         'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
 
-                   # Create the index.
-                   'SET statement_timeout TO 0',
-                   'SET lock_timeout TO 0',
-                   'CREATE INDEX "index_users_on_user_id" ON "users" ("user_id")',
-                   "SET lock_timeout TO '5s'",
-                   "SET statement_timeout TO '5s'",
+      # Create the index.
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+      'CREATE INDEX "index_users_on_user_id" ON "users" ("user_id")',
+      "SET lock_timeout TO '5s'",
+      "SET statement_timeout TO '5s'",
 
-                   "SET statement_timeout TO '70s'",
-                 ], calls
+      "SET statement_timeout TO '70s'",
+    ], calls
 
     run_migration(:down)
     refute @connection.table_exists?(:users)

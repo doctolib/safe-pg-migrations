@@ -3,7 +3,6 @@
 require 'test_helper'
 
 class UselessStatementLoggerTest < Minitest::Test
-
   def test_ddl_transactions
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
