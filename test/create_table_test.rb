@@ -3,25 +3,6 @@
 require 'test_helper'
 
 class CreateTableTest < Minitest::Test
-  def setup
-    SafePgMigrations.instance_variable_set(:@config, nil)
-    @connection = ActiveRecord::Base.connection
-    @verbose_was = ActiveRecord::Migration.verbose
-    @connection.create_table(:schema_migrations) { |t| t.string :version }
-    ActiveRecord::SchemaMigration.create_table
-    ActiveRecord::Migration.verbose = false
-    @connection.execute("SET statement_timeout TO '70s'")
-    @connection.execute("SET lock_timeout TO '70s'")
-  end
-
-  def teardown
-    ActiveRecord::SchemaMigration.drop_table
-    @connection.execute('SET statement_timeout TO 0')
-    @connection.execute("SET lock_timeout TO '30s'")
-    @connection.drop_table(:users, if_exists: true)
-    ActiveRecord::Migration.verbose = @verbose_was
-  end
-
   def test_create_table
     @migration =
       Class.new(ActiveRecord::Migration::Current) do

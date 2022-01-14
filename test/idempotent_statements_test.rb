@@ -123,7 +123,7 @@ class IdempotentStatementsTest < Minitest::Test
     ], calls
   end
 
-  def test_add_index_idempotent_invalid_index
+  def test_add_index_invalid_index
     @connection.create_table(:users) { |t| t.string :email, index: true }
 
     @migration =
@@ -150,4 +150,182 @@ class IdempotentStatementsTest < Minitest::Test
       "SET statement_timeout TO '70s'",
     ], calls
   end
+
+  def test_add_foreign_key
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :user_id
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { add_foreign_key :messages, :users }
+        end
+      end.new
+
+    execute_calls = nil
+    write_calls =
+      record_calls(@migration, :write) do
+        execute_calls = record_calls(@connection, :execute) { run_migration }
+      end
+    assert_calls [
+                   "SET statement_timeout TO '5s'",
+                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      'REFERENCES "users" ("id") NOT VALID',
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+                   "SET statement_timeout TO '70s'",
+                   "SET statement_timeout TO '5s'",
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+                   "SET statement_timeout TO '70s'",
+                 ], execute_calls
+
+    assert_equal [
+                   '== 8128 : migrating ===========================================================',
+                   '-- add_foreign_key(:messages, :users)',
+                   '-- add_foreign_key(:messages, :users)',
+                   "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
+                 ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+  end
+
+
+  def test_add_foreign_key_with_column_option
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :author_id
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { add_foreign_key :messages, :users, column: :author_id }
+        end
+      end.new
+
+    execute_calls = nil
+    write_calls =
+      record_calls(@migration, :write) do
+        execute_calls = record_calls(@connection, :execute) { run_migration }
+      end
+
+    assert_calls [
+                   "SET statement_timeout TO '5s'",
+                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
+      'REFERENCES "users" ("id") NOT VALID',
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
+                   "SET statement_timeout TO '70s'",
+                   "SET statement_timeout TO '5s'",
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
+                   "SET statement_timeout TO '70s'",
+                 ], execute_calls
+
+    assert_equal [
+                   '== 8128 : migrating ===========================================================',
+                   '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+                   '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+                   "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
+                 ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+  end
+
+  def test_add_foreign_key_with_other_options
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :user_id
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_foreign_key :messages, :users
+          add_foreign_key :messages, :users, on_delete: :cascade
+        end
+      end.new
+
+    execute_calls = nil
+    write_calls =
+      record_calls(@migration, :write) do
+        execute_calls = record_calls(@connection, :execute) { run_migration }
+      end
+
+    assert_calls [
+                   "SET statement_timeout TO '5s'",
+                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
+      'REFERENCES "users" ("id") NOT VALID',
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+                   "SET statement_timeout TO '70s'",
+                   "SET statement_timeout TO '5s'",
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
+                   "SET statement_timeout TO '70s'",
+                 ], execute_calls
+
+    assert_equal [
+                   '== 8128 : migrating ===========================================================',
+                   '-- add_foreign_key(:messages, :users)',
+                   '-- add_foreign_key(:messages, :users, {:on_delete=>:cascade})',
+                   "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
+                 ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+  end
+
+  def test_add_foreign_key_different_tables
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:conversations) { |t| t.string :subject }
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :author_id
+      t.bigint :conversation_id
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_foreign_key :messages, :users, column: :author_id
+          add_foreign_key :messages, :conversations
+        end
+      end.new
+
+    execute_calls = nil
+    write_calls =
+      record_calls(@migration, :write) do
+        execute_calls = record_calls(@connection, :execute) { run_migration }
+      end
+
+    assert_calls [
+                   "SET statement_timeout TO '5s'",
+                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
+      'REFERENCES "users" ("id") NOT VALID',
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
+                   "SET statement_timeout TO '70s'",
+                   "SET statement_timeout TO '5s'",
+                   'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_7f927086d2" FOREIGN KEY ("conversation_id") ' \
+      'REFERENCES "conversations" ("id") NOT VALID',
+                   "SET statement_timeout TO '70s'",
+                   'SET statement_timeout TO 0',
+                   'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_7f927086d2"',
+                   "SET statement_timeout TO '70s'",
+                 ], execute_calls
+
+    assert_equal [
+                   '== 8128 : migrating ===========================================================',
+                   '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+                   '-- add_foreign_key(:messages, :conversations)',
+                 ], write_calls.map(&:first).values_at(0, 1, 3)
+  end
+
 end

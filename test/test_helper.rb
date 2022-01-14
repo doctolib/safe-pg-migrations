@@ -29,20 +29,20 @@ class Minitest::Test
 
   def setup
     SafePgMigrations.instance_variable_set(:@config, nil)
-    @connection = ActiveRecord::Base.connection
     @verbose_was = ActiveRecord::Migration.verbose
-    @connection.create_table(:schema_migrations) { |t| t.string :version }
+    @connection = ActiveRecord::Base.connection
+    @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
     ActiveRecord::SchemaMigration.create_table
+    ActiveRecord::InternalMetadata.create_table
     ActiveRecord::Migration.verbose = false
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
   end
 
   def teardown
-    ActiveRecord::SchemaMigration.drop_table
-    @connection.execute('SET statement_timeout TO 0')
-    @connection.execute("SET lock_timeout TO '30s'")
-    @connection.drop_table(:users, if_exists: true)
+    @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
+    @connection.execute("SET statement_timeout TO '70s'")
+    @connection.execute("SET lock_timeout TO '70s'")
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
