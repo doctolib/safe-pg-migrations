@@ -4,12 +4,15 @@ module SafePgMigrations
   module IdempotentStatements
     ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
-      index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, index_column_names(column_name))
-      return super unless index_name_exists?(table_name, index_name)
+      index_definition, = add_index_options(table_name, column_name, **options)
+      return super unless index_name_exists?(index_definition.table, index_definition.name)
 
-      return if index_valid?(index_name)
+      existing_index = indexes(index_definition.table).find { |index| index.name == index_definition.name }
+      return super if index_definition_equals? existing_index, index_definition # this will raise
 
-      remove_index(table_name, name: index_name)
+      return if index_valid?(index_definition.name)
+
+      remove_index(table_name, name: index_definition.name)
       super
     end
 
@@ -63,6 +66,14 @@ module SafePgMigrations
     end
 
     private
+
+    def index_definition_equals?(index_definition_a, index_definition_b)
+      %i[table name lengths orders opclasses where type using comment].all? do |attribute|
+        index_definition_a.public_send(attribute) == index_definition_b.public_send(attribute)
+      end
+
+      index_definition_a.unique.presence == index_definition_b.unique.presence
+    end
 
     def index_valid?(index_name)
       query_value <<~SQL.squish
