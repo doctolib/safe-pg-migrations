@@ -27,6 +27,25 @@ class Minitest::Test
 
   make_my_diffs_pretty!
 
+  def setup
+    SafePgMigrations.instance_variable_set(:@config, nil)
+    @verbose_was = ActiveRecord::Migration.verbose
+    @connection = ActiveRecord::Base.connection
+    @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
+    ActiveRecord::SchemaMigration.create_table
+    ActiveRecord::InternalMetadata.create_table
+    ActiveRecord::Migration.verbose = false
+    @connection.execute("SET statement_timeout TO '70s'")
+    @connection.execute("SET lock_timeout TO '70s'")
+  end
+
+  def teardown
+    @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
+    @connection.execute("SET statement_timeout TO '70s'")
+    @connection.execute("SET lock_timeout TO '70s'")
+    ActiveRecord::Migration.verbose = @verbose_was
+  end
+
   def run_migration(direction = :up)
     @migration.version = DUMMY_MIGRATION_VERSION
     ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration).migrate
@@ -93,5 +112,32 @@ class Minitest::Test
     calls
   ensure
     object.unstub(method)
+  end
+
+  def simulate_blocking_transaction_from_another_connection
+    SafePgMigrations.config.retry_delay = 1.second
+    SafePgMigrations.config.safe_timeout = 0.5.second
+    SafePgMigrations.config.blocking_activity_logger_margin = 0.1.seconds
+
+    @connection.create_table(:users)
+
+    Class.new(ActiveRecord::Migration::Current) do
+      def up
+        thread_lock = Concurrent::CountDownLatch.new
+        thread =
+          Thread.new do
+            ActiveRecord::Base.connection.execute('BEGIN; SELECT 1 FROM users')
+            thread_lock.count_down
+            sleep 1
+            ActiveRecord::Base.connection.commit_db_transaction
+          end
+
+        thread_lock.wait # Wait for the above transaction to start.
+
+        add_column :users, :email, :string
+
+        thread.join
+      end
+    end.new
   end
 end

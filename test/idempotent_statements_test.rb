@@ -2,114 +2,156 @@
 
 require 'test_helper'
 
-class AddForeignKeyTest < Minitest::Test
-  DUMMY_MIGRATION_VERSION = 8128
-
-  def setup
-    SafePgMigrations.instance_variable_set(:@config, nil)
-    @connection = ActiveRecord::Base.connection
-    @verbose_was = ActiveRecord::Migration.verbose
-    @connection.create_table(:schema_migrations) { |t| t.string :version }
-    ActiveRecord::SchemaMigration.create_table
-    ActiveRecord::Migration.verbose = false
-    @connection.execute("SET statement_timeout TO '70s'")
-    @connection.execute("SET lock_timeout TO '70s'")
-
-    @connection.drop_table(:messages, if_exists: true)
-    @connection.drop_table(:conversations, if_exists: true)
-    @connection.drop_table(:users, if_exists: true)
-  end
-
-  def teardown
-    ActiveRecord::SchemaMigration.drop_table
-    @connection.execute('SET statement_timeout TO 0')
-    @connection.execute("SET lock_timeout TO '30s'")
-    @connection.drop_table(:messages, if_exists: true)
-    @connection.drop_table(:conversations, if_exists: true)
-    @connection.drop_table(:users, if_exists: true)
-    ActiveRecord::Migration.verbose = @verbose_was
-  end
-
-  def test_add_foreign_key_with_validate_explicitly_false
+class IdempotentStatementsTest < Minitest::Test
+  def test_create_table_idempotent
     @connection.create_table(:users) { |t| t.string :email }
-    @connection.create_table(:messages) do |t|
-      t.string :message
-      t.bigint :user_id
-    end
-
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
-          add_foreign_key :messages, :users, validate: false
+          create_table :users do |t|
+            t.string :email
+          end
+        end
+      end.new
+
+    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- create_table(:users)',
+      "   -> /!\\ Table 'users' already exists.",
+      '   -> -- Skipping statement',
+    ], write_calls[0...4]
+  end
+
+  def test_add_column_idempotent
+    @connection.create_table(:users) { |t| t.string :email }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { add_column :users, :name, :string }
+        end
+      end.new
+    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- add_column(:users, :name, :string)',
+    ], write_calls[0...2]
+
+    assert_equal [
+      '-- add_column(:users, :name, :string)',
+      "   -> /!\\ Column 'name' already exists in 'users'. Skipping statement.",
+    ], write_calls[3..4]
+  end
+
+  def test_remove_column_idempotent
+    @connection.create_table(:users) { |t| t.string :email, index: true }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { remove_column :users, :email }
+        end
+      end.new
+
+    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+    refute @connection.index_exists?(:users, :email)
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- remove_column(:users, :email)',
+    ], write_calls[0...2]
+
+    assert_equal [
+      '-- remove_column(:users, :email)',
+      "   -> /!\\ Column 'email' not found on table 'users'. Skipping statement.",
+    ], write_calls[3..4]
+
+    assert_equal write_calls.length, 8
+    refute @connection.index_exists?(:users, :email)
+  end
+
+  def test_remove_index_idempotent
+    @connection.create_table(:users) { |t| t.string(:email, index: true) }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { remove_index :users, :email }
+        end
+      end.new
+
+    write_calls = record_calls(@migration, :write) { run_migration }.map(&:first)
+    refute @connection.index_exists?(:users, :email)
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- remove_index(:users, :email)',
+      '   -> remove_index("users", {:column=>:email, :algorithm=>:concurrently})',
+    ], write_calls[0...3]
+
+    assert_equal [
+      '-- remove_index(:users, :email)',
+      '   -> remove_index("users", {:column=>:email, :algorithm=>:concurrently})',
+      "   -> /!\\ Index 'index_users_on_email' not found on table 'users'. Skipping statement.",
+    ], write_calls[4...7]
+
+    assert_equal write_calls.length, 10
+    refute @connection.index_exists?(:users, :email)
+  end
+
+  def test_add_index_idempotent
+    @connection.create_table(:users) { |t| t.string :email }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { add_index(:users, :email, name: :my_custom_index_name, where: 'email IS NOT NULL') }
         end
       end.new
 
     calls = record_calls(@connection, :execute) { run_migration }
+
     assert_calls [
-      "SET statement_timeout TO '5s'",
-      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
-      'REFERENCES "users" ("id") NOT VALID',
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+      'CREATE INDEX CONCURRENTLY "my_custom_index_name" ON "users" ("email") WHERE email IS NOT NULL',
+      "SET lock_timeout TO '5s'",
+      "SET statement_timeout TO '70s'",
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+      "SET lock_timeout TO '5s'",
+      "SET statement_timeout TO '70s'",
+    ], calls
+  end
+
+  def test_add_index_invalid_index
+    @connection.create_table(:users) { |t| t.string :email, index: true }
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_index(:users, :email)
+        end
+      end.new
+
+    @connection.stubs(:index_valid?).returns(false)
+    calls = record_calls(@connection, :execute) { run_migration }
+    assert_calls [
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+      'DROP INDEX CONCURRENTLY "index_users_on_email"',
+      "SET lock_timeout TO '0'",
+      "SET statement_timeout TO '0'",
+
+      'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
+      "SET lock_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
     ], calls
   end
 
   def test_add_foreign_key
-    @connection.create_table(:users) { |t| t.string :email }
-    @connection.create_table(:messages) do |t|
-      t.string :message
-      t.bigint :user_id
-    end
-
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def change
-          add_foreign_key :messages, :users
-        end
-      end.new
-
-    calls = record_calls(@connection, :execute) { run_migration }
-    assert_calls [
-      "SET statement_timeout TO '5s'",
-      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
-      'REFERENCES "users" ("id") NOT VALID',
-      "SET statement_timeout TO '70s'",
-      'SET statement_timeout TO 0',
-      'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-      "SET statement_timeout TO '70s'",
-    ], calls
-  end
-
-  def test_add_foreign_key_with_options
-    @connection.create_table(:users, id: false) do |t|
-      t.string :email
-      t.bigint :real_id, primary_key: true
-      t.bigint :other_id
-    end
-    @connection.create_table(:messages) do |t|
-      t.string :message
-      t.bigint :author_id
-    end
-
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def change
-          add_foreign_key :messages, :users, primary_key: :real_id, column: :author_id, name: :message_user_key
-        end
-      end.new
-
-    calls = record_calls(@connection, :execute) { run_migration }
-    assert_calls [
-      "SET statement_timeout TO '5s'",
-      'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
-      'REFERENCES "users" ("real_id") NOT VALID',
-      "SET statement_timeout TO '70s'",
-      'SET statement_timeout TO 0',
-      'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
-      "SET statement_timeout TO '70s'",
-    ], calls
-  end
-
-  def test_add_foreign_key_idempotent
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
       t.string :message
@@ -151,7 +193,7 @@ class AddForeignKeyTest < Minitest::Test
     ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
-  def test_add_foreign_key_idempotent_with_column_option
+  def test_add_foreign_key_with_column_option
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
       t.string :message
@@ -194,7 +236,7 @@ class AddForeignKeyTest < Minitest::Test
     ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
-  def test_add_foreign_key_idempotent_with_other_options
+  def test_add_foreign_key_with_other_options
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
       t.string :message
@@ -238,7 +280,7 @@ class AddForeignKeyTest < Minitest::Test
     ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 
-  def test_add_foreign_key_idempotent_different_tables
+  def test_add_foreign_key_different_tables
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:conversations) { |t| t.string :subject }
     @connection.create_table(:messages) do |t|
@@ -285,39 +327,42 @@ class AddForeignKeyTest < Minitest::Test
     ], write_calls.map(&:first).values_at(0, 1, 3)
   end
 
-  def test_add_foreign_key_with_validation
-    @connection.create_table(:users) { |t| t.string :email }
-    @connection.create_table(:messages) do |t|
-      t.string :message
-      t.bigint :user_id
+  def test_create_table
+    # Simulates an interruption between the table creation and the index creation
+    @connection.create_table(:users) do |t|
+      t.string :name, index: true
+      t.string :email
     end
 
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
-          add_foreign_key :messages, :users, validate: true
+          create_table(:users) do |t|
+            t.string :name, index: true
+            t.string :email, index: true
+          end
         end
       end.new
 
     calls = record_calls(@connection, :execute) { run_migration }
+    indexes = ActiveRecord::Base.connection.indexes :users
+    refute_empty indexes
+    assert_equal 'index_users_on_email', indexes.first.name
+
+    refute_includes flat_calls(calls), 'CREATE INDEX CONCURRENTLY "index_users_on_name" ON "users" ("name")'
+
     assert_calls [
       "SET statement_timeout TO '5s'",
-      'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+      "SET lock_timeout TO '5s'",
+      "SET statement_timeout TO '5s'",
+      'SET statement_timeout TO 0',
+      'SET lock_timeout TO 0',
+      'CREATE INDEX "index_users_on_email" ON "users" ("email")',
+      "SET lock_timeout TO '5s'",
+      "SET statement_timeout TO '5s'",
       "SET statement_timeout TO '70s'",
     ], calls
-  end
-
-  def test_add_reference
-    @connection.create_table(:users) { |t| t.string :email }
-    @connection.create_table(:messages) { |t| t.string :message }
-
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def change
-          add_reference(:messages, :user, foreign_key: true)
-        end
-      end.new
-
-    record_calls(@connection, :execute) { run_migration }
   end
 end
