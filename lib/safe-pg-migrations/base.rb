@@ -9,6 +9,7 @@ require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
 require 'safe-pg-migrations/plugins/legacy_active_record_support'
+require 'safe-pg-migrations/plugins/helpers/index_definition_comparator'
 
 module SafePgMigrations
   # Order matters: the bottom-most plugin will have precedence

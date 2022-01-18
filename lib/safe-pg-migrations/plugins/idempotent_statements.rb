@@ -8,7 +8,9 @@ module SafePgMigrations
       return super unless index_name_exists?(index_definition.table, index_definition.name)
 
       existing_index = indexes(index_definition.table).find { |index| index.name == index_definition.name }
-      return super if index_definition_equals? existing_index, index_definition # this will raise
+      unless SafePgMigrations::Helpers::IndexDefinitionComparator.new(existing_index, index_definition).equal?
+        return super # this will raise, the index already exist. Done in order to stay consistent with native AR errors
+      end
 
       return if index_valid?(index_definition.name)
 
@@ -66,14 +68,6 @@ module SafePgMigrations
     end
 
     private
-
-    def index_definition_equals?(index_definition_a, index_definition_b)
-      %i[table name lengths orders opclasses where type using comment].all? do |attribute|
-        index_definition_a.public_send(attribute) == index_definition_b.public_send(attribute)
-      end
-
-      index_definition_a.unique.presence == index_definition_b.unique.presence
-    end
 
     def index_valid?(index_name)
       query_value <<~SQL.squish
