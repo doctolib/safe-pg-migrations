@@ -151,6 +151,52 @@ class IdempotentStatementsTest < Minitest::Test
     ], calls
   end
 
+  def test_create_index_name_fails_explicitly_if_invalid
+    @connection.create_table(:users) { |t| t.string :email }
+
+    my_name = :index_users_that_longer_than_64_characters_and_that_will_be_truncated_by_pg
+
+    @connection.execute <<~SQL # Creating the index with a long name
+      CREATE INDEX #{my_name}
+      on users(email);
+    SQL
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_index(:users, :name, name: :index_users_that_longer_than_64_characters_and_that_will_be_truncated_by_pg)
+        end
+      end.new
+
+    assert_raises do
+      run_migration
+    end
+  end
+
+  def test_detects_name_conflicts_when_creating_an_index
+    @connection.create_table(:users) do |t|
+      t.string :email
+      t.string :name
+    end
+
+    @connection.add_index :users, :name, name: 'index_on_users'
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_index(:users, :email, name: 'index_on_users')
+        end
+      end.new
+
+    write_calls = record_calls(@migration, :write) { run_migration }
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- add_index(:users, :email, {:name=>"index_on_users"})',
+      "   -> /!\\ Index 'index_on_users' already exists in 'users'. Skipping statement.",
+    ], write_calls.map(&:first).values_at(0, 1, 3)
+  end
+
   def test_add_foreign_key
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
