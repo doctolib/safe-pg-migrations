@@ -4,12 +4,20 @@ module SafePgMigrations
   module IdempotentStatements
     ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
-      index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, index_column_names(column_name))
-      return super unless index_name_exists?(table_name, index_name)
 
-      return if index_valid?(index_name)
+      index_definition, = add_index_options(table_name, column_name, **options)
 
-      remove_index(table_name, name: index_name)
+      return super unless index_name_exists?(index_definition.table, index_definition.name)
+
+      if index_valid?(index_definition.name)
+        SafePgMigrations.say(
+          "/!\\ Index '#{index_definition.name}' already exists in '#{table_name}'. Skipping statement.",
+          true
+        )
+        return
+      end
+
+      remove_index(table_name, name: index_definition.name)
       super
     end
 
