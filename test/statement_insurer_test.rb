@@ -153,14 +153,35 @@ class StatementInsurerTest < Minitest::Test
     assert_equal 5, @connection.query_value('SELECT count(*) FROM users WHERE email IS NULL')
 
     SafePgMigrations.config.batch_size = 2
+
     @connection.change_column_default(:users, :email, 'michel@example.org')
-    calls = record_calls(@connection, :execute) { run_migration }
+    calls = record_calls(@connection, :update) { run_migration }
+
+    assert_equal 3, calls.count
     assert_equal 5, @connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
-    assert_calls [
-      'UPDATE "users" SET "email" = DEFAULT WHERE id IN (1,2)',
-      'UPDATE "users" SET "email" = DEFAULT WHERE id IN (3,4)',
-      'UPDATE "users" SET "email" = DEFAULT WHERE id IN (5)',
-    ], calls
+  end
+
+  def test_backfill_column_default_with_uuid
+    @connection.enable_extension 'pgcrypto' unless @connection.extension_enabled?('pgcrypto')
+    @connection.create_table(:users, id: :uuid, force: true) { |t| t.string :email }
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          backfill_column_default(:users, :email)
+        end
+      end.new
+
+    5.times do
+      @connection.execute 'INSERT INTO users (id) values (default)'
+    end
+    assert_equal 5, @connection.query_value('SELECT count(*) FROM users WHERE email IS NULL')
+    SafePgMigrations.config.batch_size = 2
+
+    @connection.change_column_default(:users, :email, 'michel@example.org')
+    calls = record_calls(@connection, :update) { run_migration }
+
+    assert_equal 3, calls.count
+    assert_equal 5, @connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
   end
 
   def test_add_foreign_key_with_validate_explicitly_false

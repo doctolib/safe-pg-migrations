@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module StatementInsurer # rubocop:disable Metrics/ModuleLength
+  module StatementInsurer
     PG_11_VERSION_NUM = 110_000
 
     %i[change_column_null change_column].each do |method|
@@ -85,20 +85,11 @@ module SafePgMigrations
     end
 
     def backfill_column_default(table_name, column_name)
-      quoted_table_name = quote_table_name(table_name)
+      model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
       quoted_column_name = quote_column_name(column_name)
-      primary_key_offset = 0
-      loop do
-        ids = query_values <<~SQL.squish
-          SELECT id FROM #{quoted_table_name} WHERE id > #{primary_key_offset}
-          ORDER BY id LIMIT #{SafePgMigrations.config.batch_size}
-        SQL
-        break if ids.empty?
 
-        primary_key_offset = ids.last
-        execute <<~SQL.squish
-          UPDATE #{quoted_table_name} SET #{quoted_column_name} = DEFAULT WHERE id IN (#{ids.join(',')})
-        SQL
+      model.in_batches(of: SafePgMigrations.config.batch_size).each do |relation|
+        relation.update_all("#{quoted_column_name} = DEFAULT")
       end
     end
 
