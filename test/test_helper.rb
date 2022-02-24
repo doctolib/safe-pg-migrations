@@ -35,6 +35,7 @@ class Minitest::Test
     ActiveRecord::SchemaMigration.create_table
     ActiveRecord::InternalMetadata.create_table
     ActiveRecord::Migration.verbose = false
+    @connection.clear_cache!
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
   end
