@@ -1,0 +1,12 @@
+source "https://rubygems.org"
+
+gemspec path: ".."
+
+gem "rake"
+gem "activerecord", "~> 5.2.0"
+gem "pg"
+gem "ruby2_keywords", ">= 0.0.4"
+gem "bundler"
+gem "minitest"
+gem "mocha"
+gem "rubocop"
