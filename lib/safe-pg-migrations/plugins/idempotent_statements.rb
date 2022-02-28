@@ -5,7 +5,7 @@ module SafePgMigrations
     ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
 
-      index_definition, = add_index_options(table_name, column_name, **options)
+      index_definition = index_definition(table_name, column_name, **options)
 
       return super unless index_name_exists?(index_definition.table, index_definition.name)
 
@@ -68,6 +68,13 @@ module SafePgMigrations
       td.indexes.each do |column_name, index_options|
         add_index(table_name, column_name, **index_options)
       end
+    end
+
+    protected
+
+    def index_definition(table_name, column_name, **options)
+      index_definition, = add_index_options(table_name, column_name, **options)
+      index_definition
     end
 
     private
