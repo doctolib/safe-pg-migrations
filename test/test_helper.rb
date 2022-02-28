@@ -49,7 +49,14 @@ class Minitest::Test
 
   def run_migration(direction = :up)
     @migration.version = DUMMY_MIGRATION_VERSION
-    ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration).migrate
+
+    migrator =
+      if Gem::Requirement.new('>=6.0.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+        ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration)
+      else
+        ActiveRecord::Migrator.new(direction, [@migration])
+      end
+    migrator.migrate
   end
 
   def assert_calls(expected, actual)
