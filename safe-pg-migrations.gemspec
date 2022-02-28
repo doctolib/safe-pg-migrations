@@ -32,13 +32,4 @@ Gem::Specification.new do |s|
   s.add_dependency 'activerecord', '>= 5.2'
   s.add_dependency 'activesupport', '>= 5.2'
   s.add_dependency 'ruby2_keywords', '>= 0.0.4'
-
-  s.add_development_dependency 'bundler'
-  s.add_development_dependency 'minitest'
-  s.add_development_dependency 'mocha'
-  s.add_development_dependency 'pg'
-  s.add_development_dependency 'pry'
-  s.add_development_dependency 'pry-coolline'
-  s.add_development_dependency 'rake'
-  s.add_development_dependency 'rubocop'
 end
