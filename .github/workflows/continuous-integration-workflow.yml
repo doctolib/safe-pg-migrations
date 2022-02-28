@@ -15,7 +15,7 @@ on:
 jobs:
   rubocop-test:
     name: Rubocop
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: ruby/setup-ruby@v1
@@ -26,7 +26,7 @@ jobs:
         run: bundle exec rubocop
   unit-test:
     name: UnitTest
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     # Service containers to run with `container-job`
     strategy:
       matrix:
