@@ -84,10 +84,9 @@ jobs:
         include:
           - ruby: 2.6
             gemfile: gemfiles/activerecord52.gemfile
-            postgres: true
     services:
       postgres:
-        image: postgres:${{ matrix.postgres }}
+        image: postgres:12.8
         env:
           POSTGRES_DB: safe_pg_migrations_test
           POSTGRES_PASSWORD: postgres
