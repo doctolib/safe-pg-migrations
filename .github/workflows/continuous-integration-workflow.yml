@@ -87,7 +87,19 @@ jobs:
             postgres: true
     services:
       postgres:
-        image: postgres:12.8
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_DB: safe_pg_migrations_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     steps:
