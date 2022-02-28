@@ -4,7 +4,6 @@ env:
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: safe_pg_migrations_test
   PGPASSWORD: postgres
-  BUNDLER_VERSION: 1.16.5
 
 name: CI
 on:
