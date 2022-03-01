@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gemspec path: '..'
+
+gem 'activerecord', '~> 6.1.0'
+gem 'bundler'
+gem 'minitest', '>= 5'
+gem 'mocha'
+gem 'pg'
+gem 'pry'
+gem 'pry-coolline'
+gem 'rake'
+gem 'rubocop'
+gem 'ruby2_keywords', '>= 0.0.4'

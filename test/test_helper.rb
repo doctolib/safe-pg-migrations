@@ -17,8 +17,6 @@ ENV['POSTGRES_DB'] ||= 'safe_pg_migrations_test'
 ENV['DATABASE_URL'] ||= "postgres://#{ENV['POSTGRES_USER']}@localhost/#{ENV['POSTGRES_DB']}"
 
 ActiveRecord::Base.logger = ActiveSupport::Logger.new('debug.log', 0, 100 * 1024 * 1024)
-ActiveRecord::Base.establish_connection
-ActiveRecord::InternalMetadata.create_table
 
 ActiveRecord::Migration.prepend(SafePgMigrations::Migration)
 
@@ -28,6 +26,7 @@ class Minitest::Test
   make_my_diffs_pretty!
 
   def setup
+    ActiveRecord::Base.establish_connection
     SafePgMigrations.instance_variable_set(:@config, nil)
     @verbose_was = ActiveRecord::Migration.verbose
     @connection = ActiveRecord::Base.connection
@@ -35,7 +34,6 @@ class Minitest::Test
     ActiveRecord::SchemaMigration.create_table
     ActiveRecord::InternalMetadata.create_table
     ActiveRecord::Migration.verbose = false
-    @connection.clear_cache!
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
   end
@@ -45,11 +43,19 @@ class Minitest::Test
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::Base.clear_all_connections!
   end
 
   def run_migration(direction = :up)
     @migration.version = DUMMY_MIGRATION_VERSION
-    ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration).migrate
+
+    migrator =
+      if Gem::Requirement.new('>=6.0.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+        ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration)
+      else
+        ActiveRecord::Migrator.new(direction, [@migration])
+      end
+    migrator.migrate
   end
 
   def assert_calls(expected, actual)

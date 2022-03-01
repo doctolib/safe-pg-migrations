@@ -65,8 +65,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler
-  minitest
+  minitest (>= 5)
   mocha
   pg
   pry

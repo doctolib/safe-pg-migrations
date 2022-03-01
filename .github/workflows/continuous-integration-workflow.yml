@@ -1,5 +1,5 @@
 env:
-  RUBY_VERSION: 2.6.x
+  RUBY_VERSION: 2.6
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: safe_pg_migrations_test
@@ -15,28 +15,18 @@ on:
 jobs:
   rubocop-test:
     name: Rubocop
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-ruby@v1
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
-      - uses: actions/cache@v2
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-      - name: bundle
-        run: |
-          gem install bundler
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
+          bundler-cache: true
       - name: Check code
         run: bundle exec rubocop
   unit-test:
     name: UnitTest
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     # Service containers to run with `container-job`
     strategy:
       matrix:
@@ -59,20 +49,46 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Ruby
-        uses: actions/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-      - uses: actions/cache@v2
+          bundler-cache: true
+      - name: Run tests
+        run: bundle exec rake test
+  legacy-activerecord-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ruby: "3.0"
+            gemfile: gemfiles/activerecord61.gemfile
+          - ruby: 2.7
+            gemfile: gemfiles/activerecord60.gemfile
+          - ruby: 2.6
+            gemfile: gemfiles/activerecord52.gemfile
+    env:
+      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
+    services:
+      postgres:
+        image: postgres:12.8
+        env:
+          POSTGRES_DB: safe_pg_migrations_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
         with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-      - name: bundle
-        run: |
-          gem install bundler:1.16.5
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
       - name: Run tests
         run: bundle exec rake test
