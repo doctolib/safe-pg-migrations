@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    safe-pg-migrations (1.4.1)
+    safe-pg-migrations (1.4.2)
       activerecord (>= 5.2)
       activesupport (>= 5.2)
       ruby2_keywords (>= 0.0.4)
@@ -9,12 +9,12 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (6.1.4.6)
-      activesupport (= 6.1.4.6)
-    activerecord (6.1.4.6)
-      activemodel (= 6.1.4.6)
-      activesupport (= 6.1.4.6)
-    activesupport (6.1.4.6)
+    activemodel (6.1.4.7)
+      activesupport (= 6.1.4.7)
+    activerecord (6.1.4.7)
+      activemodel (= 6.1.4.7)
+      activesupport (= 6.1.4.7)
+    activesupport (6.1.4.7)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
