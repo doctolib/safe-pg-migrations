@@ -71,7 +71,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     services:
       postgres:
-        image: postgres:12.8
+        image: postgres:12.9
         env:
           POSTGRES_DB: safe_pg_migrations_test
           POSTGRES_PASSWORD: postgres
