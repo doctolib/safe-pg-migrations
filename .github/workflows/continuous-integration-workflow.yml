@@ -30,8 +30,8 @@ jobs:
     # Service containers to run with `container-job`
     strategy:
       matrix:
-        postgres: [ 9.6, 11.7, 12.9, 12.10 ]
-        ruby: [ 2.5, 2.6, 2.7, 3.0 ]
+        postgres: [ 9.6, 11.7, 12.9, "12.10" ]
+        ruby: [ 2.5, 2.6, 2.7, 3.0, 3.1 ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
