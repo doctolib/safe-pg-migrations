@@ -30,8 +30,8 @@ jobs:
     # Service containers to run with `container-job`
     strategy:
       matrix:
-        postgres: [ 9.6, 11.7, 12.8 ]
-        ruby: [ 2.5, 2.6, 2.7, 3.0 ]
+        postgres: [ 9.6, 11.7, 12.9, "12.10" ]
+        ruby: [ 2.5, 2.6, 2.7, 3.0, 3.1 ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
@@ -71,7 +71,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     services:
       postgres:
-        image: postgres:12.8
+        image: postgres:12.9
         env:
           POSTGRES_DB: safe_pg_migrations_test
           POSTGRES_PASSWORD: postgres
