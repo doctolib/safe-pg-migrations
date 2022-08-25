@@ -64,7 +64,9 @@ module SafePgMigrations
       end
     end
 
-    def add_index(table_name, column_name, **options)
+    ruby2_keywords def add_index(table_name, column_name, *args_options)
+      options = args_options.last.is_a?(Hash) ? args_options.last : {}
+
       if options[:algorithm] == :default
         options.delete :algorithm
       else
