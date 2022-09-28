@@ -19,8 +19,10 @@ module SafePgMigrations
     ruby2_keywords def remove_foreign_key(*args)
       return super(*args) if satisfied? '>=6.0.0'
 
-      from_table, to_table, options = args
-      to_table ||= args[:to_table]
+      from_table = args[0]
+      to_table = args[1].is_a?(String) ? args[1] : nil
+      options ||= args.last.is_a?(Hash) ? args.last : {}
+      to_table ||= options[:to_table]
       options.delete(:to_table)
       super(from_table, to_table, options)
     end
