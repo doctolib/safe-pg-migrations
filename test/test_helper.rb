@@ -12,9 +12,9 @@ require 'pry'
 
 require 'safe-pg-migrations/base'
 
-ENV['POSTGRES_USER'] ||= ENV['USER']
+ENV['POSTGRES_USER'] ||= ENV.fetch('USER', nil)
 ENV['POSTGRES_DB'] ||= 'safe_pg_migrations_test'
-ENV['DATABASE_URL'] ||= "postgres://#{ENV['POSTGRES_USER']}@localhost/#{ENV['POSTGRES_DB']}"
+ENV['DATABASE_URL'] ||= "postgres://#{ENV.fetch('POSTGRES_USER', nil)}@localhost/#{ENV.fetch('POSTGRES_DB', nil)}"
 
 ActiveRecord::Base.logger = ActiveSupport::Logger.new('debug.log', 0, 100 * 1024 * 1024)
 
@@ -86,7 +86,7 @@ class Minitest::Test
       lambda {
         if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7')
           object.stubs(method).with do |*args, **kwargs|
-            calls << args + (kwargs.empty? ? [] : [kwargs])
+            calls << (args + (kwargs.empty? ? [] : [kwargs]))
             # Temporarily unstub the method so that we can call the original method.
             object.unstub(method)
             begin
