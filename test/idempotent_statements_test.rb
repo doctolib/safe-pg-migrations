@@ -501,7 +501,7 @@ class IdempotentStatementsTest < Minitest::Test
         execute_calls = record_calls(@connection, :execute) { run_migration }
       end
 
-    assert_match /ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_\w*"/, flat_calls(execute_calls)[1]
+    assert_match(/ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_\w*"/, flat_calls(execute_calls)[1])
 
     assert_equal [
       '== 8128 : migrating ===========================================================',
