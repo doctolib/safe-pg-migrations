@@ -446,6 +446,10 @@ class IdempotentStatementsTest < Minitest::Test
   end
 
   def test_remove_foreign_key_using_to_table
+    if Gem::Requirement.new('<6.0.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+      skip 'Not available for AR < 6.0'
+    end
+
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
       t.string :message
