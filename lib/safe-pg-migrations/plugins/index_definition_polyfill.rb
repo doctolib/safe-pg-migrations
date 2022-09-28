@@ -20,6 +20,5 @@ module SafePgMigrations
     def satisfied?(version)
       Gem::Requirement.new(version).satisfied_by? Gem::Version.new(::ActiveRecord::VERSION::STRING)
     end
-
   end
 end
