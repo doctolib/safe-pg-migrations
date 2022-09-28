@@ -24,7 +24,7 @@ module SafePgMigrations
       options ||= args.last.is_a?(Hash) ? args.last : {}
       to_table ||= options[:to_table]
       options.delete(:to_table)
-      super(from_table, to_table, options)
+      super(from_table, to_table || options)
     end
 
     protected
