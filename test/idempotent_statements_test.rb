@@ -450,8 +450,8 @@ class IdempotentStatementsTest < Minitest::Test
     @connection.create_table(:messages) do |t|
       t.string :message
       t.bigint :user_id
-      t.references :users, foreign_key: true, index: false
     end
+    @connection.add_foreign_key :messages, :users
 
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -466,15 +466,13 @@ class IdempotentStatementsTest < Minitest::Test
         execute_calls = record_calls(@connection, :execute) { run_migration }
       end
 
-    assert_calls [
-      'ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_e3b11c0cbb"',
-    ], execute_calls
+    assert_match(/ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_\w*"/, flat_calls(execute_calls)[1])
 
     assert_equal [
       '== 8128 : migrating ===========================================================',
       '-- remove_foreign_key(:messages, {:to_table=>:users})',
       '-- remove_foreign_key(:messages, {:to_table=>:users})',
-      "   -> /!\\ Foreign key 'messages' -> '{:to_table=>:users}' does not exist. Skipping statement.",
+      "   -> /!\\ Foreign key 'messages' -> 'users' does not exist. Skipping statement.",
     ], write_calls.map(&:first).values_at(0, 1, 3, 4)
   end
 end

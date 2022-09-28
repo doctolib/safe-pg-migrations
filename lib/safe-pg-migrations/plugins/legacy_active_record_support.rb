@@ -16,6 +16,15 @@ module SafePgMigrations
       super(from_table, to_table || options)
     end
 
+    ruby2_keywords def remove_foreign_key(*args)
+      return super(*args) if satisfied? '>=6.0.0'
+
+      from_table, to_table, options = args
+      to_table ||= args[:to_table]
+      options.delete(:to_table)
+      super(from_table, to_table, options)
+    end
+
     protected
 
     IndexDefinition = Struct.new(:table, :name)
