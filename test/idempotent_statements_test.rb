@@ -433,7 +433,6 @@ class IdempotentStatementsTest < Minitest::Test
         execute_calls = record_calls(@connection, :execute) { run_migration }
       end
 
-    puts execute_calls
     assert_calls [
       'ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_e3b11c0cbb"',
     ], execute_calls
