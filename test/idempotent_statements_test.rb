@@ -411,4 +411,72 @@ class IdempotentStatementsTest < Minitest::Test
       "SET statement_timeout TO '70s'",
     ], calls
   end
+
+
+  def test_remove_foreign_key
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :user_id
+      t.references :users, foreign_key: true, index: false
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { remove_foreign_key :messages, :users }
+        end
+      end.new
+
+    execute_calls = nil
+    write_calls =
+      record_calls(@migration, :write) do
+        execute_calls = record_calls(@connection, :execute) { run_migration }
+      end
+
+    puts execute_calls
+    assert_calls [
+      'ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_e3b11c0cbb"',
+    ], execute_calls
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- remove_foreign_key(:messages, :users)',
+      '-- remove_foreign_key(:messages, :users)',
+      "   -> /!\\ Foreign key 'messages' -> 'users' does not exist. Skipping statement.",
+    ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+  end
+
+  def test_remove_foreign_key_using_to_table
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.create_table(:messages) do |t|
+      t.string :message
+      t.bigint :user_id
+      t.references :users, foreign_key: true, index: false
+    end
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          2.times { remove_foreign_key :messages, to_table: :users }
+        end
+      end.new
+
+    execute_calls = nil
+    write_calls =
+      record_calls(@migration, :write) do
+        execute_calls = record_calls(@connection, :execute) { run_migration }
+      end
+
+    assert_calls [
+      'ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_e3b11c0cbb"',
+    ], execute_calls
+
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- remove_foreign_key(:messages, {:to_table=>:users})',
+      '-- remove_foreign_key(:messages, {:to_table=>:users})',
+      "   -> /!\\ Foreign key 'messages' -> '{:to_table=>:users}' does not exist. Skipping statement.",
+    ], write_calls.map(&:first).values_at(0, 1, 3, 4)
+  end
 end

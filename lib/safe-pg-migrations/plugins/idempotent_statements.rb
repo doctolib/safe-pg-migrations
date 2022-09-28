@@ -53,6 +53,17 @@ module SafePgMigrations
       )
     end
 
+    ruby2_keywords def remove_foreign_key(from_table, to_table, *args)
+      options = args.last.is_a?(Hash) ? args.last : {}
+      suboptions = options.slice(:name, :column, :to_table)
+      return super if foreign_key_exists?(from_table, suboptions.present? ? nil : to_table, **suboptions)
+
+      SafePgMigrations.say(
+        "/!\\ Foreign key '#{from_table}' -> '#{to_table}' does not exist. Skipping statement.",
+        true
+      )
+    end
+
     ruby2_keywords def create_table(table_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       return super if options[:force] || !table_exists?(table_name)
