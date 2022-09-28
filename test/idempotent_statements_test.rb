@@ -412,7 +412,6 @@ class IdempotentStatementsTest < Minitest::Test
     ], calls
   end
 
-
   def test_remove_foreign_key
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|
