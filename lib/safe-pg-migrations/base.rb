@@ -8,13 +8,11 @@ require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
-require 'safe-pg-migrations/plugins/legacy_active_record_support'
 require 'safe-pg-migrations/plugins/index_definition_polyfill'
 
 module SafePgMigrations
   # Order matters: the bottom-most plugin will have precedence
   PLUGINS = [
-    LegacyActiveRecordSupport,
     BlockingActivityLogger,
     IdempotentStatements,
     StatementRetrier,

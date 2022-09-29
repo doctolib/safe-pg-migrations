@@ -27,9 +27,9 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.platform              = Gem::Platform::RUBY
-  s.required_ruby_version = '>= 2.5', '< 4'
+  s.required_ruby_version = '>= 2.7', '< 4'
 
-  s.add_dependency 'activerecord', '>= 5.2'
-  s.add_dependency 'activesupport', '>= 5.2'
+  s.add_dependency 'activerecord', '>= 6.0'
+  s.add_dependency 'activesupport', '>= 6.0'
   s.add_dependency 'ruby2_keywords', '>= 0.0.4'
 end
