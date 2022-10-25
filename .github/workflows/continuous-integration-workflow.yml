@@ -1,5 +1,5 @@
 env:
-  RUBY_VERSION: 2.6
+  RUBY_VERSION: 3.1.2
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: safe_pg_migrations_test
@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         postgres: [ 9.6, 11.7, 12.9, "12.10" ]
-        ruby: [ 2.5, 2.6, 2.7, 3.0, 3.1 ]
+        ruby: [ 2.7, 3.0, 3.1, 3.2 ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
@@ -67,8 +67,6 @@ jobs:
             gemfile: gemfiles/activerecord60.gemfile
           - ruby: 2.7
             gemfile: gemfiles/activerecord60.gemfile
-          - ruby: 2.6
-            gemfile: gemfiles/activerecord52.gemfile
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     services:

@@ -4,12 +4,8 @@ require 'active_support/core_ext/numeric/time'
 
 module SafePgMigrations
   class Configuration
-    attr_accessor :safe_timeout
-    attr_accessor :blocking_activity_logger_margin
-    attr_accessor :blocking_activity_logger_verbose
-    attr_accessor :batch_size
-    attr_accessor :retry_delay
-    attr_accessor :max_tries
+    attr_accessor :safe_timeout, :blocking_activity_logger_margin, :blocking_activity_logger_verbose, :batch_size,
+                  :retry_delay, :max_tries
 
     def initialize
       self.safe_timeout = 5.seconds

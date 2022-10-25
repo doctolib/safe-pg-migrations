@@ -86,7 +86,7 @@ module SafePgMigrations
         SafePgMigrations.say '', true
         output_blocking_queries(queries)
         SafePgMigrations.say(
-          'Beware, some of those queries might run in a transaction. In this case the locking query might be '\
+          'Beware, some of those queries might run in a transaction. In this case the locking query might be ' \
           'located elsewhere in the transaction',
           true
         )
@@ -100,15 +100,19 @@ module SafePgMigrations
       if SafePgMigrations.config.blocking_activity_logger_verbose
         queries.each { |query, start_time| SafePgMigrations.say "#{format_start_time start_time}:  #{query}", true }
       else
-        queries.each do |start_time, locktype, mode, pid, transactionid|
-          SafePgMigrations.say(
-            "#{format_start_time(start_time)}: lock type: #{locktype || 'null'}, " \
-              "lock mode: #{mode || 'null'}, " \
-              "lock pid: #{pid || 'null'}, " \
-              "lock transactionid: #{transactionid || 'null'}",
-            true
-          )
-        end
+        output_confidentially_blocking_queries(queries)
+      end
+    end
+
+    def output_confidentially_blocking_queries(queries)
+      queries.each do |start_time, locktype, mode, pid, transactionid|
+        SafePgMigrations.say(
+          "#{format_start_time(start_time)}: lock type: #{locktype || 'null'}, " \
+          "lock mode: #{mode || 'null'}, " \
+          "lock pid: #{pid || 'null'}, " \
+          "lock transactionid: #{transactionid || 'null'}",
+          true
+        )
       end
     end
 

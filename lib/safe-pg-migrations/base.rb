@@ -8,13 +8,11 @@ require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
-require 'safe-pg-migrations/plugins/legacy_active_record_support'
 require 'safe-pg-migrations/plugins/index_definition_polyfill'
 
 module SafePgMigrations
   # Order matters: the bottom-most plugin will have precedence
   PLUGINS = [
-    LegacyActiveRecordSupport,
     BlockingActivityLogger,
     IdempotentStatements,
     StatementRetrier,
@@ -26,14 +24,14 @@ module SafePgMigrations
   class << self
     attr_reader :current_migration, :pg_version_num
 
-    def setup_and_teardown(migration, connection)
+    def setup_and_teardown(migration, connection, &block)
       @pg_version_num = get_pg_version_num(connection)
       @alternate_connection = nil
       @current_migration = migration
       stdout_sql_logger = VerboseSqlLogger.new.setup if verbose?
       PLUGINS.each { |plugin| connection.extend(plugin) }
 
-      connection.with_setting(:lock_timeout, SafePgMigrations.config.pg_safe_timeout) { yield }
+      connection.with_setting(:lock_timeout, SafePgMigrations.config.pg_safe_timeout, &block)
     ensure
       close_alternate_connection
       @current_migration = nil

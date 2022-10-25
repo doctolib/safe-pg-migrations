@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
     'mailing_list_uri' => 'https://doctolib.engineering/engineering-news-ruby-rails-react',
     'source_code_uri' => 'https://github.com/doctolib/safe-pg-migrations',
     'contributors_uri' => 'https://github.com/doctolib/safe-pg-migrations/graphs/contributors',
+    'rubygems_mfa_required' => 'true',
   }
 
   s.files        = Dir['LICENSE', 'README.md', 'lib/**/*']
@@ -27,9 +28,9 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.platform              = Gem::Platform::RUBY
-  s.required_ruby_version = '>= 2.5', '< 4'
+  s.required_ruby_version = '>= 2.7'
 
-  s.add_dependency 'activerecord', '>= 5.2'
-  s.add_dependency 'activesupport', '>= 5.2'
+  s.add_dependency 'activerecord', '>= 6.0'
+  s.add_dependency 'activesupport', '>= 6.0'
   s.add_dependency 'ruby2_keywords', '>= 0.0.4'
 end

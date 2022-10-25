@@ -53,7 +53,7 @@ module SafePgMigrations
       )
     end
 
-    ruby2_keywords def remove_foreign_key(from_table, to_table = nil, **options)
+    def remove_foreign_key(from_table, to_table = nil, **options)
       return super if foreign_key_exists?(from_table, to_table, **options)
 
       reference_name = to_table || options[:to_table] || options[:column] || options[:name]

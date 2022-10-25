@@ -63,7 +63,7 @@ class StatementInsurerTest < Minitest::Test
     end
   end
 
-  def test_add_column_after_pg_11
+  def test_add_column_after_pg11
     @connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -132,7 +132,7 @@ class StatementInsurerTest < Minitest::Test
       # The foreign key is added.
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
-        'REFERENCES "users" ("id") NOT VALID',
+      'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
       'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
@@ -302,7 +302,7 @@ class StatementInsurerTest < Minitest::Test
 
       # Create the table with constraints.
       'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying, "user_id" bigint, ' \
-        'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
+      'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
 
       # Create the index.
       'SET statement_timeout TO 0',
