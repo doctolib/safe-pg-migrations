@@ -6,9 +6,9 @@ ActiveRecord migrations for Postgres made safe.
 
 ## Requirements
 
-- Ruby 2.5+
-- Rails 5.2+
-- PostgreSQL 9.3+
+- Ruby 2.7+
+- Rails 6.0+
+- PostgreSQL 11.7+
 
 ## Usage
 
@@ -25,43 +25,51 @@ gem 'safe-pg-migrations'
 Consider the following migration:
 
 ```rb
-class AddAdminToUsers < ActiveRecord::Migration[5.2]
+class AddPatientRefToAppointments < ActiveRecord::Migration[6.0]
   def change
-    add_column :users, :admin, :boolean, default: false, null: false
+    add_reference :appointments, :patient
   end
 end
 ```
 
-If the `users` table is large, running this migration on a live Postgres 9 database will likely cause downtime. **Safe PG Migrations** hooks into Active Record so that the following gets executed instead:
+If the `users` table is large, running this migration will likely cause downtime. **Safe PG Migrations** hooks into Active Record so that the following gets executed instead:
 
 ```rb
-class AddAdminToUsers < ActiveRecord::Migration[5.2]
+class AddPatientRefToAppointments < ActiveRecord::Migration[6.0]
   # Do not wrap the migration in a transaction so that locks are held for a shorter time.
   disable_ddl_transaction!
 
   def change
     # Lower Postgres' lock timeout to avoid statement queueing. Acts like a seatbelt.
-    execute "SET lock_timeout TO '5s'" # The lock_timeout duration is customizable.
+    old_lock_value = query_value('SHOW lock_timeout')
+    execute("SET lock_timeout TO '5s'")
 
-    # Add the column without the default value and the not-null constraint.
-    add_column :users, :admin, :boolean
+    # Lower Postgres' statement timeout to avoid too long transactions. Acts like a seatbelt.
+    old_statement_value = query_value('SHOW statement_timeout')
+    execute("SET statement_timeout TO '5s'")
+    add_column :appointments, :patient_id, :bigint
+    execute("SET statement_timeout TO '#{old_statement_value}s'")
 
-    # Set the column's default value.
-    change_column_default :users, :admin, false
+    # add_index using the concurrent algorithm, to avoid locking the tables
+    add_index :appointments, :patient_id, algorithm: :concurrently
 
-    # Backfill the column in batches.
-    User.in_batches.update_all(admin: false)
+    # add_foreign_key without validation, to avoid locking the table for too long
+    execute("SET statement_timeout TO '5s'")
+    add_foreign_key :appointments, :patients, validate: false
 
-    # Add the not-null constraint. Beforehand, set a short statement timeout so that
-    # Postgres does not spend too much time performing the full table scan to verify
-    # the column contains no nulls.
-    execute "SET statement_timeout TO '5s'"
-    change_column_null :users, :admin, false
+    execute("SET statement_timeout TO '0'")
+
+    # validate the foreign key separately, it avoids taking a lock on the entire tables
+    validate_foreign_key :appointments, :patients
+
+    # sets back initial timeouts
+    execute("SET statement_timeout TO '#{old_statement_value}s'")
+    execute("SET lock_timeout TO #{quote(old_lock_value)}")
   end
 end
 ```
 
-Under the hood, **Safe PG Migrations** patches `ActiveRecord::Migration` and extends `ActiveRecord::Base.connection` to make potentially dangerous methods—like `add_column`—safe.
+Under the hood, **Safe PG Migrations** patches `ActiveRecord::Migration` and extends `ActiveRecord::Base.connection` to make potentially dangerous methods—like `add_reference`—safe.
 
 ## Motivation
 
@@ -107,22 +115,6 @@ Beware though, when adding a volatile default value:
 add_column :users, :created_at, default: 'clock_timestamp()'
 ```
 PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
-
-<blockquote>
-
-**Note: Pre-postgres 11**
-Adding a column with a default value and a not-null constraint is [dangerous](https://wework.github.io/data/2015/11/05/add-columns-with-default-values-to-large-tables-in-rails-postgres/).
-
-**Safe PG Migrations** makes it safe by:
-
-1.  Adding the column without the default value and the not null constraint,
-2.  Then set the default value on the column,
-3.  Then backfilling the column,
-4.  And then adding the not null constraint with a short statement timeout.
-
-Note: the addition of the not null constraint may timeout. In that case, you may want to add the not-null constraint as initially not valid and validate it in a separate statement. See [Adding a not-null constraint on Postgres with minimal locking](https://medium.com/doctolib-engineering/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c).
-
-</blockquote>
 
 </details>
 

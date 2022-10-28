@@ -22,10 +22,9 @@ module SafePgMigrations
   ].freeze
 
   class << self
-    attr_reader :current_migration, :pg_version_num
+    attr_reader :current_migration
 
     def setup_and_teardown(migration, connection, &block)
-      @pg_version_num = get_pg_version_num(connection)
       @alternate_connection = nil
       @current_migration = migration
       stdout_sql_logger = VerboseSqlLogger.new.setup if verbose?
@@ -36,10 +35,6 @@ module SafePgMigrations
       close_alternate_connection
       @current_migration = nil
       stdout_sql_logger&.teardown
-    end
-
-    def get_pg_version_num(connection)
-      connection.query_value('SHOW server_version_num').to_i
     end
 
     def alternate_connection
