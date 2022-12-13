@@ -5,7 +5,7 @@ $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'bundler/setup'
 
 require 'minitest/autorun'
-require 'mocha/setup'
+require 'mocha/minitest'
 require 'active_record'
 require 'active_support'
 require 'pry'
