@@ -41,14 +41,11 @@ class AddPatientRefToAppointments < ActiveRecord::Migration[6.0]
 
   def change
     # Lower Postgres' lock timeout to avoid statement queueing. Acts like a seatbelt.
-    old_lock_value = query_value('SHOW lock_timeout')
     execute("SET lock_timeout TO '5s'")
 
     # Lower Postgres' statement timeout to avoid too long transactions. Acts like a seatbelt.
-    old_statement_value = query_value('SHOW statement_timeout')
     execute("SET statement_timeout TO '5s'")
     add_column :appointments, :patient_id, :bigint
-    execute("SET statement_timeout TO '#{old_statement_value}s'")
 
     # add_index using the concurrent algorithm, to avoid locking the tables
     add_index :appointments, :patient_id, algorithm: :concurrently
@@ -61,10 +58,8 @@ class AddPatientRefToAppointments < ActiveRecord::Migration[6.0]
 
     # validate the foreign key separately, it avoids taking a lock on the entire tables
     validate_foreign_key :appointments, :patients
-
-    # sets back initial timeouts
-    execute("SET statement_timeout TO '#{old_statement_value}s'")
-    execute("SET lock_timeout TO #{quote(old_lock_value)}")
+    
+    # we also need to set timeouts to their initial values if needed
   end
 end
 ```
