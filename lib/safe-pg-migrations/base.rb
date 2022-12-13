@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'ruby2_keywords'
 require 'safe-pg-migrations/configuration'
 require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
