@@ -32,5 +32,4 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activerecord', '>= 6.0'
   s.add_dependency 'activesupport', '>= 6.0'
-  s.add_dependency 'ruby2_keywords', '>= 0.0.4'
 end

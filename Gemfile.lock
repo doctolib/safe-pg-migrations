@@ -4,7 +4,6 @@ PATH
     safe-pg-migrations (1.4.2)
       activerecord (>= 6.0)
       activesupport (>= 6.0)
-      ruby2_keywords (>= 0.0.4)
 
 GEM
   remote: https://rubygems.org/
