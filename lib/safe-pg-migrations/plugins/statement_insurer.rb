@@ -2,40 +2,11 @@
 
 module SafePgMigrations
   module StatementInsurer
-    PG_11_VERSION_NUM = 110_000
-
     %i[change_column_null change_column].each do |method|
       define_method method do |*args, &block|
         with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super(*args, &block) }
       end
       ruby2_keywords method
-    end
-
-    ruby2_keywords def add_column(table_name, column_name, type, *args)
-      options = args.last.is_a?(Hash) ? args.last : {}
-      return super if SafePgMigrations.pg_version_num >= PG_11_VERSION_NUM
-
-      default = options.delete(:default)
-      null = options.delete(:null)
-
-      if !default.nil? || null == false
-        SafePgMigrations.say_method_call(:add_column, table_name, column_name, type, options)
-      end
-
-      super
-
-      unless default.nil?
-        SafePgMigrations.say_method_call(:change_column_default, table_name, column_name, default)
-        change_column_default(table_name, column_name, default)
-
-        SafePgMigrations.say_method_call(:backfill_column_default, table_name, column_name)
-        backfill_column_default(table_name, column_name)
-      end
-
-      if null == false # rubocop:disable Style/GuardClause
-        SafePgMigrations.say_method_call(:change_column_null, table_name, column_name, null)
-        change_column_null(table_name, column_name, null)
-      end
     end
 
     ruby2_keywords def add_foreign_key(from_table, to_table, *args)
@@ -84,15 +55,6 @@ module SafePgMigrations
       SafePgMigrations.say_method_call(:remove_index, table_name, **options)
 
       without_timeout { super(table_name, **options) }
-    end
-
-    def backfill_column_default(table_name, column_name)
-      model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
-      quoted_column_name = quote_column_name(column_name)
-
-      model.in_batches(of: SafePgMigrations.config.batch_size).each do |relation|
-        relation.update_all("#{quoted_column_name} = DEFAULT")
-      end
     end
 
     def with_setting(key, value)

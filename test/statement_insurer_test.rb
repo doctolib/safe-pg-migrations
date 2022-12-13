@@ -3,67 +3,7 @@
 require 'test_helper'
 
 class StatementInsurerTest < Minitest::Test
-  def test_add_column_before_pg_11_with_default_value
-    @connection.create_table(:users)
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def up
-          add_column(:users, :admin, :boolean, default: false)
-        end
-      end.new
-
-    SafePgMigrations.stub(:get_pg_version_num, 96_000) do
-      execute_calls = nil
-      write_calls =
-        record_calls(@migration, :write) do
-          execute_calls = record_calls(@connection, :execute) { run_migration }
-        end
-      assert_calls [
-        # The column is added without any default.
-        'ALTER TABLE "users" ADD "admin" boolean',
-
-        # The default is added.
-        'ALTER TABLE "users" ALTER COLUMN "admin" SET DEFAULT FALSE',
-      ], execute_calls
-
-      assert_equal [
-        '== 8128 : migrating ===========================================================',
-        '-- add_column(:users, :admin, :boolean, {:default=>false})',
-        '   -> add_column("users", :admin, :boolean, {})',
-        '   -> change_column_default("users", :admin, false)',
-        '   -> backfill_column_default("users", :admin)',
-      ], write_calls.map(&:first)[0...-3]
-    end
-  end
-
-  def test_add_column_before_pg_11_without_null_or_default_value
-    @connection.create_table(:users)
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def up
-          add_column(:users, :admin, :boolean)
-        end
-      end.new
-
-    SafePgMigrations.stub(:get_pg_version_num, 96_000) do
-      execute_calls = nil
-      write_calls =
-        record_calls(@migration, :write) do
-          execute_calls = record_calls(@connection, :execute) { run_migration }
-        end
-      assert_calls [
-        # The column is added without any default.
-        'ALTER TABLE "users" ADD "admin" boolean',
-      ], execute_calls
-
-      assert_equal [
-        '== 8128 : migrating ===========================================================',
-        '-- add_column(:users, :admin, :boolean)',
-      ], write_calls.map(&:first)[0...-3]
-    end
-  end
-
-  def test_add_column_after_pg11
+  def test_add_column
     @connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -72,22 +12,20 @@ class StatementInsurerTest < Minitest::Test
         end
       end.new
 
-    SafePgMigrations.stub(:get_pg_version_num, 110_000) do
-      execute_calls = nil
-      write_calls =
-        record_calls(@migration, :write) do
-          execute_calls = record_calls(@connection, :execute) { run_migration }
-        end
-      assert_calls [
-        # The column is added with the default and not null constraint without any tricks
-        'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
-      ], execute_calls
+    execute_calls = nil
+    write_calls =
+      record_calls(@migration, :write) do
+        execute_calls = record_calls(@connection, :execute) { run_migration }
+      end
+    assert_calls [
+      # The column is added with the default and not null constraint without any tricks
+      'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
+    ], execute_calls
 
-      assert_equal [
-        '== 8128 : migrating ===========================================================',
-        '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
-      ], write_calls.map(&:first)[0...-3]
-    end
+    assert_equal [
+      '== 8128 : migrating ===========================================================',
+      '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
+    ], write_calls.map(&:first)[0...-3]
   end
 
   def test_change_column_with_timeout
@@ -138,50 +76,6 @@ class StatementInsurerTest < Minitest::Test
       'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
       "SET statement_timeout TO '70s'",
     ], calls
-  end
-
-  def test_backfill_column_default
-    @connection.create_table(:users) { |t| t.string :email }
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def up
-          backfill_column_default(:users, :email)
-        end
-      end.new
-
-    @connection.execute 'INSERT INTO users (id) values (GENERATE_SERIES(1, 5))'
-    assert_equal 5, @connection.query_value('SELECT count(*) FROM users WHERE email IS NULL')
-
-    SafePgMigrations.config.batch_size = 2
-
-    @connection.change_column_default(:users, :email, 'michel@example.org')
-    calls = record_calls(@connection, :update) { run_migration }
-
-    assert_equal 3, calls.count
-    assert_equal 5, @connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
-  end
-
-  def test_backfill_column_default_with_uuid
-    @connection.enable_extension 'pgcrypto' unless @connection.extension_enabled?('pgcrypto')
-    @connection.create_table(:users, id: :uuid, force: true) { |t| t.string :email }
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def up
-          backfill_column_default(:users, :email)
-        end
-      end.new
-
-    5.times do
-      @connection.execute 'INSERT INTO users (id) values (default)'
-    end
-    assert_equal 5, @connection.query_value('SELECT count(*) FROM users WHERE email IS NULL')
-    SafePgMigrations.config.batch_size = 2
-
-    @connection.change_column_default(:users, :email, 'michel@example.org')
-    calls = record_calls(@connection, :update) { run_migration }
-
-    assert_equal 3, calls.count
-    assert_equal 5, @connection.query_value("SELECT count(*) FROM users WHERE email = 'michel@example.org'")
   end
 
   def test_add_foreign_key_with_validate_explicitly_false
