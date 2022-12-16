@@ -23,10 +23,10 @@ module SafePgMigrations
   class << self
     attr_reader :current_migration
 
-    def setup_and_teardown(migration, connection, verbose:, &block)
+    def setup_and_teardown(migration, connection, force_verbose:, &block)
       @alternate_connection = nil
       @current_migration = migration
-      stdout_sql_logger = VerboseSqlLogger.new.setup if verbose?(verbose)
+      stdout_sql_logger = VerboseSqlLogger.new.setup if verbose?(force_verbose)
       PLUGINS.each { |plugin| connection.extend(plugin) }
 
       connection.with_setting(:lock_timeout, SafePgMigrations.config.pg_safe_timeout, &block)
@@ -57,8 +57,8 @@ module SafePgMigrations
       say "#{method}(#{args.map(&:inspect) * ', '})", true
     end
 
-    def verbose?(verbose)
-      return verbose unless verbose.nil?
+    def verbose?(force_verbose)
+      return force_verbose unless force_verbose.nil?
       return ENV['SAFE_PG_MIGRATIONS_VERBOSE'] == '1' if ENV['SAFE_PG_MIGRATIONS_VERBOSE']
       return Rails.env.production? if defined?(Rails)
 
