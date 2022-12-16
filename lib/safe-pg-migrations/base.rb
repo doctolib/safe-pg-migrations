@@ -80,7 +80,7 @@ module SafePgMigrations
     end
 
     def exec_migration(connection, direction)
-      SafePgMigrations.setup_and_teardown(self, connection, verbose: self.class.safe_pg_migrations_verbose) do
+      SafePgMigrations.setup_and_teardown(self, connection, force_verbose: self.class.safe_pg_migrations_verbose) do
         super(connection, direction)
       end
     end
