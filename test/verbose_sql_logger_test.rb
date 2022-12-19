@@ -42,17 +42,15 @@ class VerboseSqlLoggerTest < Minitest::Test
   def test_logs_with_env
     ENV['SAFE_PG_MIGRATIONS_VERBOSE'] = '1'
 
-    stdout, stderr = capture_io { run_migration }
+    stdout, = capture_io { run_migration }
 
     refute_equal '', stdout
-    refute_equal '', stderr
   end
 
   def test_does_not_log_by_default
-    stdout, stderr = capture_io { run_migration }
+    stdout, = capture_io { run_migration }
 
     assert_equal '', stdout
-    assert_equal '', stderr
   end
 
   def test_optional_sql_logging_off
@@ -86,9 +84,8 @@ class VerboseSqlLoggerTest < Minitest::Test
         end
       end.new
 
-    stdout, stderr = capture_io { run_migration }
+    stdout, = capture_io { run_migration }
 
     refute_equal '', stdout
-    refute_equal '', stderr
   end
 end
