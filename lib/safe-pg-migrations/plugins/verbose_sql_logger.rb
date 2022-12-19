@@ -4,7 +4,7 @@ module SafePgMigrations
   class VerboseSqlLogger
     def setup
       @activerecord_logger_was = ActiveRecord::Base.logger
-      @verbose_query_logs_was = ActiveRecord::Base.verbose_query_logs
+      @verbose_query_logs_was = ActiveRecord.verbose_query_logs
       @colorize_logging_was = ActiveRecord::LogSubscriber.colorize_logging
 
       disable_marginalia if defined?(Marginalia)
@@ -13,12 +13,12 @@ module SafePgMigrations
       ActiveRecord::Base.logger = stdout_logger
       ActiveRecord::LogSubscriber.colorize_logging = colorize_logging?
       # Do not output caller method, we know it is coming from the migration
-      ActiveRecord::Base.verbose_query_logs = false
+      ActiveRecord.verbose_query_logs = false
       self
     end
 
     def teardown
-      ActiveRecord::Base.verbose_query_logs = @verbose_query_logs_was
+      ActiveRecord.verbose_query_logs = @verbose_query_logs_was
       ActiveRecord::LogSubscriber.colorize_logging = @colorize_logging_was
       ActiveRecord::Base.logger = @activerecord_logger_was
       enable_marginalia if defined?(Marginalia)
