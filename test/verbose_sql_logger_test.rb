@@ -85,7 +85,6 @@ class VerboseSqlLoggerTest < Minitest::Test
     assert_logs_match stdout
   end
 
-
   private
 
   def assert_logs_match(stdout)

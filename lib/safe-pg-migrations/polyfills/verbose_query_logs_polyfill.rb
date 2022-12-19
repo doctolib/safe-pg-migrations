@@ -7,13 +7,13 @@ module SafePgMigrations
         include SatisfiedHelper
 
         def verbose_query_logs
-          return ActiveRecord.verbose_query_logs if satisfied? '>=6.1.0'
+          return ActiveRecord.verbose_query_logs if satisfied? '>=7.0.0'
 
           ActiveRecord::Base.verbose_query_logs
         end
 
         def verbose_query_logs=(value)
-          if satisfied? '>=6.1.0'
+          if satisfied? '>=7.0.0'
             ActiveRecord.verbose_query_logs = value
             return
           end
