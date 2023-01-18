@@ -20,13 +20,8 @@ class VerboseSqlLoggerTest < Minitest::Test
   def test_logs_in_output
     SafePgMigrations.stub(:verbose?, true) do
       stdout, _stderr = capture_io { run_migration }
-      logs = stdout.split("\n").map(&:strip)
 
-      assert_match('SHOW lock_timeout', logs[0])
-      assert_match("SET lock_timeout TO '5s'", logs[1])
-      assert_match('SELECT * from pg_stat_activity', logs[2])
-      assert_match('SELECT version()', logs[3])
-      assert_match("SET lock_timeout TO '70s'", logs[4])
+      assert_logs_match stdout
     end
   end
 
@@ -44,7 +39,7 @@ class VerboseSqlLoggerTest < Minitest::Test
 
     stdout, = capture_io { run_migration }
 
-    refute_equal '', stdout
+    assert_logs_match stdout
   end
 
   def test_does_not_log_by_default
@@ -86,6 +81,18 @@ class VerboseSqlLoggerTest < Minitest::Test
 
     stdout, = capture_io { run_migration }
 
-    refute_equal '', stdout
+    assert_logs_match stdout
+  end
+
+  private
+
+  def assert_logs_match(stdout)
+    logs = stdout.split("\n").map(&:strip)
+
+    assert_match('SHOW lock_timeout', logs[0])
+    assert_match("SET lock_timeout TO '5s'", logs[1])
+    assert_match('SELECT * from pg_stat_activity', logs[2])
+    assert_match('SELECT version()', logs[3])
+    assert_match("SET lock_timeout TO '70s'", logs[4])
   end
 end
