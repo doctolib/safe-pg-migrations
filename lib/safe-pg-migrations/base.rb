@@ -58,6 +58,9 @@ module SafePgMigrations
     end
 
     def verbose?
+      unless current_migration.class._safe_pg_migrations_verbose.nil?
+        return current_migration.class._safe_pg_migrations_verbose
+      end
       return ENV['SAFE_PG_MIGRATIONS_VERBOSE'] == '1' if ENV['SAFE_PG_MIGRATIONS_VERBOSE']
       return Rails.env.production? if defined?(Rails)
 
@@ -70,6 +73,14 @@ module SafePgMigrations
   end
 
   module Migration
+    module ClassMethods
+      attr_accessor :_safe_pg_migrations_verbose
+
+      def safe_pg_migrations_verbose(verbose)
+        @_safe_pg_migrations_verbose = verbose
+      end
+    end
+
     def exec_migration(connection, direction)
       SafePgMigrations.setup_and_teardown(self, connection) do
         super(connection, direction)

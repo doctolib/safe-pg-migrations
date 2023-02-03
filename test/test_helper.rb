@@ -19,6 +19,7 @@ ENV['DATABASE_URL'] ||= "postgres://#{ENV.fetch('POSTGRES_USER', nil)}@localhost
 ActiveRecord::Base.logger = ActiveSupport::Logger.new('debug.log', 0, 100 * 1024 * 1024)
 
 ActiveRecord::Migration.prepend(SafePgMigrations::Migration)
+ActiveRecord::Migration.singleton_class.prepend(SafePgMigrations::Migration::ClassMethods)
 
 class Minitest::Test
   DUMMY_MIGRATION_VERSION = 8128
