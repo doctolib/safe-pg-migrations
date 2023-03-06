@@ -79,8 +79,9 @@ class VerboseSqlLoggerTest < Minitest::Test
         end
       end.new
 
-    stdout, = capture_io { run_migration }
+    stdout, stderr = capture_io { run_migration }
 
+    assert_equal '', stderr
     assert_logs_match stdout
   end
 
