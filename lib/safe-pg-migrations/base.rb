@@ -7,7 +7,9 @@ require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
-require 'safe-pg-migrations/plugins/index_definition_polyfill'
+require 'safe-pg-migrations/polyfills/satisfied_helper'
+require 'safe-pg-migrations/polyfills/index_definition_polyfill'
+require 'safe-pg-migrations/polyfills/verbose_query_logs_polyfill'
 
 module SafePgMigrations
   # Order matters: the bottom-most plugin will have precedence
@@ -17,7 +19,7 @@ module SafePgMigrations
     StatementRetrier,
     StatementInsurer,
     UselessStatementsLogger,
-    IndexDefinitionPolyfill,
+    Polyfills::IndexDefinitionPolyfill,
   ].freeze
 
   class << self
