@@ -12,6 +12,7 @@ module SafePgMigrations
       ].freeze
 
       VERBOSE_COLUMNS = %w[
+        blocking_activity.pid
         blocking_activity.query
         blocked_activity.xact_start
       ].freeze

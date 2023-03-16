@@ -10,9 +10,9 @@ class BlockingActivityLoggerTest < Minitest::Test
 
     calls = record_calls(@migration, :write) { run_migration }.join
 
+    assert_match /Query with pid \d+ started \d seconds? ago/, calls
     assert_includes calls, 'lock type: relation'
     assert_includes calls, 'lock mode: AccessExclusiveLock'
-    assert_includes calls, 'lock pid:'
     assert_includes calls, 'lock transactionid: null'
     refute_includes calls, 'BEGIN; SELECT 1 FROM users'
   end
@@ -25,7 +25,7 @@ class BlockingActivityLoggerTest < Minitest::Test
     assert_includes calls, 'Lock timeout.'
     assert_includes calls, 'Statement was being blocked by the following query:'
 
-    assert_includes calls, 'transaction started 1 second ago'
+    assert_match /Query with pid \d+ started 1 second ago/, calls
     assert_includes calls, 'BEGIN; SELECT 1 FROM users'
     assert_includes calls, '   -> Retrying in 1 seconds...'
     assert_includes calls, '   -> Retrying now.'
@@ -38,10 +38,12 @@ class BlockingActivityLoggerTest < Minitest::Test
     assert_includes calls,
                     'add_index("users", :email, {:algorithm=>:concurrently})'
     assert_includes calls, 'Statement was being blocked by the following query'
-    assert_includes calls,
-                    'transaction started 1 second ago:  SELECT pg_sleep(3);'
-    assert_includes calls,
-                    'transaction started 2 seconds ago:  SELECT pg_sleep(3)'
+    assert_match /Query with pid \d+ started 1 second ago:  SELECT pg_sleep\(3\)/,
+                    calls
+    assert_match /Query with pid \d+ started 2 seconds ago:  SELECT pg_sleep\(3\)/,
+                    calls
+
+    puts calls
   end
 
   def test_add_index_filtered
@@ -55,9 +57,9 @@ class BlockingActivityLoggerTest < Minitest::Test
     assert_includes calls, 'Statement was being blocked by the following query'
 
     variable_part_regex =
-      /lock mode: ShareLock, lock pid: \d+, lock transactionid: null/
+      /lock mode: ShareLock, lock transactionid: null/
 
-    assert_match(Regexp.union(/transaction started 1 second ago: /, variable_part_regex), calls)
-    assert_match(Regexp.union(/transaction started 2 seconds ago: /, variable_part_regex), calls)
+    assert_match(Regexp.union(/Query with pid \d+ started 1 second ago: /, variable_part_regex), calls)
+    assert_match(Regexp.union(/Query with pid \d+ started 2 seconds ago: /, variable_part_regex), calls)
   end
 end

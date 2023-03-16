@@ -26,9 +26,8 @@ module SafePgMigrations
 
       def output_blocking_queries(queries)
         if SafePgMigrations.config.blocking_activity_logger_verbose
-          queries.each do |query, start_time|
-            SafePgMigrations.say "#{format_start_time start_time}:  #{query}",
-                                 true
+          queries.each do |pid, query, start_time|
+            SafePgMigrations.say "Query with pid #{pid || 'null'} started #{format_start_time start_time}:  #{query}", true
           end
         else
           output_confidentially_blocking_queries(queries)
@@ -38,9 +37,10 @@ module SafePgMigrations
       def output_confidentially_blocking_queries(queries)
         queries.each do |start_time, locktype, mode, pid, transactionid|
           SafePgMigrations.say(
-            "#{format_start_time(start_time)}: lock type: #{locktype || 'null'}, " \
+            "Query with pid #{pid || 'null'} " \
+            "started #{format_start_time(start_time)}: " \
+            "lock type: #{locktype || 'null'}, " \
             "lock mode: #{mode || 'null'}, " \
-            "lock pid: #{pid || 'null'}, " \
             "lock transactionid: #{transactionid || 'null'}",
             true
           )
@@ -51,7 +51,7 @@ module SafePgMigrations
         start_time = Time.parse(start_time) unless start_time.is_a? Time
 
         duration = (reference_time - start_time).round
-        "transaction started #{duration} #{'second'.pluralize(duration)} ago"
+        "#{duration} #{'second'.pluralize(duration)} ago"
       end
     end
   end
