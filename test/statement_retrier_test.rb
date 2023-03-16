@@ -41,7 +41,7 @@ class StatementRetrierTest < Minitest::Test
       '   -> Statement was being blocked by the following query:',
       '   -> ',
     ], calls[0..4]
-    assert_match(/\s*-> transaction started \d+ seconds? ago:\s*BEGIN; SELECT 1 FROM users/, calls[5])
+    assert_match(/\s*-> Query with pid \d+ started \d+ seconds? ago:\s*BEGIN; SELECT 1 FROM users/, calls[5])
     assert_equal [
       '   -> ',
       '   -> Retrying in 1 seconds...',
