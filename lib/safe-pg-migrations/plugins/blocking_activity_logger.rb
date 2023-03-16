@@ -23,10 +23,13 @@ module SafePgMigrations
       ruby2_keywords method
     end
 
-    def add_index(*args, **options)
-      return super if options[:algorithm] != :concurrently
+    %i[add_index remove_index].each do |method|
+      define_method method do |*args, **options, &block|
+        return super(*args, **options, &block) if options[:algorithm] != :concurrently
 
-      log_blocking_queries_loop { super }
+        log_blocking_queries_loop { super(*args, **options, &block) }
+      end
+      ruby2_keywords method
     end
 
     private
