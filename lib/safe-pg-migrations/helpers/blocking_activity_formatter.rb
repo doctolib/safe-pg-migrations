@@ -27,7 +27,8 @@ module SafePgMigrations
       def output_blocking_queries(queries)
         if SafePgMigrations.config.blocking_activity_logger_verbose
           queries.each do |pid, query, start_time|
-            SafePgMigrations.say "Query with pid #{pid || 'null'} started #{format_start_time start_time}:  #{query}", true
+            SafePgMigrations.say "Query with pid #{pid || 'null'} started #{format_start_time start_time}:  #{query}",
+                                 true
           end
         else
           output_confidentially_blocking_queries(queries)
