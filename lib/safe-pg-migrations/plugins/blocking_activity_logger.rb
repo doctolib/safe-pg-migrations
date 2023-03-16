@@ -29,7 +29,6 @@ module SafePgMigrations
 
         log_blocking_queries_loop { super(*args, **options, &block) }
       end
-      ruby2_keywords method
     end
 
     private
