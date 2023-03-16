@@ -49,6 +49,7 @@ module SafePgMigrations
 
       def format_start_time(start_time, reference_time = Time.now)
         start_time = Time.parse(start_time) unless start_time.is_a? Time
+
         duration = (reference_time - start_time).round
         "transaction started #{duration} #{'second'.pluralize(duration)} ago"
       end

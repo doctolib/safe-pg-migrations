@@ -148,4 +148,27 @@ class Minitest::Test
       end
     end.new
   end
+
+  def simulate_long_running_query_from_another_transaction
+    SafePgMigrations.config.retry_delay = 1.second
+
+    @connection.create_table(:users) do |t|
+      t.string :email
+    end
+
+    Class.new(ActiveRecord::Migration::Current) do
+      def up
+        thread =
+          Thread.new do
+            ActiveRecord::Base.connection.execute('SELECT pg_sleep(3);')
+          end
+
+        sleep 0.1
+
+        add_index :users, :email
+
+        thread.join
+      end
+    end.new
+  end
 end
