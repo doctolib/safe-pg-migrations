@@ -42,8 +42,6 @@ class BlockingActivityLoggerTest < Minitest::Test
                  calls)
     assert_match(/Query with pid \d+ started 2 seconds ago:  SELECT pg_sleep\(3\)/,
                  calls)
-
-    puts calls
   end
 
   def test_add_index_filtered
