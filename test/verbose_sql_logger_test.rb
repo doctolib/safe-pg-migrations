@@ -17,6 +17,12 @@ class VerboseSqlLoggerTest < Minitest::Test
     super
   end
 
+  def teardown
+    ENV.delete 'SAFE_PG_MIGRATIONS_VERBOSE'
+
+    super
+  end
+
   def test_logs_in_output
     SafePgMigrations.stub(:verbose?, true) do
       stdout, _stderr = capture_io { run_migration }
