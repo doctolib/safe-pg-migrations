@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    safe-pg-migrations (1.4.2)
+    safe-pg-migrations (2.0.0)
       activerecord (>= 6.0)
       activesupport (>= 6.0)
 
