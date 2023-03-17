@@ -14,4 +14,4 @@ changelog:
         - "*"
     - title: Fixes :bug:
       labels:
-        - fix
+        - bug
