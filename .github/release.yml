@@ -10,6 +10,6 @@ changelog:
     - title: New Features 🎉
       labels:
         - "*"
-    - title: Fixes :bug:
+    - title: "Fixes :bug:"
       labels:
         - bug

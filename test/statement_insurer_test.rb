@@ -70,7 +70,7 @@ class StatementInsurerTest < Minitest::Test
       # The foreign key is added.
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
-      'REFERENCES "users" ("id") NOT VALID',
+        'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
       'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
@@ -96,7 +96,7 @@ class StatementInsurerTest < Minitest::Test
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
-      'REFERENCES "users" ("id") NOT VALID',
+        'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
     ], calls
   end
@@ -119,7 +119,7 @@ class StatementInsurerTest < Minitest::Test
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
-      'REFERENCES "users" ("id") NOT VALID',
+        'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
       'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
@@ -149,7 +149,7 @@ class StatementInsurerTest < Minitest::Test
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
-      'REFERENCES "users" ("real_id") NOT VALID',
+        'REFERENCES "users" ("real_id") NOT VALID',
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
       'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
@@ -196,7 +196,7 @@ class StatementInsurerTest < Minitest::Test
 
       # Create the table with constraints.
       'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying, "user_id" bigint, ' \
-      'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
+        'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
 
       # Create the index.
       'SET statement_timeout TO 0',
@@ -210,5 +210,65 @@ class StatementInsurerTest < Minitest::Test
 
     run_migration(:down)
     refute @connection.table_exists?(:users)
+  end
+
+  def test_can_add_check_constraint_without_validation
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.execute('INSERT INTO users (id) VALUES (default);') # If validation, will make it fail
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_check_constraint(:users, 'email IS NOT NULL', validate: false)
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_calls [
+      'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
+    ], calls
+  end
+
+  def test_can_add_check_constraint_with_validation
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.execute('INSERT INTO users (id, email) VALUES (default, \'stan@docto.com\');')
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_check_constraint(:users, 'email IS NOT NULL', validate: true)
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_calls [
+      'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "users" VALIDATE CONSTRAINT "chk_rails_8d5dc0bde6"',
+      "SET statement_timeout TO '70s'",
+    ], calls
+  end
+
+  def test_can_add_check_constraint_through_validation
+    @connection.create_table(:users) { |t| t.string :email }
+    @connection.execute("INSERT INTO users (id, email) VALUES (default, 'stan@doctolib.com');")
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          add_check_constraint(:users, 'email IS NOT NULL', validate: false)
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_calls [
+      'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
+      'SET statement_timeout TO 0',
+      'ALTER TABLE "users" VALIDATE CONSTRAINT "chk_rails_8d5dc0bde6"',
+      "SET statement_timeout TO '70s'",
+    ], calls
   end
 end

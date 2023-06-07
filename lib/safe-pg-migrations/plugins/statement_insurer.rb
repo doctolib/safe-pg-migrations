@@ -9,6 +9,21 @@ module SafePgMigrations
       ruby2_keywords method
     end
 
+    def add_check_constraint(table_name, expression, **options)
+      return unless supports_check_constraints?
+
+      options = check_constraint_options(table_name, expression, options)
+      should_keep_default = !options.key?(:validate) || !options[:validate]
+
+      return super if should_keep_default
+
+      super table_name, expression, **options, validate: false
+
+      without_statement_timeout do
+        validate_check_constraint table_name, name: options[:name]
+      end
+    end
+
     ruby2_keywords def add_foreign_key(from_table, to_table, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       validate_present = options.key? :validate
