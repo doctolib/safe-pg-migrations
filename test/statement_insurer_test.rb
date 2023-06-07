@@ -70,7 +70,7 @@ class StatementInsurerTest < Minitest::Test
       # The foreign key is added.
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
-        'REFERENCES "users" ("id") NOT VALID',
+      'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
       'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
@@ -96,7 +96,7 @@ class StatementInsurerTest < Minitest::Test
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
-        'REFERENCES "users" ("id") NOT VALID',
+      'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
     ], calls
   end
@@ -119,7 +119,7 @@ class StatementInsurerTest < Minitest::Test
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
-        'REFERENCES "users" ("id") NOT VALID',
+      'REFERENCES "users" ("id") NOT VALID',
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
       'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
@@ -149,7 +149,7 @@ class StatementInsurerTest < Minitest::Test
     assert_calls [
       "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
-        'REFERENCES "users" ("real_id") NOT VALID',
+      'REFERENCES "users" ("real_id") NOT VALID',
       "SET statement_timeout TO '70s'",
       'SET statement_timeout TO 0',
       'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
@@ -196,7 +196,7 @@ class StatementInsurerTest < Minitest::Test
 
       # Create the table with constraints.
       'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying, "user_id" bigint, ' \
-        'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
+      'CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") REFERENCES "users" ("id") )',
 
       # Create the index.
       'SET statement_timeout TO 0',
