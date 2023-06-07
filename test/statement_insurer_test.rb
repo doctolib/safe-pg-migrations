@@ -251,14 +251,14 @@ class StatementInsurerTest < Minitest::Test
     ], calls
   end
 
-  def test_can_add_check_constraint_through_validation
+  def test_can_add_check_constraint
     @connection.create_table(:users) { |t| t.string :email }
     @connection.execute("INSERT INTO users (id, email) VALUES (default, 'stan@doctolib.com');")
 
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def change
-          add_check_constraint(:users, 'email IS NOT NULL', validate: false)
+          add_check_constraint(:users, 'email IS NOT NULL')
         end
       end.new
 

@@ -13,7 +13,7 @@ module SafePgMigrations
       return unless supports_check_constraints?
 
       options = check_constraint_options(table_name, expression, options)
-      should_keep_default = !options.key?(:validate) || !options[:validate]
+      should_keep_default = options.key?(:validate) && !options[:validate]
 
       return super if should_keep_default
 
