@@ -80,6 +80,24 @@ module SafePgMigrations
       end
     end
 
+    def add_check_constraint(table_name, expression, **options)
+      constraint_definition = check_constraint_for table_name,
+                                                   **check_constraint_options(table_name, expression, options)
+
+      return super if constraint_definition.nil?
+
+      SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already exists. Skipping statement.", true
+    end
+
+    def validate_check_constraint(table_name, **options)
+      constraint_definition = check_constraint_for!(table_name, **options)
+
+      return super unless constraint_definition.validated?
+
+      SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.",
+                           true
+    end
+
     protected
 
     def index_definition(table_name, column_name, **options)

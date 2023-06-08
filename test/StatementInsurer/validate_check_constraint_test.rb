@@ -7,10 +7,12 @@ module StatementInsurer
     def setup
       skip_if_unmet_requirements
       super
+
+      @connection.create_table(:users) { |t| t.string :email }
+      @connection.execute("INSERT INTO users (id, email) VALUES (default, 'stan@doctolib.com');")
     end
 
     def test_can_add_check_constraint_without_validation
-      @connection.create_table(:users) { |t| t.string :email }
       @connection.execute('INSERT INTO users (id) VALUES (default);') # If validation, will make it fail
 
       @migration =
@@ -28,9 +30,6 @@ module StatementInsurer
     end
 
     def test_can_add_check_constraint_with_validation
-      @connection.create_table(:users) { |t| t.string :email }
-      @connection.execute('INSERT INTO users (id, email) VALUES (default, \'stan@docto.com\');')
-
       @migration =
         Class.new(ActiveRecord::Migration::Current) do
           def change
@@ -49,9 +48,6 @@ module StatementInsurer
     end
 
     def test_can_add_check_constraint
-      @connection.create_table(:users) { |t| t.string :email }
-      @connection.execute("INSERT INTO users (id, email) VALUES (default, 'stan@doctolib.com');")
-
       @migration =
         Class.new(ActiveRecord::Migration::Current) do
           def change
