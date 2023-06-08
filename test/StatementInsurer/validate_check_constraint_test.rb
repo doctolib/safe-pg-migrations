@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 
 module StatementInsurer
-  class StatementInsurerTest < Minitest::Test
+  class ValidateCheckConstraintTest < Minitest::Test
     def setup
       skip_if_unmet_requirements
       super
