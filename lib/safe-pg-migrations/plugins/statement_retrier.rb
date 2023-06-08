@@ -3,7 +3,7 @@
 module SafePgMigrations
   module StatementRetrier
     RETRIABLE_SCHEMA_STATEMENTS = %i[
-      add_column add_foreign_key remove_foreign_key change_column_default change_column_null remove_column
+      add_column add_foreign_key remove_foreign_key change_column_default change_column_null remove_column drop_table
     ].freeze
 
     RETRIABLE_SCHEMA_STATEMENTS.each do |method|
