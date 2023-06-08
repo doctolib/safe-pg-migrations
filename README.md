@@ -137,6 +137,22 @@ Adding the constraint itself is rather fast, the major part of the time is spent
 
 </details>
 
+
+<details><summary id="safe_add_check_constraint">Safe <code>add_check_constraint</code> (ActiveRecord \> 6.1)</summary>
+
+Adding a check constraint requires an `ACCESS EXCLUSIVE` lock, which **prevent writing and reading in the tables** while the migration is running.
+
+Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint.
+Thus safe-pg-migrations ensures that adding a constraints holds blocking locks for the least amount of time by
+splitting the constraint addition in two steps: 
+
+1. adding the constraint *without validation*, will not validate existing rows;
+2. validating the constraint, will validate existing rows in the table, without blocking read or write on the table
+
+</details>
+
+
+
 <details><summary>Retry after lock timeout</summary>
 
 When a statement fails with a lock timeout, **Safe PG Migrations** retries it (5 times max) [list of retriable statements](https://github.com/doctolib/safe-pg-migrations/blob/66933256252b6bbf12e404b829a361dbba30e684/lib/safe-pg-migrations/plugins/statement_retrier.rb#L5)
