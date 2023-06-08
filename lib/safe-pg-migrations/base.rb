@@ -102,6 +102,7 @@ module SafePgMigrations
       add_belongs_to
       change_column_null
       add_foreign_key
+      add_check_constraint
     ].freeze
 
     SAFE_METHODS.each do |method|
