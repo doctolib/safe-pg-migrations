@@ -4,6 +4,7 @@ env:
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: safe_pg_migrations_test
   PGPASSWORD: postgres
+  TESTOPTS: --verbose
 
 name: CI
 on:
