@@ -29,6 +29,14 @@ module SafePgMigrations
       super
     end
 
+    ruby2_keywords def add_check_constraint(*args)
+      options = args.last.is_a?(Hash) ? args.last : {}
+      if options[:validate] == false
+        UselessStatementsLogger.warn_useless '`validate: :false`', 'https://github.com/doctolib/safe-pg-migrations#safe_add_check_constraint'
+      end
+      super
+    end
+
     def warn_for_index(**options)
       return unless options[:algorithm] == :concurrently
 

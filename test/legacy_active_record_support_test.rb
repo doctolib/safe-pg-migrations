@@ -2,7 +2,7 @@
 
 require 'test_helper'
 
-class LegacyActiveRecordSupport < Minitest::Test
+class LegacyActiveRecordSupportTest < Minitest::Test
   def test_add_foreign_key_with_validation
     @connection.create_table(:users) { |t| t.string :email }
     @connection.create_table(:messages) do |t|

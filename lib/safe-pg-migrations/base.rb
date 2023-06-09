@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 require 'safe-pg-migrations/configuration'
+require 'safe-pg-migrations/helpers/satisfied_helper'
+require 'safe-pg-migrations/helpers/add_check_constraint_helper'
 require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
 require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
-require 'safe-pg-migrations/polyfills/satisfied_helper'
 require 'safe-pg-migrations/polyfills/index_definition_polyfill'
 require 'safe-pg-migrations/polyfills/verbose_query_logs_polyfill'
 
@@ -102,6 +103,7 @@ module SafePgMigrations
       add_belongs_to
       change_column_null
       add_foreign_key
+      add_check_constraint
     ].freeze
 
     SAFE_METHODS.each do |method|

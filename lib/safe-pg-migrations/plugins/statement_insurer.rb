@@ -9,9 +9,26 @@ module SafePgMigrations
       ruby2_keywords method
     end
 
+    def validate_check_constraint(table_name, **options)
+      without_statement_timeout do
+        super
+      end
+    end
+
+    def add_check_constraint(table_name, expression, **options)
+      Helpers::AddCheckConstraintHelper.support_add_check_constraints!
+      return unless supports_check_constraints?
+
+      options = check_constraint_options(table_name, expression, options)
+
+      super table_name, expression, **options, validate: false
+
+      validate_check_constraint table_name, name: options[:name] if options.fetch(:validate, true)
+    end
+
     ruby2_keywords def add_foreign_key(from_table, to_table, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
-      validate_present = options.key? :validate
+      validate_present = options.key?(:validate)
       options[:validate] = false unless validate_present
       with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) do
         super(from_table, to_table, **options)

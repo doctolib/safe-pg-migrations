@@ -4,7 +4,7 @@ module SafePgMigrations
   module Polyfills
     module VerboseQueryLogsPolyfill
       class << self
-        include SatisfiedHelper
+        include Helpers::SatisfiedHelper
 
         def verbose_query_logs
           return ActiveRecord.verbose_query_logs if satisfied? '>=7.0.0'

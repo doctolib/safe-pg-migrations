@@ -3,7 +3,7 @@
 module SafePgMigrations
   module Polyfills
     module IndexDefinitionPolyfill
-      include SatisfiedHelper
+      include Helpers::SatisfiedHelper
 
       protected
 
