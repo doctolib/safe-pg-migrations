@@ -16,6 +16,7 @@ module SafePgMigrations
     end
 
     def add_check_constraint(table_name, expression, **options)
+      Helpers::AddCheckConstraintHelper.support_add_check_constraints!
       return unless supports_check_constraints?
 
       options = check_constraint_options(table_name, expression, options)

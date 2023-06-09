@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module Polyfills
+  module Helpers
     module SatisfiedHelper
       private
 
