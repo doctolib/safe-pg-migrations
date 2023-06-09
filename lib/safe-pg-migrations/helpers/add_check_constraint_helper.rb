@@ -3,7 +3,6 @@
 module SafePgMigrations
   module Helpers
     module AddCheckConstraintHelper
-
       class << self
         include SatisfiedHelper
 
