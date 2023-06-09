@@ -140,7 +140,7 @@ Adding the constraint itself is rather fast, the major part of the time is spent
 
 <details><summary id="safe_add_check_constraint">Safe <code>add_check_constraint</code> (ActiveRecord \> 6.1)</summary>
 
-Adding a check constraint requires an `ACCESS EXCLUSIVE` lock, which **prevent writing and reading in the tables** while the migration is running.
+Adding a check constraint requires an `ACCESS EXCLUSIVE` lock, which **prevent writing and reading in the tables** [as soon as the lock is requested](https://medium.com/doctolib/stop-worrying-about-postgresql-locks-in-your-rails-migrations-3426027e9cc9).
 
 Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint.
 Thus safe-pg-migrations ensures that adding a constraints holds blocking locks for the least amount of time by
