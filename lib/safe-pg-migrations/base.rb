@@ -2,7 +2,6 @@
 
 require 'safe-pg-migrations/configuration'
 require 'safe-pg-migrations/helpers/satisfied_helper'
-require 'safe-pg-migrations/helpers/add_check_constraint_helper'
 require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
 require 'safe-pg-migrations/plugins/statement_insurer'

@@ -16,7 +16,7 @@ module SafePgMigrations
     end
 
     def add_check_constraint(table_name, expression, **options)
-      Helpers::AddCheckConstraintHelper.support_add_check_constraints!
+      Helpers::SatisfiedHelper.satisfies_add_check_constraints!
       return unless supports_check_constraints?
 
       options = check_constraint_options(table_name, expression, options)
@@ -75,7 +75,7 @@ module SafePgMigrations
     end
 
     def change_column_null(table_name, column_name, null, default = nil)
-      if default || null || !satisfies_change_column_null_requirements?
+      if default || null || !Helpers::SatisfiedHelper.satisfies_change_column_null_requirements?
         with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { return super }
       end
 
@@ -110,12 +110,6 @@ module SafePgMigrations
 
     def without_timeout(&block)
       without_statement_timeout { without_lock_timeout(&block) }
-    end
-
-    private
-
-    def satisfies_change_column_null_requirements?
-      supports_check_constraints? && SafePgMigrations.pg_version_num >= 120_000
     end
   end
 end
