@@ -5,9 +5,9 @@ require_relative '../test_helper'
 module IdempotentStatements
   class ChangeColumnNullTest < Minitest::Test
     def setup
-      skip_if_unmet_requirements
-
       super
+
+      skip_if_unmet_requirements
 
       @connection.create_table(:users) { |t| t.string :email, null: true }
       @connection.execute("INSERT INTO users (id, email) VALUES (default, 'roger@doctolib.com');")
@@ -59,7 +59,7 @@ module IdempotentStatements
 
     def skip_if_unmet_requirements
       if Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING)) &&
-         SafePgMigrations.pg_version_num >= 120_000
+         SafePgMigrations.get_pg_version_num(@connection) >= 120_000
         return
       end
 
