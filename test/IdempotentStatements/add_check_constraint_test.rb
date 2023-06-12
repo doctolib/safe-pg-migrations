@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 
 module IdempotentStatements
-  class ValidateCheckConstraintTest < Minitest::Test
+  class AddCheckConstraintTest < Minitest::Test
     def setup
       skip_if_unmet_requirements
       super

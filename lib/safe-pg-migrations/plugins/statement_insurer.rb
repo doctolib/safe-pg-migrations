@@ -80,7 +80,7 @@ module SafePgMigrations
       end
 
       add_check_constraint table_name, "#{column_name} IS NOT NULL"
-      change_column_null :users, :some_column, false
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super table_name, column_name, false }
       remove_check_constraint table_name, "#{column_name} IS NOT NULL"
     end
 
@@ -117,6 +117,5 @@ module SafePgMigrations
     def satisfies_change_column_null_requirements?
       supports_check_constraints? && SafePgMigrations.pg_version_num >= 120_000
     end
-
   end
 end
