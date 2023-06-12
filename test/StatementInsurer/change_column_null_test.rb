@@ -12,6 +12,8 @@ module StatementInsurer
     end
 
     def test_can_change_column_null_true
+      @connection.change_column_null :users, :email, false
+
       @migration =
         Class.new(ActiveRecord::Migration::Current) do
           def change
@@ -52,21 +54,6 @@ module StatementInsurer
       assert_calls met_requirements? ? safe_pg_calls : base_calls, calls
     end
 
-    def test_bypassed_if_unmet_pg_requirements
-      SafePgMigrations.stub(:get_pg_version_num, 110_000) do
-        @migration =
-          Class.new(ActiveRecord::Migration::Current) do
-            def change
-              change_column_null(:users, :email, false)
-            end
-          end.new
-
-        calls = record_calls(@connection, :execute) { run_migration }
-
-        assert_calls base_calls, calls
-      end
-    end
-
     private
 
     def safe_pg_calls
@@ -92,7 +79,8 @@ module StatementInsurer
     end
 
     def met_requirements?
-      Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+      Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING)) &&
+        SafePgMigrations.pg_version_num >= 120_000
     end
   end
 end

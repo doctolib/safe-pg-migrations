@@ -58,7 +58,10 @@ module IdempotentStatements
     end
 
     def skip_if_unmet_requirements
-      return if Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+      if Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING)) &&
+         SafePgMigrations.pg_version_num >= 120_000
+        return
+      end
 
       skip "validate_check_constraint does not exist on ActiveRecord#{::ActiveRecord::VERSION::STRING}"
     end
