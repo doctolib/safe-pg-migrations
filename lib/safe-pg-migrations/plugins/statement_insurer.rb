@@ -84,12 +84,6 @@ module SafePgMigrations
       remove_check_constraint table_name, "#{column_name} IS NOT NULL"
     end
 
-    private
-
-    def satisfies_change_column_null_requirements?
-      supports_check_constraints? && SafePgMigrations.pg_version_num >= 120_000
-    end
-
     def with_setting(key, value)
       old_value = query_value("SHOW #{key}")
       execute("SET #{key} TO #{quote(value)}")
@@ -117,5 +111,12 @@ module SafePgMigrations
     def without_timeout(&block)
       without_statement_timeout { without_lock_timeout(&block) }
     end
+
+    private
+
+    def satisfies_change_column_null_requirements?
+      supports_check_constraints? && SafePgMigrations.pg_version_num >= 120_000
+    end
+
   end
 end
