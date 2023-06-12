@@ -2,7 +2,7 @@
 
 module SafePgMigrations
   module StatementInsurer
-    %i[change_column_null change_column].each do |method|
+    %i[change_column].each do |method|
       define_method method do |*args, &block|
         with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super(*args, &block) }
       end
@@ -72,6 +72,22 @@ module SafePgMigrations
       SafePgMigrations.say_method_call(:remove_index, table_name, **options)
 
       without_timeout { super(table_name, **options) }
+    end
+
+    def change_column_null(table_name, column_name, null, default = nil)
+      if default || null || !satisfies_change_column_null_requirements?
+        with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { return super }
+      end
+
+      add_check_constraint table_name, "#{column_name} IS NOT NULL"
+      change_column_null :users, :some_column, false
+      remove_check_constraint table_name, "#{column_name} IS NOT NULL"
+    end
+
+    private
+
+    def satisfies_change_column_null_requirements?
+      supports_check_constraints? && SafePgMigrations.pg_version_num >= 120_000
     end
 
     def with_setting(key, value)
