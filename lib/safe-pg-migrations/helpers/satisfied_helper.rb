@@ -3,9 +3,7 @@
 module SafePgMigrations
   module Helpers
     module SatisfiedHelper
-
       class << self
-
         def satisfies_change_column_null_requirements?
           satisfies_add_check_constraints? && SafePgMigrations.pg_version_num >= 120_000
         end
