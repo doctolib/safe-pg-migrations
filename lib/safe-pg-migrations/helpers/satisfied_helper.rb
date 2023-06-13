@@ -18,6 +18,10 @@ module SafePgMigrations
           satisfied? '>=6.1.0'
         end
 
+        def satisfies_add_column_update_rows_backfill?
+          satisfies_change_column_null_requirements?
+        end
+
         def satisfied?(version)
           Gem::Requirement.new(version).satisfied_by? Gem::Version.new(::ActiveRecord::VERSION::STRING)
         end

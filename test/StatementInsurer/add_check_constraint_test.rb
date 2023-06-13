@@ -7,7 +7,7 @@ module StatementInsurer
     def setup
       super
 
-      skip_if_unmet_requirements
+      skip_if_unmet_requirements!
 
       @connection.create_table(:users) { |t| t.string :email }
       @connection.execute("INSERT INTO users (id, email) VALUES (default, 'roger@doctolib.com');")
@@ -68,7 +68,7 @@ module StatementInsurer
 
     private
 
-    def skip_if_unmet_requirements
+    def skip_if_unmet_requirements!
       return if Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
 
       skip "validate_check_constraint does not exist on ActiveRecord#{::ActiveRecord::VERSION::STRING}"

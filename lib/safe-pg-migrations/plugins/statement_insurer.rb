@@ -2,6 +2,8 @@
 
 module SafePgMigrations
   module StatementInsurer
+    include SafePgMigrations::StatementInsurerAddColumn
+
     %i[change_column].each do |method|
       define_method method do |*args, &block|
         with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) { super(*args, &block) }
@@ -21,9 +23,13 @@ module SafePgMigrations
 
       options = check_constraint_options(table_name, expression, options)
 
+      SafePgMigrations.say_method_call :add_check_constraint, table_name, expression, **options, validate: false
       super table_name, expression, **options, validate: false
 
-      validate_check_constraint table_name, name: options[:name] if options.fetch(:validate, true)
+      return unless options.fetch(:validate, true)
+
+      SafePgMigrations.say_method_call :validate_check_constraint, table_name, name: options[:name]
+      validate_check_constraint table_name, name: options[:name]
     end
 
     ruby2_keywords def add_foreign_key(from_table, to_table, *args)
@@ -80,9 +86,13 @@ module SafePgMigrations
       end
 
       add_check_constraint table_name, "#{column_name} IS NOT NULL"
+
+      SafePgMigrations.say_method_call :change_column_null, table_name, column_name, false
       with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
         super table_name, column_name, false
       end
+
+      SafePgMigrations.say_method_call :remove_check_constraint, table_name, "#{column_name} IS NOT NULL"
       remove_check_constraint table_name, "#{column_name} IS NOT NULL"
     end
 

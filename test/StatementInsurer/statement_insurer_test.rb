@@ -4,31 +4,6 @@ require_relative '../test_helper'
 
 module StatementInsurer
   class StatementInsurerTest < Minitest::Test
-    def test_add_column
-      @connection.create_table(:users)
-      @migration =
-        Class.new(ActiveRecord::Migration::Current) do
-          def up
-            add_column(:users, :admin, :boolean, default: false, null: false)
-          end
-        end.new
-
-      execute_calls = nil
-      write_calls =
-        record_calls(@migration, :write) do
-          execute_calls = record_calls(@connection, :execute) { run_migration }
-        end
-      assert_calls [
-        # The column is added with the default and not null constraint without any tricks
-        'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
-      ], execute_calls
-
-      assert_equal [
-        '== 8128 : migrating ===========================================================',
-        '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
-      ], write_calls.map(&:first)[0...-3]
-    end
-
     def test_change_column_with_timeout
       @connection.create_table(:users) { |t| t.string :email }
       @migration =
@@ -59,7 +34,9 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
       assert_calls [
         # The column is added.
+        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD "user_id" bigint',
+        "SET statement_timeout TO '70s'",
 
         # The index is created concurrently.
         'SET statement_timeout TO 0',
