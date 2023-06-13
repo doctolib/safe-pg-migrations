@@ -3,10 +3,11 @@
 require_relative '../test_helper'
 
 module IdempotentStatements
-  class ValidateCheckConstraintTest < Minitest::Test
+  class AddCheckConstraintTest < Minitest::Test
     def setup
-      skip_if_unmet_requirements
       super
+
+      skip_if_unmet_requirements
 
       @connection.create_table(:users) { |t| t.string :email }
       @connection.execute "INSERT INTO users (id, email) VALUES (default, 'roger@doctolib.com');"

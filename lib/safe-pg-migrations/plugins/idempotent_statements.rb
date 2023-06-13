@@ -89,6 +89,17 @@ module SafePgMigrations
       SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already exists. Skipping statement.", true
     end
 
+    def change_column_null(table_name, column_name, null, *)
+      column = column_for(table_name, column_name)
+
+      return super if column.null != null
+
+      SafePgMigrations.say(
+        "/!\\ Column '#{table_name}.#{column.name}' is already set to 'null: #{null}'. Skipping statement.",
+        true
+      )
+    end
+
     def validate_check_constraint(table_name, **options)
       constraint_definition = check_constraint_for!(table_name, **options)
 

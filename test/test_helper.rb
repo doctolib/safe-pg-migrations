@@ -40,6 +40,8 @@ class Minitest::Test
   end
 
   def teardown
+    @connection ||= ActiveRecord::Base.connection
+
     @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")

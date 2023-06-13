@@ -138,7 +138,7 @@ Adding the constraint itself is rather fast, the major part of the time is spent
 </details>
 
 
-<details><summary id="safe_add_check_constraint">Safe <code>add_check_constraint</code> (ActiveRecord \> 6.1)</summary>
+<details><summary id="safe_add_check_constraint">Safe <code>add_check_constraint</code> (ActiveRecord > 6.1)</summary>
 
 Adding a check constraint requires an `ACCESS EXCLUSIVE` lock, which **prevent writing and reading in the tables** [as soon as the lock is requested](https://medium.com/doctolib/stop-worrying-about-postgresql-locks-in-your-rails-migrations-3426027e9cc9).
 
@@ -148,6 +148,47 @@ splitting the constraint addition in two steps:
 
 1. adding the constraint *without validation*, will not validate existing rows;
 2. validating the constraint, will validate existing rows in the table, without blocking read or write on the table
+
+</details>
+
+<details><summary id="safe_change_column_null">Safe <code>change_column_null</code> (ActiveRecord and PG version dependant)</summary>
+
+Changing the nullability of a column requires an `ACCESS EXCLUSIVE` lock, which **prevent writing and reading in the tables** [as soon as the lock is requested](https://medium.com/doctolib/stop-worrying-about-postgresql-locks-in-your-rails-migrations-3426027e9cc9).
+
+Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint.
+
+safe-pg-migrations acts differently depending on the version you are on. 
+
+### Recent versions of PG and Active Record (> 12 and > 6.1)
+
+Starting on PostgreSQL versions 12, adding the column NOT NULL constraint is safe if a check constraint validates the
+nullability of the same column. safe-pg-migrations also relies on add_check_constraint, which was introduced in
+ActiveRecord 6.1.  
+
+If these requirements are met, safe-pg-migrations ensures that adding a constraints holds blocking locks for the least
+amount of time by splitting the constraint addition in several steps: 
+
+1. adding a `IS NOT NULL` constraint *without validation*, will not validate existing rows but block read or write;
+2. validating the constraint, will validate existing rows in the table, without blocking read or write on the table;
+3. changing the not null status of the column, thanks to the NOT NULL constraint without having to scan the table sequentially;
+4. dropping the `IS NOT NULL` constraint.
+
+### Older versions of PG or ActiveRecord
+
+If the version of PostgreSQL is below 12, or if the version of ActiveRecord is below 6.1, safe-pg-migrations will only
+wrap ActiveRecord method into a statement timeout and lock timeout.
+
+### Call with a default parameter
+
+Calling change_column_null with a default parameter [is dangerous](https://github.com/rails/rails/blob/716baea69f989b64f5bfeaff880c2512377bebab/activerecord/lib/active_record/connection_adapters/postgresql/schema_statements.rb#L446)
+and is likely not to finish in the statement timeout defined by safe-pg-migrations. For this reason, when the default
+parameter is given, safe-pg-migrations will simply forward it to activerecord methods without trying to improve it
+
+### Dropping a NULL constraint
+
+Dropping a null constraint still requires an `ACCESS EXCLUSIVE` lock, but does not require extra operation to reduce the
+amount of time during which the lock is held. safe-pg-migrations only wrap methods of activerecord in lock and statement
+timeouts
 
 </details>
 

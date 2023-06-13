@@ -3,10 +3,11 @@
 require_relative '../test_helper'
 
 module StatementInsurer
-  class ValidateCheckConstraintTest < Minitest::Test
+  class AddCheckConstraintTest < Minitest::Test
     def setup
-      skip_if_unmet_requirements
       super
+
+      skip_if_unmet_requirements
 
       @connection.create_table(:users) { |t| t.string :email }
       @connection.execute("INSERT INTO users (id, email) VALUES (default, 'roger@doctolib.com');")
@@ -64,6 +65,8 @@ module StatementInsurer
         "SET statement_timeout TO '70s'",
       ], calls
     end
+
+    private
 
     def skip_if_unmet_requirements
       return if Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))

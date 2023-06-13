@@ -2,7 +2,6 @@
 
 require 'safe-pg-migrations/configuration'
 require 'safe-pg-migrations/helpers/satisfied_helper'
-require 'safe-pg-migrations/helpers/add_check_constraint_helper'
 require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
 require 'safe-pg-migrations/plugins/statement_insurer'
@@ -24,15 +23,16 @@ module SafePgMigrations
   ].freeze
 
   class << self
-    attr_reader :current_migration
+    attr_reader :current_migration, :pg_version_num
 
     def setup_and_teardown(migration, connection, &block)
+      @pg_version_num = get_pg_version_num(connection)
       @alternate_connection = nil
       @current_migration = migration
       stdout_sql_logger = VerboseSqlLogger.new.setup if verbose?
       PLUGINS.each { |plugin| connection.extend(plugin) }
 
-      connection.with_setting(:lock_timeout, SafePgMigrations.config.pg_safe_timeout, &block)
+      connection.with_setting :lock_timeout, SafePgMigrations.config.pg_safe_timeout, &block
     ensure
       close_alternate_connection
       @current_migration = nil
@@ -72,6 +72,10 @@ module SafePgMigrations
 
     def config
       @config ||= Configuration.new
+    end
+
+    def get_pg_version_num(connection)
+      connection.query_value('SHOW server_version_num').to_i
     end
   end
 
