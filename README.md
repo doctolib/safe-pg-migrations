@@ -169,9 +169,9 @@ If these requirements are met, safe-pg-migrations ensures that adding a constrai
 amount of time by splitting the constraint addition in several steps: 
 
 1. adding a `IS NOT NULL` constraint *without validation*, will not validate existing rows but block read or write;
-2. validating the constraint, will validate existing rows in the table, without blocking read or write on the table
-3. changing the not null status of the column
-4. dropping the `IS NOT NULL` constraint
+2. validating the constraint, will validate existing rows in the table, without blocking read or write on the table;
+3. changing the not null status of the column, thanks to the NOT NULL constraint without having to scan the table sequentially;
+4. dropping the `IS NOT NULL` constraint.
 
 ### Older versions of PG or ActiveRecord
 
