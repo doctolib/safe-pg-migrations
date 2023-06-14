@@ -102,6 +102,15 @@ module SafePgMigrations
       )
     end
 
+    def validate_check_constraint(table_name, **options)
+      constraint_definition = check_constraint_for!(table_name, **options)
+
+      return super unless constraint_definition.validated?
+
+      SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.",
+                           true
+    end
+
     def change_column_default(table_name, column_name, default_or_changes)
       column = column_for(table_name, column_name)
 
@@ -118,15 +127,6 @@ module SafePgMigrations
         'Skipping statement.',
         true
       )
-    end
-
-    def validate_check_constraint(table_name, **options)
-      constraint_definition = check_constraint_for!(table_name, **options)
-
-      return super unless constraint_definition.validated?
-
-      SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.",
-                           true
     end
   end
 end
