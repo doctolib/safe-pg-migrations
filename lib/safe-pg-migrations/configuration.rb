@@ -16,8 +16,11 @@ module SafePgMigrations
       self.max_tries = 5
     end
 
-    def pg_safe_timeout
-      pg_duration(safe_timeout)
+    def pg_safe_timeout(needs_margin: false)
+      timeout = safe_timeout
+      timeout *= 0.99 if needs_margin
+
+      pg_duration(timeout)
     end
 
     def pg_duration(duration)

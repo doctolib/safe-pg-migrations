@@ -115,11 +115,11 @@ module IdempotentStatements
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
         'CREATE INDEX CONCURRENTLY "my_custom_index_name" ON "users" ("email") WHERE email IS NOT NULL',
-        "SET lock_timeout TO '5s'",
+        "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
-        "SET lock_timeout TO '5s'",
+        "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '70s'",
       ], calls
     end
@@ -147,7 +147,7 @@ module IdempotentStatements
         "SET statement_timeout TO '0'",
 
         'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
-        "SET lock_timeout TO '5s'",
+        "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '70s'",
       ], calls
     end
@@ -402,12 +402,12 @@ module IdempotentStatements
         "SET statement_timeout TO '5s'",
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
-        "SET lock_timeout TO '5s'",
+        "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '5s'",
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
         'CREATE INDEX "index_users_on_email" ON "users" ("email")',
-        "SET lock_timeout TO '5s'",
+        "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '5s'",
         "SET statement_timeout TO '70s'",
       ], calls
