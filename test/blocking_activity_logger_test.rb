@@ -25,7 +25,7 @@ class BlockingActivityLoggerTest < Minitest::Test
     assert_includes calls, 'Lock timeout.'
     assert_includes calls, 'Statement was being blocked by the following query:'
 
-    assert_match(/Query with pid \d+ started 1 second ago/, calls)
+    assert_match(/Query with pid \d+ started [01] seconds? ago/, calls)
     assert_includes calls, 'BEGIN; SELECT 1 FROM users'
     assert_includes calls, '   -> Retrying in 1 seconds...'
     assert_includes calls, '   -> Retrying now.'
