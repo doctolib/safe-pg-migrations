@@ -2,7 +2,7 @@
 
 module SafePgMigrations
   module StatementInsurer
-    include SafePgMigrations::StatementInsurerAddColumn
+    include AddColumn
 
     %i[change_column].each do |method|
       define_method method do |*args, &block|

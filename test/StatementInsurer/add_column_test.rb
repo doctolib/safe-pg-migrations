@@ -172,6 +172,7 @@ module StatementInsurer
         "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD "email" character varying',
         "SET statement_timeout TO '70s'",
+        "ALTER TABLE \"users\" ALTER COLUMN \"email\" SET DEFAULT 'roger@doctolib.com'",
         'SET statement_timeout TO 0',
         # exec_calls goes here
         "SET statement_timeout TO '70s'",

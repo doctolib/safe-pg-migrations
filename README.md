@@ -109,7 +109,36 @@ Beware though, when adding a volatile default value:
 ```ruby
 add_column :users, :created_at, default: 'clock_timestamp()'
 ```
-PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
+PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, safe-pg-migrations can automatically backfill data when the option `default_value_backfill:` is set to `:default_value_backfill`. 
+
+### Default value Backfill
+
+safe-pg-migrations provides the extra option parameter `default_value_backfill:`. When your migration is adding a volatile default value, the option `:default_value_backfill` can be set. It will automatically backfill the value in a safe manner.
+
+More specifically, it will: 
+
+1. create the column without default value and without null constraint. This ensure the `ACCESS EXCLUSIVE` lock is acquired for the least amount of time;
+2. add the default value, without data backfill. An `ACCESS EXCLUSIVE` lock is acquired and released immediately;
+3. backfill data, in batch of `SafePgMigrations.config.backfill_batch_size` and with a pause of `SafePgMigrations.config.backfill_pause` between each batch;
+4. change the column to `null: false`, if defined in the parameters, following the algorithm we have defined below.
+
+---
+**NOTE**
+
+Data backfill take time. If your table is big, your migrations will (safely) hangs for a while. You might want to backfill data manually instead, to do so you will need two migrations
+
+1. First migration :
+
+    a. adds the column without default and without null constraint;
+
+    b. add the default value.
+
+2. manual data backfill (rake task, manual operation, ...)
+3. Second migration which change the column to null false (with safe-pg-migrations, `change_column_null` is safe and can be used; see section below)
+
+---
+
+`default_value_backfill:` also accept the value `:auto` which is set by default. In this case, safe-pg-migrations will not backfill data and will let PostgreSQL handle it itself.
 
 </details>
 
