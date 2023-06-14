@@ -2,6 +2,8 @@
 
 module SafePgMigrations
   module IdempotentStatements
+    include SafePgMigrations::Helpers::IndexHelper
+
     ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
 
@@ -100,6 +102,24 @@ module SafePgMigrations
       )
     end
 
+    def change_column_default(table_name, column_name, default_or_changes)
+      column = column_for(table_name, column_name)
+
+      previous_alter_statement = change_column_default_for_alter(table_name, column_name, column.default)
+      new_alter_statement = change_column_default_for_alter(table_name, column_name, default_or_changes)
+
+      # NOTE: PG change_column_default is already idempotent.
+      # We try to detect it because it still takes an ACCESS EXCLUSIVE lock
+
+      return super if new_alter_statement != previous_alter_statement
+
+      SafePgMigrations.say(
+        "/!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'. " \
+        'Skipping statement.',
+        true
+      )
+    end
+
     def validate_check_constraint(table_name, **options)
       constraint_definition = check_constraint_for!(table_name, **options)
 
@@ -107,25 +127,6 @@ module SafePgMigrations
 
       SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.",
                            true
-    end
-
-    protected
-
-    def index_definition(table_name, column_name, **options)
-      index_definition, = add_index_options(table_name, column_name, **options)
-      index_definition
-    end
-
-    private
-
-    def index_valid?(index_name)
-      query_value <<~SQL.squish
-        SELECT indisvalid
-        FROM pg_index i
-        JOIN pg_class c
-          ON i.indexrelid = c.oid
-        WHERE c.relname = '#{index_name}';
-      SQL
     end
   end
 end

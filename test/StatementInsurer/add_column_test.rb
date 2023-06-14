@@ -205,7 +205,9 @@ module StatementInsurer
       skip_if_unmet_requirements!
 
       # BlockingActivityLogger also calls sleep, it's harder to test
-      SafePgMigrations::PLUGINS -= [SafePgMigrations::BlockingActivityLogger]
+      new_plugins = SafePgMigrations::PLUGINS - [SafePgMigrations::BlockingActivityLogger]
+      SafePgMigrations.send :remove_const, :PLUGINS
+      SafePgMigrations.const_set(:PLUGINS, new_plugins)
 
       @connection.execute('INSERT INTO users (id) VALUES (default);')
       @connection.execute('INSERT INTO users (id) VALUES (default);')
