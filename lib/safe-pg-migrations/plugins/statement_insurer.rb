@@ -4,7 +4,7 @@ module SafePgMigrations
   module StatementInsurer
     %i[change_column].each do |method|
       define_method method do |*args, &block|
-        with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super(*args, &block) }
+        with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) { super(*args, &block) }
       end
       ruby2_keywords method
     end
@@ -30,7 +30,7 @@ module SafePgMigrations
       options = args.last.is_a?(Hash) ? args.last : {}
       validate_present = options.key?(:validate)
       options[:validate] = false unless validate_present
-      with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) do
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
         super(from_table, to_table, **options)
       end
 
@@ -41,7 +41,7 @@ module SafePgMigrations
     end
 
     ruby2_keywords def create_table(*)
-      with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) do
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
         super do |td|
           yield td if block_given?
           td.indexes.map! do |key, index_options|
@@ -76,11 +76,13 @@ module SafePgMigrations
 
     def change_column_null(table_name, column_name, null, default = nil)
       if default || null || !Helpers::SatisfiedHelper.satisfies_change_column_null_requirements?
-        with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { return super }
+        with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) { return super }
       end
 
       add_check_constraint table_name, "#{column_name} IS NOT NULL"
-      with_setting(:statement_timeout, SafePgMigrations.config.pg_safe_timeout) { super table_name, column_name, false }
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
+        super table_name, column_name, false
+      end
       remove_check_constraint table_name, "#{column_name} IS NOT NULL"
     end
 

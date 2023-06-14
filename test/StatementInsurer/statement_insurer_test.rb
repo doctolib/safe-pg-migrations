@@ -65,7 +65,7 @@ module StatementInsurer
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
         'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
-        "SET lock_timeout TO '5s'",
+        "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '70s'",
 
         # The foreign key is added.
@@ -203,7 +203,7 @@ module StatementInsurer
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
         'CREATE INDEX "index_users_on_user_id" ON "users" ("user_id")',
-        "SET lock_timeout TO '5s'",
+        "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '5s'",
 
         "SET statement_timeout TO '70s'",

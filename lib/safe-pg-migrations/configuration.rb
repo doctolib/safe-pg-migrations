@@ -16,9 +16,18 @@ module SafePgMigrations
       self.max_tries = 5
     end
 
-    def pg_safe_timeout
-      pg_duration(safe_timeout)
+    def pg_statement_timeout
+      pg_duration safe_timeout
     end
+
+    def pg_lock_timeout
+      # if statement timeout and lock timeout have the same value, statement timeout will raise in priority. We actually
+      # need the opposite for BlockingActivityLogger to detect lock timeouts correctly.
+      # By reducing the lock timeout by a very small margin, we ensure that the lock timeout is raised in priority
+      pg_duration safe_timeout * 0.99
+    end
+
+    private
 
     def pg_duration(duration)
       value, unit = duration.integer? ? [duration, 's'] : [(duration * 1000).to_i, 'ms']
