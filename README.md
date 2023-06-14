@@ -115,6 +115,10 @@ PG will still needs to update every row of the table, and will most likely state
 
 safe-pg-migrations provides the extra option parameter `default_value_backfill:`. When your migration is adding a volatile default value, the option `:default_value_backfill` can be set. It will automatically backfill the value in a safe manner.
 
+```ruby
+add_column :users, :created_at, default: 'clock_timestamp()', default_value_backfill: :default_value_backfill
+```
+
 More specifically, it will: 
 
 1. create the column without default value and without null constraint. This ensure the `ACCESS EXCLUSIVE` lock is acquired for the least amount of time;
@@ -287,7 +291,9 @@ SafePgMigrations.config.blocking_activity_logger_verbose = true # Outputs the ra
 
 SafePgMigrations.config.blocking_activity_logger_margin = 1.second # Delay to output blocking queries before timeout. Must be shorter than safe_timeout
 
-SafePgMigrations.config.batch_size = 1000 # Size of the batches used for backfilling when adding a column with a default value pre-PG11
+SafePgMigrations.config.backfill_batch_size = 100_000 # Size of the batches used for backfilling when adding a column with a default value
+
+SafePgMigrations.config.backfill_pause = 0.5.second # Delay between each batch during a backfill. This ensure replication can happen safely. 
 
 SafePgMigrations.config.retry_delay = 1.minute # Delay between retries for retryable statements
 
