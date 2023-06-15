@@ -185,8 +185,12 @@ module StatementInsurer
       @connection.execute('INSERT INTO users (id) VALUES (default);')
       @connection.execute('INSERT INTO users (id) VALUES (default);')
       @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
 
-      SafePgMigrations.config.backfill_batch_size = 2
+      SafePgMigrations.config.backfill_batch_size = 3
 
       @migration =
         Class.new(ActiveRecord::Migration::Current) do
@@ -198,8 +202,8 @@ module StatementInsurer
 
       calls = record_calls(@connection, :update) { run_migration }
 
-      assert_equal 2, calls.count
-      assert_equal 4, @connection.query_value("SELECT count(*) FROM users WHERE email = 'roger@doctolib.com'")
+      assert_equal 3, calls.count
+      assert_equal 8, @connection.query_value("SELECT count(*) FROM users WHERE email = 'roger@doctolib.com'")
     end
 
     def test_sleeps_between_backfills

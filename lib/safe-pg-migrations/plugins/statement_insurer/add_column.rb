@@ -42,7 +42,11 @@ module SafePgMigrations
         quoted_column_name = quote_column_name(column_name)
 
         model.in_batches(of: SafePgMigrations.config.backfill_batch_size).each do |relation|
-          relation.update_all("#{quoted_column_name} = DEFAULT")
+          primary_keys = relation.pluck(model.primary_key)
+          model
+            .where(model.primary_key => primary_keys.min..primary_keys.max)
+            .update_all("#{quoted_column_name} = DEFAULT")
+
           sleep SafePgMigrations.config.backfill_pause
         end
       end
