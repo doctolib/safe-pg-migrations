@@ -7,11 +7,11 @@ module SafePgMigrations
         @model = model
         @of = of
 
-        @current_batch = nil
+        @current_range = nil
       end
 
-      def in_batches
-        yield @model.order(primary_key => :asc).where(primary_key => @current_batch) while next_batch
+      def each_batch
+        yield scope.where(primary_key => @current_range) while next_batch
       end
 
       private
@@ -19,25 +19,33 @@ module SafePgMigrations
       def next_batch
         return if endless?
 
-        scope = @model.order(primary_key => :asc).select(primary_key)
-        scope = scope.where(primary_key => @current_batch.end..) unless @current_batch.nil?
-
-        first = scope.take
+        first = next_scope.take
 
         return unless first
 
-        last = scope.offset(@of).take
+        last = next_scope.offset(@of).take
 
         first_key = first[primary_key]
         last_key = last.nil? ? nil : last[primary_key]
 
-        @current_batch = first_key...last_key
+        @current_range = first_key...last_key
+      end
+
+      def next_scope
+        return scope if @current_range.nil?
+        return scope.none if endless?
+
+        scope.where(primary_key => @current_range.end..)
+      end
+
+      def scope
+        @model.order(primary_key => :asc)
       end
 
       def endless?
-        return false if @current_batch.nil?
+        return false if @current_range.nil?
 
-        @current_batch.end.nil?
+        @current_range.end.nil?
       end
 
       def primary_key

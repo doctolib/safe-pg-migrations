@@ -41,12 +41,9 @@ module SafePgMigrations
         model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
         quoted_column_name = quote_column_name(column_name)
 
-        model.in_batches(of: SafePgMigrations.config.backfill_batch_size).each do |relation|
-          primary_keys = relation.pluck(model.primary_key)
-          model
-            .where(model.primary_key => primary_keys.min..primary_keys.max)
+        SafePgMigrations::Helpers::BatchOver.new(model).each_batch do |batch|
+          batch
             .update_all("#{quoted_column_name} = DEFAULT")
-
           sleep SafePgMigrations.config.backfill_pause
         end
       end

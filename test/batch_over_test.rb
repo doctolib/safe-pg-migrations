@@ -8,7 +8,7 @@ class BlockingActivityLoggerTest < Minitest::Test
     20.times { @connection.execute('INSERT INTO users (id) VALUES (default);') }
     yields = []
 
-    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).in_batches do |rel|
+    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).each_batch do |rel|
       assert_equal 10, rel.count
       yields << rel
     end
@@ -23,7 +23,7 @@ class BlockingActivityLoggerTest < Minitest::Test
     20.times { @connection.execute('INSERT INTO users (id) VALUES (default);') }
     yields = []
 
-    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).in_batches do |rel|
+    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).each_batch do |rel|
       assert_equal 10, rel.count
       yields << rel
     end
@@ -37,7 +37,7 @@ class BlockingActivityLoggerTest < Minitest::Test
 
     yields = []
 
-    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).in_batches do |rel|
+    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).each_batch do |rel|
       assert_equal 1, rel.count
       yields << rel
     end
@@ -48,7 +48,7 @@ class BlockingActivityLoggerTest < Minitest::Test
   def test_when_batch_has_no_elements
     @connection.create_table(:users)
 
-    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).in_batches do
+    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).each_batch do
       flunk 'Should not yield because no element'
     end
   end
@@ -58,7 +58,7 @@ class BlockingActivityLoggerTest < Minitest::Test
     20.times { @connection.execute('INSERT INTO users (id) VALUES (default);') }
 
     relations = []
-    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).in_batches do |rel|
+    SafePgMigrations::Helpers::BatchOver.new(model, of: 10).each_batch do |rel|
       relations << rel
       assert_equal 10, rel.count
     end
