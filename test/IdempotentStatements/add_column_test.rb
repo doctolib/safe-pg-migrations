@@ -37,7 +37,7 @@ module IdempotentStatements
         Class.new(ActiveRecord::Migration::Current) do
           def change
             add_column :users, :email, :string, default: 'roger@doctolib.com', null: false,
-                                                default_value_backfill: :default_value_backfill
+                                                default_value_backfill: :update_in_batches
           end
         end.new
 
@@ -68,7 +68,7 @@ module IdempotentStatements
         Class.new(ActiveRecord::Migration::Current) do
           def change
             add_column :users, :email, :string, default: 'roger@doctolib.com', null: false,
-                                                default_value_backfill: :default_value_backfill
+                                                default_value_backfill: :update_in_batches
           end
         end.new
     end

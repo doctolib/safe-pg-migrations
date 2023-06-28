@@ -33,7 +33,7 @@ module SafePgMigrations
       private
 
       def should_keep_default_implementation?(default: nil, default_value_backfill: :auto, **)
-        default_value_backfill != :default_value_backfill || !default ||
+        default_value_backfill != :update_in_batches || !default ||
           !SafePgMigrations::Helpers::SatisfiedHelper.satisfies_add_column_update_rows_backfill?
       end
 
