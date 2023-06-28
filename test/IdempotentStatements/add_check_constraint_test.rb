@@ -94,27 +94,19 @@ module IdempotentStatements
     private
 
     def assert_skipping_creation(calls)
-      assert_call calls, "/!\\ Constraint 'new_constraint' already exists. Skipping statement."
+      assert_calls_include calls, "/!\\ Constraint 'new_constraint' already exists. Skipping statement."
     end
 
     def refute_skipping_creation(calls)
-      refute_call calls, "/!\\ Constraint 'new_constraint' already exists. Skipping statement."
+      refute_calls_include calls, "/!\\ Constraint 'new_constraint' already exists. Skipping statement."
     end
 
     def assert_skipping_validation(calls)
-      assert_call calls, "/!\\ Constraint 'new_constraint' already validated. Skipping statement."
+      assert_calls_include calls, "/!\\ Constraint 'new_constraint' already validated. Skipping statement."
     end
 
     def refute_skipping_validation(calls)
-      refute_call calls, "/!\\ Constraint 'new_constraint' already validated. Skipping statement."
-    end
-
-    def assert_call(calls, call)
-      assert_includes calls.join("\n"), call
-    end
-
-    def refute_call(calls, call)
-      refute_includes calls.join("\n"), call
+      refute_calls_include calls, "/!\\ Constraint 'new_constraint' already validated. Skipping statement."
     end
 
     def skip_if_unmet_requirements

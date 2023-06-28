@@ -109,7 +109,43 @@ Beware though, when adding a volatile default value:
 ```ruby
 add_column :users, :created_at, default: 'clock_timestamp()'
 ```
-PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, your best bet is to add the column without default, set the default, and backfill existing rows.
+PG will still needs to update every row of the table, and will most likely statement timeout for big table. In this case, **Safe PG Migrations** can automatically backfill data when the option `default_value_backfill:` is set to `:update_in_batches`. 
+
+</details>
+
+<details>
+<summary>Safe add_column - adding a volatile default value</summary>
+
+**Safe PG Migrations** provides the extra option parameter `default_value_backfill:`. When your migration is adding a volatile default value, the option `:update_in_batches` can be set. It will automatically backfill the value in a safe manner.
+
+```ruby
+add_column :users, :created_at, default: 'clock_timestamp()', default_value_backfill: :update_in_batches
+```
+
+More specifically, it will: 
+
+1. create the column without default value and without null constraint. This ensure the `ACCESS EXCLUSIVE` lock is acquired for the least amount of time;
+2. add the default value, without data backfill. An `ACCESS EXCLUSIVE` lock is acquired and released immediately;
+3. backfill data, in batch of `SafePgMigrations.config.backfill_batch_size` and with a pause of `SafePgMigrations.config.backfill_pause` between each batch;
+4. change the column to `null: false`, if defined in the parameters, following the algorithm we have defined below.
+
+---
+**NOTE**
+
+Data backfill take time. If your table is big, your migrations will (safely) hangs for a while. You might want to backfill data manually instead, to do so you will need two migrations
+
+1. First migration :
+
+    a. adds the column without default and without null constraint;
+
+    b. add the default value.
+
+2. manual data backfill (rake task, manual operation, ...)
+3. Second migration which change the column to null false (with **Safe PG Migrations**, `change_column_null` is safe and can be used; see section below)
+
+---
+
+`default_value_backfill:` also accept the value `:auto` which is set by default. In this case, **Safe PG Migrations** will not backfill data and will let PostgreSQL handle it itself.
 
 </details>
 
@@ -130,7 +166,7 @@ If you still get lock timeout while adding / removing indexes, it might be for o
 
 Adding a foreign key requires a `SHARE ROW EXCLUSIVE` lock, which **prevent writing in the tables** while the migration is running.
 
-Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint. Thus safe-pg-migrations ensures that adding a foreign key holds blocking locks for the least amount of time by splitting the foreign key creation in two steps: 
+Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint. Thus **Safe PG Migrations** ensures that adding a foreign key holds blocking locks for the least amount of time by splitting the foreign key creation in two steps: 
 
 1. adding the constraint *without validation*, will not validate existing rows;
 2. validating the constraint, will validate existing rows in the table, without blocking read or write on the table
@@ -143,7 +179,7 @@ Adding the constraint itself is rather fast, the major part of the time is spent
 Adding a check constraint requires an `ACCESS EXCLUSIVE` lock, which **prevent writing and reading in the tables** [as soon as the lock is requested](https://medium.com/doctolib/stop-worrying-about-postgresql-locks-in-your-rails-migrations-3426027e9cc9).
 
 Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint.
-Thus safe-pg-migrations ensures that adding a constraints holds blocking locks for the least amount of time by
+Thus **Safe PG Migrations** ensures that adding a constraints holds blocking locks for the least amount of time by
 splitting the constraint addition in two steps: 
 
 1. adding the constraint *without validation*, will not validate existing rows;
@@ -157,15 +193,15 @@ Changing the nullability of a column requires an `ACCESS EXCLUSIVE` lock, which 
 
 Adding the constraint itself is rather fast, the major part of the time is spent on validating this constraint.
 
-safe-pg-migrations acts differently depending on the version you are on. 
+**Safe PG Migrations** acts differently depending on the version you are on. 
 
 ### Recent versions of PG and Active Record (> 12 and > 6.1)
 
 Starting on PostgreSQL versions 12, adding the column NOT NULL constraint is safe if a check constraint validates the
-nullability of the same column. safe-pg-migrations also relies on add_check_constraint, which was introduced in
+nullability of the same column. **Safe PG Migrations** also relies on add_check_constraint, which was introduced in
 ActiveRecord 6.1.  
 
-If these requirements are met, safe-pg-migrations ensures that adding a constraints holds blocking locks for the least
+If these requirements are met, **Safe PG Migrations** ensures that adding a constraints holds blocking locks for the least
 amount of time by splitting the constraint addition in several steps: 
 
 1. adding a `IS NOT NULL` constraint *without validation*, will not validate existing rows but block read or write;
@@ -175,19 +211,19 @@ amount of time by splitting the constraint addition in several steps:
 
 ### Older versions of PG or ActiveRecord
 
-If the version of PostgreSQL is below 12, or if the version of ActiveRecord is below 6.1, safe-pg-migrations will only
+If the version of PostgreSQL is below 12, or if the version of ActiveRecord is below 6.1, **Safe PG Migrations** will only
 wrap ActiveRecord method into a statement timeout and lock timeout.
 
 ### Call with a default parameter
 
 Calling change_column_null with a default parameter [is dangerous](https://github.com/rails/rails/blob/716baea69f989b64f5bfeaff880c2512377bebab/activerecord/lib/active_record/connection_adapters/postgresql/schema_statements.rb#L446)
-and is likely not to finish in the statement timeout defined by safe-pg-migrations. For this reason, when the default
-parameter is given, safe-pg-migrations will simply forward it to activerecord methods without trying to improve it
+and is likely not to finish in the statement timeout defined by **Safe PG Migrations**. For this reason, when the default
+parameter is given, **Safe PG Migrations** will simply forward it to activerecord methods without trying to improve it
 
 ### Dropping a NULL constraint
 
 Dropping a null constraint still requires an `ACCESS EXCLUSIVE` lock, but does not require extra operation to reduce the
-amount of time during which the lock is held. safe-pg-migrations only wrap methods of activerecord in lock and statement
+amount of time during which the lock is held. **Safe PG Migrations** only wrap methods of activerecord in lock and statement
 timeouts
 
 </details>
@@ -258,7 +294,9 @@ SafePgMigrations.config.blocking_activity_logger_verbose = true # Outputs the ra
 
 SafePgMigrations.config.blocking_activity_logger_margin = 1.second # Delay to output blocking queries before timeout. Must be shorter than safe_timeout
 
-SafePgMigrations.config.batch_size = 1000 # Size of the batches used for backfilling when adding a column with a default value pre-PG11
+SafePgMigrations.config.backfill_batch_size = 100_000 # Size of the batches used for backfilling when adding a column with a default value
+
+SafePgMigrations.config.backfill_pause = 0.5.second # Delay between each batch during a backfill. This ensure replication can happen safely. 
 
 SafePgMigrations.config.retry_delay = 1.minute # Delay between retries for retryable statements
 

@@ -67,21 +67,13 @@ module IdempotentStatements
     end
 
     def assert_statement_skipped(write_calls, execute_calls, operation)
-      refute_calls_includes execute_calls, operation[:execute]
-      assert_calls_includes write_calls, operation[:write]
+      refute_calls_include execute_calls, operation[:execute]
+      assert_calls_include write_calls, operation[:write]
     end
 
     def assert_statement_executed(write_calls, execute_calls, operation)
-      assert_calls_includes execute_calls, operation[:execute]
-      refute_calls_includes write_calls, operation[:write]
-    end
-
-    def assert_calls_includes(calls, message)
-      assert_includes calls.join("\n"), message
-    end
-
-    def refute_calls_includes(calls, message)
-      refute_includes calls.join("\n"), message
+      assert_calls_include execute_calls, operation[:execute]
+      refute_calls_include write_calls, operation[:write]
     end
 
     def constraint_creation

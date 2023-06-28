@@ -73,6 +73,14 @@ class Minitest::Test
     calls.map(&:first).map(&:squish).reverse.drop_while { |call| %w[BEGIN COMMIT].include? call }.reverse
   end
 
+  def assert_calls_include(calls, call)
+    assert_includes calls.join("\n"), call
+  end
+
+  def refute_calls_include(calls, call)
+    refute_includes calls.join("\n"), call
+  end
+
   # Records method calls on an object. Behaves like a test spy.
   #
   # Example usage:
