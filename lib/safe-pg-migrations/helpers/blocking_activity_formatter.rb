@@ -29,7 +29,7 @@ module SafePgMigrations
           queries.each do |pid, query, start_time|
             Logger.say(
               "Query with pid #{pid || 'null'} started #{format_start_time start_time}: #{query}",
-              sub_item: true
+              sub_item: true, sensitive: true
             )
           end
         else
@@ -45,7 +45,7 @@ module SafePgMigrations
             "lock type: #{locktype || 'null'}, " \
             "lock mode: #{mode || 'null'}, " \
             "lock transactionid: #{transactionid || 'null'}",
-            sub_item: true
+            sub_item: true, sensitive: true
           )
         end
       end

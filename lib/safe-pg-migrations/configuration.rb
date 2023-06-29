@@ -5,7 +5,7 @@ require 'active_support/core_ext/numeric/time'
 module SafePgMigrations
   class Configuration
     attr_accessor :blocking_activity_logger_margin, :blocking_activity_logger_verbose,
-                  :backfill_batch_size, :backfill_pause, :retry_delay, :max_tries
+                  :backfill_batch_size, :backfill_pause, :retry_delay, :max_tries, :sensitive_logger
     attr_reader :lock_timeout, :safe_timeout
 
     def initialize
@@ -17,7 +17,9 @@ module SafePgMigrations
       self.backfill_pause = 0.5.second
       self.retry_delay = 1.minute
       self.max_tries = 5
+      self.sensitive_logger = nil
     end
+
 
     def lock_timeout=(value)
       raise 'Setting lock timeout to 0 disables the lock timeout and is dangerous' if value == 0.seconds

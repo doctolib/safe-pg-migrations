@@ -29,3 +29,5 @@ Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
 Style/NumericPredicate:
   Enabled: false
+Style/OptionalBooleanParameter:
+  Enabled: false
