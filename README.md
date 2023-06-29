@@ -288,7 +288,9 @@ So you can actually check that the `CREATE INDEX` statement will be performed co
 **Safe PG Migrations** can be customized, here is an example of a Rails initializer (the values are the default ones):
 
 ```ruby
-SafePgMigrations.config.safe_timeout = 5.seconds # Lock and statement timeout used for all DDL operations except from CREATE / DROP INDEX
+SafePgMigrations.config.safe_timeout = 5.seconds # Statement timeout used for all DDL operations except from CREATE / DROP INDEX
+
+SafePgMigrations.config.lock_timeout = nil # Lock timeout used for all DDL operations except from CREATE / DROP INDEX. If not set, safe_timeout will be used with a deduction of 1% to ensure that the lock timeout is raised in priority
 
 SafePgMigrations.config.blocking_activity_logger_verbose = true # Outputs the raw blocking queries on timeout. When false, outputs information about the lock instead
 
