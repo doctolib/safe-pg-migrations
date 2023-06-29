@@ -238,6 +238,18 @@ When a statement fails with a lock timeout, **Safe PG Migrations** retries it (5
 <details><summary>Blocking activity logging</summary>
 
 If a statement fails with a lock timeout, **Safe PG Migrations** will try to tell you what was the blocking statement.
+
+---
+**NOTE**
+
+Data logged by the Blocking activity logger can be sensitive (it will contain raw SQL queries, which can be hashes of password, user information, ...)
+
+If you cannot afford to log this type of data, you can either
+* Set `SafePgMigrations.config.blocking_activity_logger_verbose = false`. In this case, the logger will only log the pid of the blocking statement, which should be enough to investigate;
+* Provide a different logger through `SafePgMigrations.config.sensitive_logger = YourLogger.new`. Instead of using the default IO stream, SafePgMigrations will send sensitive data to the given logger which can be managed as you wish.
+
+---
+
 </details>
 
 <details><summary>Verbose SQL logging</summary>
@@ -293,6 +305,8 @@ SafePgMigrations.config.safe_timeout = 5.seconds # Statement timeout used for al
 SafePgMigrations.config.lock_timeout = nil # Lock timeout used for all DDL operations except from CREATE / DROP INDEX. If not set, safe_timeout will be used with a deduction of 1% to ensure that the lock timeout is raised in priority
 
 SafePgMigrations.config.blocking_activity_logger_verbose = true # Outputs the raw blocking queries on timeout. When false, outputs information about the lock instead
+
+SafePgMigrations.config.sensitive_logger = nil # When given, sensitive data will be sent to this logger instead of the standard output. Must implement method `info`.
 
 SafePgMigrations.config.blocking_activity_logger_margin = 1.second # Delay to output blocking queries before timeout. Must be shorter than safe_timeout
 
