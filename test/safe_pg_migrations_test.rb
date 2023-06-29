@@ -3,6 +3,45 @@
 require 'test_helper'
 
 class SafePgMigrationsTest < Minitest::Test
+  def test_sets_locks_correctly_when_lock_timeout_set
+    SafePgMigrations.config.lock_timeout = 1.second
+    SafePgMigrations.config.safe_timeout = 3.seconds
+
+    @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          change_table(:users) do |t|
+            t.string :email
+          end
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_equal ["SET lock_timeout TO '1s'"], calls[0]
+    assert_equal ["SET statement_timeout TO '3s'"], calls[1]
+  end
+
+  def test_lock_set_correctly_when_only_safe_timeout_set
+    SafePgMigrations.config.safe_timeout = 3.seconds
+
+    @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def change
+          change_table(:users) do |t|
+            t.string :email
+          end
+        end
+      end.new
+
+    calls = record_calls(@connection, :execute) { run_migration }
+
+    assert_equal ["SET lock_timeout TO '2969ms'"], calls[0]
+    assert_equal ["SET statement_timeout TO '3s'"], calls[1]
+  end
+
   def test_remove_transaction
     @migration =
       Class.new(ActiveRecord::Migration::Current) do

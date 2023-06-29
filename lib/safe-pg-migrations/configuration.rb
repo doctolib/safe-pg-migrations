@@ -4,11 +4,13 @@ require 'active_support/core_ext/numeric/time'
 
 module SafePgMigrations
   class Configuration
-    attr_accessor :safe_timeout, :blocking_activity_logger_margin, :blocking_activity_logger_verbose,
+    attr_accessor :blocking_activity_logger_margin, :blocking_activity_logger_verbose,
                   :backfill_batch_size, :backfill_pause, :retry_delay, :max_tries
+    attr_reader :lock_timeout, :safe_timeout
 
     def initialize
       self.safe_timeout = 5.seconds
+      self.lock_timeout = nil
       self.blocking_activity_logger_margin = 1.second
       self.blocking_activity_logger_verbose = true
       self.backfill_batch_size = 100_000
@@ -17,11 +19,33 @@ module SafePgMigrations
       self.max_tries = 5
     end
 
+    def lock_timeout=(value)
+      raise 'Setting lock timeout to 0 disables the lock timeout and is dangerous' if value == 0.seconds
+
+      unless value.nil? || value < safe_timeout
+        raise ArgumentError, "Lock timeout (#{value}) cannot be greater than safe timeout (#{safe_timeout})"
+      end
+
+      @lock_timeout = value
+    end
+
+    def safe_timeout=(value)
+      raise 'Setting safe timeout to 0 disables the safe timeout and is dangerous' unless value
+
+      unless lock_timeout.nil? || value > lock_timeout
+        raise ArgumentError, "Safe timeout (#{value}) cannot be less than lock timeout (#{lock_timeout})"
+      end
+
+      @safe_timeout = value
+    end
+
     def pg_statement_timeout
       pg_duration safe_timeout
     end
 
     def pg_lock_timeout
+      return pg_duration lock_timeout if lock_timeout
+
       # if statement timeout and lock timeout have the same value, statement timeout will raise in priority. We actually
       # need the opposite for BlockingActivityLogger to detect lock timeouts correctly.
       # By reducing the lock timeout by a very small margin, we ensure that the lock timeout is raised in priority
