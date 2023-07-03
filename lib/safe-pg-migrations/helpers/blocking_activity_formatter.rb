@@ -7,13 +7,13 @@ module SafePgMigrations
         if queries.empty?
           Logger.say 'Could not find any blocking query.', sub_item: true
         else
-          Logger.say <<~MESSAGE.rstrip, sub_item: true
+          Logger.say <<~MESSAGE.squish, sub_item: true
             Statement was being blocked by the following #{'query'.pluralize(queries.size)}:
           MESSAGE
 
           Logger.say '', sub_item: true
           output_blocking_queries(queries)
-          Logger.say <<~MESSAGE, sub_item: true
+          Logger.say <<~MESSAGE.squish, sub_item: true
             Beware, some of those queries might run in a transaction. In this case the locking query might be located
             elsewhere in the transaction
           MESSAGE
@@ -39,14 +39,13 @@ module SafePgMigrations
 
       def output_confidentially_blocking_queries(queries)
         queries.each do |start_time, locktype, mode, pid, transactionid|
-          Logger.say(
-            "Query with pid #{pid || 'null'} " \
-            "started #{format_start_time(start_time)}: " \
-            "lock type: #{locktype || 'null'}, " \
-            "lock mode: #{mode || 'null'}, " \
-            "lock transactionid: #{transactionid || 'null'}",
-            sub_item: true, sensitive: true
-          )
+          Logger.say <<~MESSAGE.squish, sub_item: true, sensitive: true
+            Query with pid #{pid || 'null'}
+            started #{format_start_time(start_time)}:
+            lock type: #{locktype || 'null'},
+            lock mode: #{mode || 'null'},
+            lock transactionid: #{transactionid || 'null'}",
+          MESSAGE
         end
       end
 

@@ -35,7 +35,7 @@ class StatementRetrierTest < Minitest::Test
     calls = record_calls(@migration, :write) { run_migration }.map(&:first)
     assert @connection.column_exists?(:users, :email, :string)
     assert_equal [
-      '== 8128 : migrating ===========================================================',
+      '== 8128 AddColumnWithBlockingTransactionFromAnotherConnection: migrating ======',
       '-- add_column(:users, :email, :string)',
       '   -> Lock timeout.',
       '   -> Statement was being blocked by the following query:',

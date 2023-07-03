@@ -20,7 +20,6 @@ module SafePgMigrations
       self.sensitive_logger = nil
     end
 
-
     def lock_timeout=(value)
       raise 'Setting lock timeout to 0 disables the lock timeout and is dangerous' if value == 0.seconds
 

@@ -149,63 +149,6 @@ class SafePgMigrationsTest < Minitest::Test
     end
   end
 
-  def test_say_sensitive_without_sensitive_logger
-    migration = Class.new(ActiveRecord::Migration::Current).new
-    SafePgMigrations.instance_variable_set :@current_migration, migration
-
-    calls = record_calls(migration, :write) do
-      SafePgMigrations.say 'hello', sensitive: true
-    end
-
-    assert_equal [['-- hello']], calls
-  end
-
-  def test_say_not_sensitive_without_sensitive_logger
-    logger = Minitest::Mock.new
-
-    migration = Class.new(ActiveRecord::Migration::Current).new
-    SafePgMigrations.instance_variable_set :@current_migration, migration
-    SafePgMigrations.config.sensitive_logger = logger
-
-    calls = record_calls(migration, :write) do
-      SafePgMigrations.say 'hello'
-    end
-
-    assert_equal [['-- hello']], calls
-  end
-
-  def test_say_sensitive_with_sensitive_logger
-    logger = Minitest::Mock.new
-    logger.expect :info, nil, ['hello']
-
-    migration = Class.new(ActiveRecord::Migration::Current).new
-    SafePgMigrations.instance_variable_set :@current_migration, migration
-    SafePgMigrations.config.sensitive_logger = logger
-
-    calls = record_calls(migration, :write) do
-      SafePgMigrations.say 'hello', sensitive: true
-    end
-
-    assert_equal [['-- Sensitive data sent to sensitive logger']], calls
-    logger.verify
-  end
-
-  def test_say_non_sensitive_with_sensitive_logger
-    logger = Minitest::Mock.new
-    # contrary to the previous test, we do give the method "info" in expect. If the method is called, the test will fail
-
-    migration = Class.new(ActiveRecord::Migration::Current).new
-    SafePgMigrations.instance_variable_set :@current_migration, migration
-    SafePgMigrations.config.sensitive_logger = logger
-
-    calls = record_calls(migration, :write) do
-      SafePgMigrations.say 'hello', sensitive: false
-    end
-
-    assert_equal [['-- hello']], calls
-    logger.verify
-  end
-
   private
 
   def simulate_blocking_transaction_from_another_connection

@@ -33,6 +33,8 @@ class BlockingActivityLoggerTest < Minitest::Test
 
   def test_logger_unfiltered_sensitive_logger
     sensitive_logger = Minitest::Mock.new
+    sensitive_logger.expect(:info, nil, ['Executing AddColumnWithBlockingTransactionFromAnotherConnection'])
+    sensitive_logger.expect(:info, nil, ['add_column("users", :email, :string)'])
     sensitive_logger.expect(:info, nil) do |log|
       log.match?(/Query with pid \d+ started [01] seconds? ago:\s+BEGIN; SELECT 1 FROM users/)
     end

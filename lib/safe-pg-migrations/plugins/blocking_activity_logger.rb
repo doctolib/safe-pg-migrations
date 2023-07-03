@@ -18,7 +18,19 @@ module SafePgMigrations
       create_table
     ].each do |method|
       define_method method do |*args, &block|
-        log_blocking_queries_after_lock { super(*args, &block) }
+        log_context = lambda do
+          break unless SafePgMigrations.config.sensitive_logger
+
+          options = args.last.is_a?(Hash) ? args.last : {}
+
+          Helpers::Logger.say "Executing #{SafePgMigrations.current_migration.name}",
+                              sensitive: true, warn_sensitive_logs: false
+          Helpers::Logger.say_method_call method, *args, **options, sensitive: true, warn_sensitive_logs: false
+        end
+
+        log_blocking_queries_after_lock(log_context) do
+          super(*args, &block)
+        end
       end
       ruby2_keywords method
     end
@@ -50,7 +62,7 @@ module SafePgMigrations
       blocking_queries_retriever_thread.kill
     end
 
-    def log_blocking_queries_after_lock
+    def log_blocking_queries_after_lock(log_context)
       blocking_queries_retriever_thread =
         Thread.new do
           sleep delay_before_logging
@@ -64,6 +76,7 @@ module SafePgMigrations
       blocking_queries_retriever_thread.kill
     rescue ActiveRecord::LockWaitTimeout
       Helpers::Logger.say 'Lock timeout.', sub_item: true
+      log_context.call
       queries =
         begin
           blocking_queries_retriever_thread.value
@@ -81,12 +94,15 @@ module SafePgMigrations
     end
 
     def delay_before_logging
-      SafePgMigrations.config.safe_timeout -
-        SafePgMigrations.config.blocking_activity_logger_margin
+      timeout - SafePgMigrations.config.blocking_activity_logger_margin
     end
 
     def delay_before_retry
       SafePgMigrations.config.blocking_activity_logger_margin + SafePgMigrations.config.retry_delay
+    end
+
+    def timeout
+      SafePgMigrations.config.lock_timeout || SafePgMigrations.config.safe_timeout
     end
   end
 end
