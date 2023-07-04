@@ -9,7 +9,7 @@ module SafePgMigrations
         StrongMigrations.disable_check(:add_column_default)
         StrongMigrations.disable_check(:add_column_default_callable)
         StrongMigrations.add_check do |method, args|
-          break unless method == :add_column
+          next unless method == :add_column
 
           options = args.last.is_a?(Hash) ? args.last : {}
 

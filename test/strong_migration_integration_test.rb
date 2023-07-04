@@ -2,7 +2,6 @@
 
 begin
   require 'strong_migrations'
-  StrongMigrations.start_after = 0
 rescue LoadError
   # strong_migrations not installed
 end
@@ -15,6 +14,8 @@ class StrongMigrationIntegrationTest < Minitest::Test
     SafePgMigrations::StrongMigrationsIntegration.initialize
 
     super
+
+    ENV.delete 'SAFETY_ASSURED'
   end
 
   def test_add_column_no_safety_assured
