@@ -25,9 +25,9 @@ module SafePgMigrations
         raise unless remaining_tries > 0
 
         retry_delay = SafePgMigrations.config.retry_delay
-        SafePgMigrations.say "Retrying in #{retry_delay} seconds...", true
+        SafePgMigrations::Helpers::Logger.say "Retrying in #{retry_delay} seconds...", sub_item: true
         sleep retry_delay
-        SafePgMigrations.say 'Retrying now.', true
+        SafePgMigrations::Helpers::Logger.say 'Retrying now.', sub_item: true
         retry
       end
     end

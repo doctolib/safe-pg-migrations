@@ -5,20 +5,20 @@ module SafePgMigrations
     module BlockingActivityFormatter
       def log_queries(queries)
         if queries.empty?
-          SafePgMigrations.say 'Could not find any blocking query.', true
+          SafePgMigrations::Helpers::Logger.say 'Could not find any blocking query.', sub_item: true
         else
-          SafePgMigrations.say(
-            "Statement was being blocked by the following #{'query'.pluralize(queries.size)}:",
-            true
-          )
-          SafePgMigrations.say '', true
+          SafePgMigrations::Helpers::Logger.say <<~MESSAGE.rstrip, sub_item: true
+            Statement was being blocked by the following #{'query'.pluralize(queries.size)}:
+          MESSAGE
+
+          SafePgMigrations::Helpers::Logger.say '', sub_item: true
           output_blocking_queries(queries)
-          SafePgMigrations.say(
-            'Beware, some of those queries might run in a transaction. In this case the locking query might be ' \
-            'located elsewhere in the transaction',
-            true
-          )
-          SafePgMigrations.say '', true
+          SafePgMigrations::Helpers::Logger.say <<~MESSAGE, sub_item: true
+            Beware, some of those queries might run in a transaction. In this case the locking query might be located
+            elsewhere in the transaction
+          MESSAGE
+
+          SafePgMigrations::Helpers::Logger.say '', sub_item: true
         end
       end
 
@@ -27,8 +27,10 @@ module SafePgMigrations
       def output_blocking_queries(queries)
         if SafePgMigrations.config.blocking_activity_logger_verbose
           queries.each do |pid, query, start_time|
-            SafePgMigrations.say "Query with pid #{pid || 'null'} started #{format_start_time start_time}:  #{query}",
-                                 true
+            SafePgMigrations::Helpers::Logger.say(
+              "Query with pid #{pid || 'null'} started #{format_start_time start_time}: #{query}",
+              sub_item: true
+            )
           end
         else
           output_confidentially_blocking_queries(queries)
@@ -37,13 +39,13 @@ module SafePgMigrations
 
       def output_confidentially_blocking_queries(queries)
         queries.each do |start_time, locktype, mode, pid, transactionid|
-          SafePgMigrations.say(
+          SafePgMigrations::Helpers::Logger.say(
             "Query with pid #{pid || 'null'} " \
             "started #{format_start_time(start_time)}: " \
             "lock type: #{locktype || 'null'}, " \
             "lock mode: #{mode || 'null'}, " \
             "lock transactionid: #{transactionid || 'null'}",
-            true
+            sub_item: true
           )
         end
       end

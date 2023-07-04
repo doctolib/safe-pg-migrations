@@ -63,14 +63,14 @@ module SafePgMigrations
 
       blocking_queries_retriever_thread.kill
     rescue ActiveRecord::LockWaitTimeout
-      SafePgMigrations.say 'Lock timeout.', true
+      SafePgMigrations::Helpers::Logger.say 'Lock timeout.', sub_item: true
       queries =
         begin
           blocking_queries_retriever_thread.value
         rescue StandardError => e
-          SafePgMigrations.say(
+          SafePgMigrations::Helpers::Logger.say(
             "Error while retrieving blocking queries: #{e}",
-            true
+            sub_item: true
           )
           nil
         end

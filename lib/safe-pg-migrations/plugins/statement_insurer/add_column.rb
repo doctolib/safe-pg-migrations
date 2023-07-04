@@ -15,14 +15,14 @@ module SafePgMigrations
         null = options.delete(:null)
 
         with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
-          SafePgMigrations.say_method_call(:add_column, table_name, column_name, type, options)
+          SafePgMigrations::Helpers::Logger.say_method_call(:add_column, table_name, column_name, type, options)
           super table_name, column_name, type, **options
         end
 
-        SafePgMigrations.say_method_call(:change_column_default, table_name, column_name, default)
+        SafePgMigrations::Helpers::Logger.say_method_call(:change_column_default, table_name, column_name, default)
         change_column_default(table_name, column_name, default)
 
-        SafePgMigrations.say_method_call(:backfill_column_default, table_name, column_name)
+        SafePgMigrations::Helpers::Logger.say_method_call(:backfill_column_default, table_name, column_name)
         without_statement_timeout do
           backfill_column_default(table_name, column_name)
         end

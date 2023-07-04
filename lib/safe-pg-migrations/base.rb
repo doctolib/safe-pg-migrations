@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'safe-pg-migrations/configuration'
+require 'safe-pg-migrations/helpers/logger'
 require 'safe-pg-migrations/helpers/satisfied_helper'
 require 'safe-pg-migrations/helpers/index_helper'
 require 'safe-pg-migrations/helpers/batch_over'
@@ -31,15 +32,27 @@ module SafePgMigrations
     def setup_and_teardown(migration, connection, &block)
       @pg_version_num = get_pg_version_num(connection)
       @alternate_connection = nil
-      @current_migration = migration
-      stdout_sql_logger = VerboseSqlLogger.new.setup if verbose?
-      PLUGINS.each { |plugin| connection.extend(plugin) }
 
-      connection.with_setting :lock_timeout, SafePgMigrations.config.pg_lock_timeout, &block
+      with_current_migration(migration) do
+        stdout_sql_logger = VerboseSqlLogger.new.setup if verbose?
+
+        VerboseSqlLogger.new.setup if verbose?
+        PLUGINS.each { |plugin| connection.extend(plugin) }
+
+        connection.with_setting :lock_timeout, SafePgMigrations.config.pg_lock_timeout, &block
+      ensure
+        stdout_sql_logger&.teardown
+      end
     ensure
       close_alternate_connection
+    end
+
+    def with_current_migration(migration, &block)
+      @current_migration = migration
+
+      yield block
+    ensure
       @current_migration = nil
-      stdout_sql_logger&.teardown
     end
 
     def alternate_connection
@@ -51,16 +64,6 @@ module SafePgMigrations
 
       @alternate_connection.disconnect!
       @alternate_connection = nil
-    end
-
-    ruby2_keywords def say(*args)
-      return unless current_migration
-
-      current_migration.say(*args)
-    end
-
-    ruby2_keywords def say_method_call(method, *args)
-      say "#{method}(#{args.map(&:inspect) * ', '})", true
     end
 
     def verbose?
@@ -98,8 +101,11 @@ module SafePgMigrations
     end
 
     def disable_ddl_transaction
-      UselessStatementsLogger.warn_useless '`disable_ddl_transaction`' if super
-      true
+      SafePgMigrations.with_current_migration(self) do
+        UselessStatementsLogger.warn_useless '`disable_ddl_transaction`' if super
+
+        true
+      end
     end
 
     SAFE_METHODS = %i[

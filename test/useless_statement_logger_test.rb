@@ -13,7 +13,7 @@ class UselessStatementLoggerTest < Minitest::Test
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(@migration, :write) { run_migration }.join("\n")
 
     assert_includes(
       write_calls,
@@ -29,7 +29,7 @@ class UselessStatementLoggerTest < Minitest::Test
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(@migration, :write) { run_migration }.join("\n")
 
     refute_includes write_calls, '/!\ No need to explicitly disable DDL transaction, safe-pg-migrations does it for you'
   end
@@ -43,7 +43,7 @@ class UselessStatementLoggerTest < Minitest::Test
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(@migration, :write) { run_migration }.join("\n")
 
     assert_includes(
       write_calls,
@@ -60,7 +60,7 @@ class UselessStatementLoggerTest < Minitest::Test
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(@migration, :write) { run_migration }.join("\n")
 
     refute_includes(
       write_calls,
@@ -82,7 +82,7 @@ class UselessStatementLoggerTest < Minitest::Test
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(@migration, :write) { run_migration }.join("\n")
 
     assert_includes(
       write_calls,
@@ -104,7 +104,7 @@ class UselessStatementLoggerTest < Minitest::Test
         end
       end.new
 
-    write_calls = record_calls(SafePgMigrations, :say) { run_migration }.map(&:first)
+    write_calls = record_calls(@migration, :write) { run_migration }.join("\n")
 
     refute_includes(
       write_calls,
