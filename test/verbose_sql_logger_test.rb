@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-
 class VerboseSqlLoggerTest < Minitest::Test
   def setup
     @migration =
@@ -98,8 +97,8 @@ class VerboseSqlLoggerTest < Minitest::Test
 
     assert_match('SHOW lock_timeout', logs[0])
     assert_match("SET lock_timeout TO '4950ms'", logs[1])
-    assert_match('SELECT * from pg_stat_activity', logs[2])
-    assert_match('SELECT version()', logs[3])
-    assert_match("SET lock_timeout TO '70s'", logs[4])
+    assert_match('SELECT * from pg_stat_activity', logs[-3])
+    assert_match('SELECT version()', logs[-2])
+    assert_match("SET lock_timeout TO '70s'", logs[-1])
   end
 end
