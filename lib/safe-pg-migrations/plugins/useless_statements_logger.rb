@@ -4,10 +4,10 @@ module SafePgMigrations
   module UselessStatementsLogger
     class << self
       ruby2_keywords def warn_useless(action, link = nil, *args)
-        SafePgMigrations::Helpers::Logger.say(
+        Helpers::Logger.say(
           "/!\\ No need to explicitly use #{action}, safe-pg-migrations does it for you", *args
         )
-        SafePgMigrations::Helpers::Logger.say "\t see #{link} for more details", *args if link
+        Helpers::Logger.say "\t see #{link} for more details", *args if link
       end
     end
 

@@ -5,8 +5,8 @@ require_relative '../helpers/blocking_activity_selector'
 
 module SafePgMigrations
   module BlockingActivityLogger
-    include ::SafePgMigrations::Helpers::BlockingActivityFormatter
-    include ::SafePgMigrations::Helpers::BlockingActivitySelector
+    include Helpers::BlockingActivityFormatter
+    include Helpers::BlockingActivitySelector
 
     %i[
       add_column
@@ -63,12 +63,12 @@ module SafePgMigrations
 
       blocking_queries_retriever_thread.kill
     rescue ActiveRecord::LockWaitTimeout
-      SafePgMigrations::Helpers::Logger.say 'Lock timeout.', sub_item: true
+      Helpers::Logger.say 'Lock timeout.', sub_item: true
       queries =
         begin
           blocking_queries_retriever_thread.value
         rescue StandardError => e
-          SafePgMigrations::Helpers::Logger.say(
+          Helpers::Logger.say(
             "Error while retrieving blocking queries: #{e}",
             sub_item: true
           )

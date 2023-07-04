@@ -23,13 +23,13 @@ module SafePgMigrations
 
       options = check_constraint_options(table_name, expression, options)
 
-      SafePgMigrations::Helpers::Logger.say_method_call :add_check_constraint, table_name, expression, **options,
+      Helpers::Logger.say_method_call :add_check_constraint, table_name, expression, **options,
 validate: false
       super table_name, expression, **options, validate: false
 
       return unless options.fetch(:validate, true)
 
-      SafePgMigrations::Helpers::Logger.say_method_call :validate_check_constraint, table_name, name: options[:name]
+      Helpers::Logger.say_method_call :validate_check_constraint, table_name, name: options[:name]
       validate_check_constraint table_name, name: options[:name]
     end
 
@@ -68,7 +68,7 @@ validate: false
         options[:algorithm] = :concurrently
       end
 
-      SafePgMigrations::Helpers::Logger.say_method_call(:add_index, table_name, column_name, **options)
+      Helpers::Logger.say_method_call(:add_index, table_name, column_name, **options)
 
       without_timeout { super(table_name, column_name, **options) }
     end
@@ -76,7 +76,7 @@ validate: false
     ruby2_keywords def remove_index(table_name, *args)
       options = args.last.is_a?(Hash) ? args.last : { column: args.last }
       options[:algorithm] = :concurrently unless options.key?(:algorithm)
-      SafePgMigrations::Helpers::Logger.say_method_call(:remove_index, table_name, **options)
+      Helpers::Logger.say_method_call(:remove_index, table_name, **options)
 
       without_timeout { super(table_name, **options) }
     end
@@ -88,13 +88,13 @@ validate: false
 
       add_check_constraint table_name, "#{column_name} IS NOT NULL"
 
-      SafePgMigrations::Helpers::Logger.say_method_call :change_column_null, table_name, column_name, false
+      Helpers::Logger.say_method_call :change_column_null, table_name, column_name, false
       with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
         super table_name, column_name, false
       end
 
-      SafePgMigrations::Helpers::Logger.say_method_call :remove_check_constraint, table_name,
-                                                        "#{column_name} IS NOT NULL"
+      Helpers::Logger.say_method_call :remove_check_constraint, table_name,
+                                      "#{column_name} IS NOT NULL"
       remove_check_constraint table_name, "#{column_name} IS NOT NULL"
     end
 
