@@ -49,7 +49,8 @@ module SafePgMigrations
       def backfill_column_default_safe?(table_name)
         return true if SafePgMigrations.config.backfill_batch_size_limit.nil?
 
-        estimate = query("SELECT reltuples AS estimate FROM pg_class where relname = '#{table_name}';")
+        row, = query("SELECT reltuples AS estimate FROM pg_class where relname = '#{table_name}';")
+        estimate, = row
 
         estimate <= SafePgMigrations.config.backfill_batch_size_limit
       end
