@@ -12,4 +12,5 @@ group :development, :test do
   gem 'pry-coolline'
   gem 'rake'
   gem 'rubocop'
+  gem 'strong_migrations'
 end

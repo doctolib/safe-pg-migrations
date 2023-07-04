@@ -9,7 +9,6 @@ require 'mocha/minitest'
 require 'active_record'
 require 'active_support'
 require 'pry'
-
 require 'safe-pg-migrations/base'
 
 ENV['POSTGRES_USER'] ||= ENV.fetch('USER', nil)

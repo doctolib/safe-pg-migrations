@@ -11,6 +11,7 @@ require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
+require 'safe-pg-migrations/plugins/strong_migrations_integration'
 require 'safe-pg-migrations/polyfills/index_definition_polyfill'
 require 'safe-pg-migrations/polyfills/verbose_query_logs_polyfill'
 
