@@ -12,12 +12,12 @@ module SafePgMigrations
         end
 
         raise <<~ERROR unless backfill_column_default_safe?(table_name)
-          Table #{table_name} has more than #{SafePgMigrations.config.backfill_batch_size_limit} rows.
+          Table #{table_name} has more than #{SafePgMigrations.config.default_value_backfill_threshold} rows.
           Backfilling the default value for column #{column_name} on table #{table_name} would take too long.
 
           Please revert this migration, and backfill the default value manually.
 
-          This check is configurable through the configuration "backfill_batch_size_limit".
+          This check is configurable through the configuration "default_value_backfill_threshold".
         ERROR
 
         default = options.delete(:default)
@@ -47,12 +47,12 @@ module SafePgMigrations
       end
 
       def backfill_column_default_safe?(table_name)
-        return true if SafePgMigrations.config.backfill_batch_size_limit.nil?
+        return true if SafePgMigrations.config.default_value_backfill_threshold.nil?
 
         row, = query("SELECT reltuples AS estimate FROM pg_class where relname = '#{table_name}';")
         estimate, = row
 
-        estimate <= SafePgMigrations.config.backfill_batch_size_limit
+        estimate <= SafePgMigrations.config.default_value_backfill_threshold
       end
 
       def backfill_column_default(table_name, column_name)

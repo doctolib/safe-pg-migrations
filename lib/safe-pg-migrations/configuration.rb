@@ -4,12 +4,20 @@ require 'active_support/core_ext/numeric/time'
 
 module SafePgMigrations
   class Configuration
-    attr_accessor :blocking_activity_logger_margin, :blocking_activity_logger_verbose,
-                  :backfill_batch_size_limit, :backfill_batch_size, :backfill_pause, :retry_delay, :max_tries, :sensitive_logger
+    attr_accessor(*%i[
+                    blocking_activity_logger_margin
+                    blocking_activity_logger_verbose
+                    default_value_backfill_threshold
+                    backfill_batch_size
+                    backfill_pause
+                    retry_delay
+                    max_tries
+                    sensitive_logger
+                  ])
     attr_reader :lock_timeout, :safe_timeout
 
     def initialize
-      self.backfill_batch_size_limit = nil
+      self.default_value_backfill_threshold = nil
       self.safe_timeout = 5.seconds
       self.lock_timeout = nil
       self.blocking_activity_logger_margin = 1.second

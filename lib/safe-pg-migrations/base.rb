@@ -87,6 +87,8 @@ module SafePgMigrations
   end
 
   module Migration
+    include StrongMigrationsIntegration
+
     module ClassMethods
       attr_accessor :_safe_pg_migrations_verbose
 
@@ -107,35 +109,6 @@ module SafePgMigrations
 
         true
       end
-    end
-
-    SAFE_METHODS = %i[
-      execute
-      add_index
-      add_reference
-      add_belongs_to
-      change_column_null
-      add_foreign_key
-      add_check_constraint
-    ].freeze
-
-    SAFE_METHODS.each do |method|
-      define_method method do |*args|
-        return super(*args) unless respond_to?(:safety_assured)
-
-        safety_assured { super(*args) }
-      end
-      ruby2_keywords method
-    end
-
-    ruby2_keywords def add_column(table_name, *args)
-      return super(table_name, *args) unless respond_to?(:safety_assured)
-
-      options = args.last.is_a?(Hash) ? args.last : {}
-
-      return safety_assured { super(table_name, *args) } if options.fetch(:default_value_backfill, :auto) == :auto
-
-      super(table_name, *args)
     end
   end
 end

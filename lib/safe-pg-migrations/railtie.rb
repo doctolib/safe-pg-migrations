@@ -28,10 +28,10 @@ module SafePgMigrations
             check that the estimated duration of the migration is acceptable before adding `safety_assured`.
           CHECK
 
-          check_message += <<~CHECK if SafePgMigrations.config.backfill_batch_size_limit
+          check_message += <<~CHECK if SafePgMigrations.config.default_value_backfill_threshold
 
             Also, please note that SafePgMigrations is configured to raise if the table has more than
-            #{SafePgMigrations.config.backfill_batch_size_limit} rows.
+            #{SafePgMigrations.config.default_value_backfill_threshold} rows.
           CHECK
 
           stop! check_message

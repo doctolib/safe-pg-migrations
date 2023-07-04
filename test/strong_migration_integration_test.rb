@@ -18,6 +18,20 @@ class StrongMigrationIntegrationTest < Minitest::Test
     ENV.delete 'SAFETY_ASSURED'
   end
 
+  def test_add_foreign_key_no_safety_assured_needed
+    @connection.create_table(:users) { |t| t.bigint :password_id }
+    @connection.create_table(:passwords) { |t| t.string :password }
+
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          add_foreign_key :users, :passwords
+        end
+      end.new
+
+    run_migration
+  end
+
   def test_add_column_no_safety_assured
     @connection.create_table(:users)
     @migration =

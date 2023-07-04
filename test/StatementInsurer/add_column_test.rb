@@ -261,7 +261,7 @@ module StatementInsurer
 
     def test_raises_if_default_value_backfill_and_too_big_table
       skip_if_unmet_requirements!
-      SafePgMigrations.config.backfill_batch_size_limit = 4
+      SafePgMigrations.config.default_value_backfill_threshold = 4
 
       @connection.execute('INSERT INTO users (id) VALUES (default);')
       @connection.execute('INSERT INTO users (id) VALUES (default);')
