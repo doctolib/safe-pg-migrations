@@ -322,7 +322,7 @@ SafePgMigrations.config.backfill_batch_size = 100_000 # Size of the batches used
 
 SafePgMigrations.config.backfill_pause = 0.5.second # Delay between each batch during a backfill. This ensure replication can happen safely. 
 
-SafePgMigrations.config.default_value_backfill_threshold = nil # When set, batch backfill will only be available if the table is under the given threshold. If the number of rows is higher, the migration will fail. 
+SafePgMigrations.config.default_value_backfill_threshold = nil # When set, batch backfill will only be available if the table is under the given threshold. If the number of rows is higher (according to stats), the migration will fail. 
 
 SafePgMigrations.config.retry_delay = 1.minute # Delay between retries for retryable statements
 
