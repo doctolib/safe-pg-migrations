@@ -37,9 +37,7 @@ module StatementInsurer
         end
       assert_calls [
         # The column is added with the default and not null constraint without any tricks
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
-        "SET statement_timeout TO '70s'",
       ], execute_calls
 
       assert_equal [
@@ -59,9 +57,7 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD "email" character varying',
-        "SET statement_timeout TO '70s'",
       ], calls
     end
 
@@ -76,9 +72,7 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         "ALTER TABLE \"users\" ADD \"email\" character varying DEFAULT '' NOT NULL",
-        "SET statement_timeout TO '70s'",
 
       ], calls
     end
@@ -94,9 +88,7 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         "ALTER TABLE \"users\" ADD \"email\" character varying DEFAULT '' NOT NULL",
-        "SET statement_timeout TO '70s'",
 
       ], calls
     end
@@ -116,9 +108,7 @@ module StatementInsurer
       end
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         "ALTER TABLE \"users\" ADD \"email\" character varying DEFAULT '' NOT NULL",
-        "SET statement_timeout TO '70s'",
 
       ], calls
     end
@@ -137,20 +127,16 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD "email" character varying',
-        "SET statement_timeout TO '70s'",
         "ALTER TABLE \"users\" ALTER COLUMN \"email\" SET DEFAULT 'roger@doctolib.com'",
         'SET statement_timeout TO 0',
+        "SET statement_timeout TO '5s'",
         # exec_calls goes here
-        "SET statement_timeout TO '70s'",
         'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
         'SET statement_timeout TO 0',
         'ALTER TABLE "users" VALIDATE CONSTRAINT "chk_rails_8d5dc0bde6"',
-        "SET statement_timeout TO '70s'",
         "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ALTER COLUMN "email" SET NOT NULL',
-        "SET statement_timeout TO '70s'",
         'ALTER TABLE "users" DROP CONSTRAINT "chk_rails_8d5dc0bde6"',
       ], calls
     end
@@ -169,13 +155,11 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD "email" character varying',
-        "SET statement_timeout TO '70s'",
         "ALTER TABLE \"users\" ALTER COLUMN \"email\" SET DEFAULT 'roger@doctolib.com'",
         'SET statement_timeout TO 0',
+        "SET statement_timeout TO '5s'",
         # exec_calls goes here
-        "SET statement_timeout TO '70s'",
       ], calls
     end
 

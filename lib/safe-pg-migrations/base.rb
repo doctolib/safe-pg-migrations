@@ -40,7 +40,9 @@ module SafePgMigrations
         VerboseSqlLogger.new.setup if verbose?
         PLUGINS.each { |plugin| connection.extend(plugin) }
 
-        connection.with_setting :lock_timeout, SafePgMigrations.config.pg_lock_timeout, &block
+        connection.with_setting :lock_timeout, SafePgMigrations.config.pg_lock_timeout do
+          connection.with_setting :statement_timeout, SafePgMigrations.config.pg_statement_timeout, &block
+        end
       ensure
         stdout_sql_logger&.teardown
       end

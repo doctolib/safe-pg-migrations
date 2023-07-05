@@ -64,7 +64,9 @@ class Minitest::Test
   def assert_calls(expected, actual)
     assert_equal [
       "SET lock_timeout TO '4950ms'",
+      "SET statement_timeout TO '5s'",
       *expected,
+      "SET statement_timeout TO '70s'",
       "SET lock_timeout TO '70s'",
     ], flat_calls(actual)
   end

@@ -61,20 +61,16 @@ module StatementInsurer
         'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
         'SET statement_timeout TO 0',
         'ALTER TABLE "users" VALIDATE CONSTRAINT "chk_rails_8d5dc0bde6"',
-        "SET statement_timeout TO '70s'",
         "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ALTER COLUMN "email" SET NOT NULL',
-        "SET statement_timeout TO '70s'",
         'ALTER TABLE "users" DROP CONSTRAINT "chk_rails_8d5dc0bde6"',
       ]
     end
 
     def base_calls(with_default: false, action: 'SET')
       [
-        "SET statement_timeout TO '5s'",
         with_default ? "UPDATE \"users\" SET \"email\"='roger@doctolib.com' WHERE \"email\" IS NULL" : nil,
         "ALTER TABLE \"users\" ALTER COLUMN \"email\" #{action} NOT NULL",
-        "SET statement_timeout TO '70s'",
       ].compact
     end
 
