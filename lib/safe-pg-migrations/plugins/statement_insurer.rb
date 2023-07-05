@@ -107,6 +107,20 @@ validate: false
       end
     end
 
+    ruby2_keywords def drop_table(table_name, *args)
+      foreign_keys(table_name).each do |foreign_key|
+        with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
+          remove_foreign_key(table_name, name: foreign_key.name)
+        end
+      end
+
+      Helpers::Logger.say_method_call :drop_table, table_name, *args
+
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
+        super(table_name, *args)
+      end
+    end
+
     def with_setting(key, value)
       old_value = query_value("SHOW #{key}")
       execute("SET #{key} TO #{quote(value)}")

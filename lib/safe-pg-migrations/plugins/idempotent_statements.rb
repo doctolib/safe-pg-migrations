@@ -131,5 +131,13 @@ module SafePgMigrations
         /!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'. Skipping statement.
       MESSAGE
     end
+
+    ruby2_keywords def drop_table(table_name, *)
+      return super if table_exists?(table_name)
+
+      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
+        /!\\ Table '#{table_name} does not exist. Skipping statement.
+      MESSAGE
+    end
   end
 end
