@@ -119,7 +119,9 @@ PG will still needs to update every row of the table, and will most likely state
 **Safe PG Migrations** provides the extra option parameter `default_value_backfill:`. When your migration is adding a volatile default value, the option `:update_in_batches` can be set. It will automatically backfill the value in a safe manner.
 
 ```ruby
-add_column :users, :created_at, default: 'clock_timestamp()', default_value_backfill: :update_in_batches
+safety_assured do
+  add_column :users, :created_at, default: 'clock_timestamp()', default_value_backfill: :update_in_batches
+end
 ```
 
 More specifically, it will: 
@@ -142,10 +144,16 @@ Data backfill take time. If your table is big, your migrations will (safely) han
 
 2. manual data backfill (rake task, manual operation, ...)
 3. Second migration which change the column to null false (with **Safe PG Migrations**, `change_column_null` is safe and can be used; see section below)
-
 ---
 
 `default_value_backfill:` also accept the value `:auto` which is set by default. In this case, **Safe PG Migrations** will not backfill data and will let PostgreSQL handle it itself.
+
+### Preventing :update_in_batches when the table is too big
+
+`add_column` with `default_value_backfill: :update_in_batches` can be dangerous on big tables. To avoid unwanted long migrations, **Safe PG Migrations** does not automatically mark this usage as safe when used with `strong-migrations`, usage of `safety_assured` is required.
+
+It is also possible to set a threshold for the table size, above which the migration will fail. This can be done by setting the `default_value_backfill_threshold:` option in the configuration.
+
 
 </details>
 
@@ -313,6 +321,8 @@ SafePgMigrations.config.blocking_activity_logger_margin = 1.second # Delay to ou
 SafePgMigrations.config.backfill_batch_size = 100_000 # Size of the batches used for backfilling when adding a column with a default value
 
 SafePgMigrations.config.backfill_pause = 0.5.second # Delay between each batch during a backfill. This ensure replication can happen safely. 
+
+SafePgMigrations.config.default_value_backfill_threshold = nil # When set, batch backfill will only be available if the table is under the given threshold. If the number of rows is higher (according to stats), the migration will fail. 
 
 SafePgMigrations.config.retry_delay = 1.minute # Delay between retries for retryable statements
 

@@ -9,7 +9,6 @@ require 'mocha/minitest'
 require 'active_record'
 require 'active_support'
 require 'pry'
-
 require 'safe-pg-migrations/base'
 
 ENV['POSTGRES_USER'] ||= ENV.fetch('USER', nil)
@@ -27,6 +26,7 @@ class Minitest::Test
   make_my_diffs_pretty!
 
   def setup
+    ENV['SAFETY_ASSURED'] = '1'
     ActiveRecord::Base.establish_connection
     SafePgMigrations.instance_variable_set(:@config, nil)
     @verbose_was = ActiveRecord::Migration.verbose

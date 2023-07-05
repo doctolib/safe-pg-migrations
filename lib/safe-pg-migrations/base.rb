@@ -12,6 +12,7 @@ require 'safe-pg-migrations/plugins/statement_insurer'
 require 'safe-pg-migrations/plugins/statement_retrier'
 require 'safe-pg-migrations/plugins/idempotent_statements'
 require 'safe-pg-migrations/plugins/useless_statements_logger'
+require 'safe-pg-migrations/plugins/strong_migrations_integration'
 require 'safe-pg-migrations/polyfills/index_definition_polyfill'
 require 'safe-pg-migrations/polyfills/verbose_query_logs_polyfill'
 
@@ -86,6 +87,8 @@ module SafePgMigrations
   end
 
   module Migration
+    include StrongMigrationsIntegration
+
     module ClassMethods
       attr_accessor :_safe_pg_migrations_verbose
 
@@ -106,26 +109,6 @@ module SafePgMigrations
 
         true
       end
-    end
-
-    SAFE_METHODS = %i[
-      execute
-      add_column
-      add_index
-      add_reference
-      add_belongs_to
-      change_column_null
-      add_foreign_key
-      add_check_constraint
-    ].freeze
-
-    SAFE_METHODS.each do |method|
-      define_method method do |*args|
-        return super(*args) unless respond_to?(:safety_assured)
-
-        safety_assured { super(*args) }
-      end
-      ruby2_keywords method
     end
   end
 end

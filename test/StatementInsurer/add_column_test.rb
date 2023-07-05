@@ -259,6 +259,28 @@ module StatementInsurer
       assert_equal 5, @connection.query_value("SELECT count(*) FROM users WHERE email = 'roger@doctolib.com'")
     end
 
+    def test_raises_if_default_value_backfill_and_too_big_table
+      skip_if_unmet_requirements!
+      SafePgMigrations.config.default_value_backfill_threshold = 4
+
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('INSERT INTO users (id) VALUES (default);')
+      @connection.execute('VACUUM users;') # update size estimation, otherwise it would be 0
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :email, :string, default: 'roger@doctolib.com', null: false,
+                                                default_value_backfill: :update_in_batches
+          end
+        end.new
+
+      assert_raises(StandardError, 'Table users has more than 4 rows') { run_migration }
+    end
+
     private
 
     def skip_if_unmet_requirements!

@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org/'
 
-gemspec
+gemspec path: '..'
 
 group :development, :test do
   gem 'minitest', '>= 5'
@@ -12,5 +12,4 @@ group :development, :test do
   gem 'pry-coolline'
   gem 'rake'
   gem 'rubocop'
-  gem 'strong_migrations'
 end
