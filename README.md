@@ -260,6 +260,23 @@ If you cannot afford to log this type of data, you can either
 
 </details>
 
+<details><summary>Dropping a table</summary>
+
+Dropping a table can be difficult to achieve in a small amount of time if it holds several foreign keys to busy tables.
+To remove the table, PostgreSQL will have to acquire an access exclusive lock on all the tables referenced by the foreign keys.
+
+To solve this issue, **Safe Pg Migrations** will drop the foreign keys before dropping the table.
+
+---
+**NOTE**
+
+Dropping a table is a dangerous operation by nature. **Safe Pg Migrations** will not prevent the deletion of a table which
+would still be in use.
+
+---
+
+</details>
+
 <details><summary>Verbose SQL logging</summary>
 
 For any operation, **Safe PG Migrations** can output the performed SQL queries. This feature is enabled by default in a production Rails environment. If you want to explicit enable it, for example in your development environment you can use:
