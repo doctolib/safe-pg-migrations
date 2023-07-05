@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module StatementInsurer # rubocop:disable Metrics/ModuleLength
+  module StatementInsurer
+    include Helpers::TimeoutManagement
     include AddColumn
 
     def validate_check_constraint(table_name, **options)
@@ -84,6 +85,7 @@ module SafePgMigrations
       remove_check_constraint table_name, "#{column_name} IS NOT NULL"
     end
 
+
     def remove_column(table_name, column_name, *)
       foreign_key = foreign_key_for(table_name, column: column_name)
 
@@ -107,32 +109,18 @@ module SafePgMigrations
       end
     end
 
-    def with_setting(key, value)
-      old_value = query_value("SHOW #{key}")
-      execute("SET #{key} TO #{quote(value)}")
-      begin
-        yield
-      ensure
-        begin
-          execute("SET #{key} TO #{quote(old_value)}")
-        rescue ActiveRecord::StatementInvalid => e
-          # Swallow `PG::InFailedSqlTransaction` exceptions so as to keep the
-          # original exception (if any).
-          raise unless e.cause.is_a?(PG::InFailedSqlTransaction)
+    ruby2_keywords def drop_table(table_name, *args)
+      foreign_keys(table_name).each do |foreign_key|
+        with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
+          remove_foreign_key(table_name, name: foreign_key.name)
         end
       end
-    end
 
-    def without_statement_timeout(&block)
-      with_setting(:statement_timeout, 0, &block)
-    end
+      Helpers::Logger.say_method_call :drop_table, table_name, *args
 
-    def without_lock_timeout(&block)
-      with_setting(:lock_timeout, 0, &block)
-    end
-
-    def without_timeout(&block)
-      without_statement_timeout { without_lock_timeout(&block) }
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
+        super(table_name, *args)
+      end
     end
   end
 end
