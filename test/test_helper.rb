@@ -140,6 +140,10 @@ class Minitest::Test
     @connection.create_table(:users)
 
     Class.new(ActiveRecord::Migration::Current) do
+      def self.name
+        'AddColumnWithBlockingTransactionFromAnotherConnection'
+      end
+
       def up
         thread_lock = Concurrent::CountDownLatch.new
         thread =
