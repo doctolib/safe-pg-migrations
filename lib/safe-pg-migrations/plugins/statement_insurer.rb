@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SafePgMigrations
-  module StatementInsurer
+  module StatementInsurer # rubocop:disable Metrics/ModuleLength
     include AddColumn
 
     %i[change_column].each do |method|
@@ -96,6 +96,15 @@ validate: false
       Helpers::Logger.say_method_call :remove_check_constraint, table_name,
                                       "#{column_name} IS NOT NULL"
       remove_check_constraint table_name, "#{column_name} IS NOT NULL"
+    end
+
+    def remove_column(table_name, column_name, *)
+      foreign_key = foreign_key_for(table_name, column: column_name)
+
+      with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
+        remove_foreign_key(table_name, name: foreign_key.name) if foreign_key
+        super
+      end
     end
 
     def with_setting(key, value)
