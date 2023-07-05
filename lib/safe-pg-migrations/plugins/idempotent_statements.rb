@@ -2,7 +2,7 @@
 
 module SafePgMigrations
   module IdempotentStatements
-    include SafePgMigrations::Helpers::IndexHelper
+    include Helpers::IndexHelper
 
     ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
@@ -12,9 +12,9 @@ module SafePgMigrations
       return super unless index_name_exists?(index_definition.table, index_definition.name)
 
       if index_valid?(index_definition.name)
-        SafePgMigrations.say(
+        Helpers::Logger.say(
           "/!\\ Index '#{index_definition.name}' already exists in '#{table_name}'. Skipping statement.",
-          true
+          sub_item: true
         )
         return
       end
@@ -26,13 +26,18 @@ module SafePgMigrations
     ruby2_keywords def add_column(table_name, column_name, type, *)
       return super unless column_exists?(table_name, column_name)
 
-      SafePgMigrations.say("/!\\ Column '#{column_name}' already exists in '#{table_name}'. Skipping statement.", true)
+      Helpers::Logger.say(
+        "/!\\ Column '#{column_name}' already exists in '#{table_name}'. Skipping statement.",
+        sub_item: true
+      )
     end
 
     ruby2_keywords def remove_column(table_name, column_name, type = nil, *)
       return super if column_exists?(table_name, column_name)
 
-      SafePgMigrations.say("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.", true)
+      Helpers::Logger.say(
+        "/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.", sub_item: true
+      )
     end
 
     ruby2_keywords def remove_index(table_name, *args)
@@ -41,7 +46,9 @@ module SafePgMigrations
 
       return super if index_name_exists?(table_name, index_name)
 
-      SafePgMigrations.say("/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.", true)
+      Helpers::Logger.say(
+        "/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.", sub_item: true
+      )
     end
 
     ruby2_keywords def add_foreign_key(from_table, to_table, *args)
@@ -49,9 +56,9 @@ module SafePgMigrations
       suboptions = options.slice(:name, :column)
       return super unless foreign_key_exists?(from_table, suboptions.present? ? nil : to_table, **suboptions)
 
-      SafePgMigrations.say(
+      Helpers::Logger.say(
         "/!\\ Foreign key '#{from_table}' -> '#{to_table}' already exists. Skipping statement.",
-        true
+        sub_item: true
       )
     end
 
@@ -59,9 +66,9 @@ module SafePgMigrations
       return super if foreign_key_exists?(from_table, to_table, **options)
 
       reference_name = to_table || options[:to_table] || options[:column] || options[:name]
-      SafePgMigrations.say(
+      Helpers::Logger.say(
         "/!\\ Foreign key '#{from_table}' -> '#{reference_name}' does not exist. Skipping statement.",
-        true
+        sub_item: true
       )
     end
 
@@ -69,13 +76,14 @@ module SafePgMigrations
       options = args.last.is_a?(Hash) ? args.last : {}
       return super if options[:force] || !table_exists?(table_name)
 
-      SafePgMigrations.say "/!\\ Table '#{table_name}' already exists.", true
+      Helpers::Logger.say "/!\\ Table '#{table_name}' already exists.", sub_item: true
 
       td = create_table_definition(table_name, *args)
 
       yield td if block_given?
 
-      SafePgMigrations.say(td.indexes.empty? ? '-- Skipping statement' : '-- Creating indexes', true)
+      Helpers::Logger.say(td.indexes.empty? ? '-- Skipping statement' : '-- Creating indexes',
+                          sub_item: true)
 
       td.indexes.each do |column_name, index_options|
         add_index(table_name, column_name, **index_options)
@@ -88,7 +96,9 @@ module SafePgMigrations
 
       return super if constraint_definition.nil?
 
-      SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already exists. Skipping statement.", true
+      Helpers::Logger.say <<~MESSAGE, sub_item: true
+        /!\\ Constraint '#{constraint_definition.name}' already exists. Skipping statement.
+      MESSAGE
     end
 
     def change_column_null(table_name, column_name, null, *)
@@ -96,10 +106,9 @@ module SafePgMigrations
 
       return super if column.null != null
 
-      SafePgMigrations.say(
-        "/!\\ Column '#{table_name}.#{column.name}' is already set to 'null: #{null}'. Skipping statement.",
-        true
-      )
+      Helpers::Logger.say <<~MESSAGE, sub_item: true
+        /!\\ Column '#{table_name}.#{column.name}' is already set to 'null: #{null}'. Skipping statement.
+      MESSAGE
     end
 
     def validate_check_constraint(table_name, **options)
@@ -107,8 +116,9 @@ module SafePgMigrations
 
       return super unless constraint_definition.validated?
 
-      SafePgMigrations.say "/!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.",
-                           true
+      Helpers::Logger.say <<~MESSAGE, sub_item: true
+        /!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.
+      MESSAGE
     end
 
     def change_column_default(table_name, column_name, default_or_changes)
@@ -122,11 +132,9 @@ module SafePgMigrations
 
       return super if new_alter_statement != previous_alter_statement
 
-      SafePgMigrations.say(
-        "/!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'. " \
-        'Skipping statement.',
-        true
-      )
+      Helpers::Logger.say <<~MESSAGE, sub_item: true
+        /!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'. Skipping statement.
+      MESSAGE
     end
   end
 end

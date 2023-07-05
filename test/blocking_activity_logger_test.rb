@@ -38,9 +38,9 @@ class BlockingActivityLoggerTest < Minitest::Test
     assert_includes calls,
                     'add_index("users", :email, {:algorithm=>:concurrently})'
     assert_includes calls, 'Statement was being blocked by the following query'
-    assert_match(/Query with pid \d+ started 1 second ago:  SELECT pg_sleep\(3\)/,
+    assert_match(/Query with pid \d+ started 1 second ago: SELECT pg_sleep\(3\)/,
                  calls)
-    assert_match(/Query with pid \d+ started 2 seconds ago:  SELECT pg_sleep\(3\)/,
+    assert_match(/Query with pid \d+ started 2 seconds ago: SELECT pg_sleep\(3\)/,
                  calls)
   end
 
