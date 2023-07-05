@@ -6,9 +6,7 @@ module SafePgMigrations
 
     def validate_check_constraint(table_name, **options)
       Helpers::Logger.say_method_call :validate_check_constraint, table_name, **options
-      without_statement_timeout do
-        super
-      end
+      without_statement_timeout { super }
     end
 
     def add_check_constraint(table_name, expression, **options)
