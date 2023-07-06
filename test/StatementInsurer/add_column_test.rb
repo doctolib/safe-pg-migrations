@@ -129,8 +129,6 @@ module StatementInsurer
       assert_calls [
         'ALTER TABLE "users" ADD "email" character varying',
         "ALTER TABLE \"users\" ALTER COLUMN \"email\" SET DEFAULT 'roger@doctolib.com'",
-        'SET statement_timeout TO 0',
-        "SET statement_timeout TO '5s'",
         # exec_calls goes here
         'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
         'SET statement_timeout TO 0',
@@ -157,8 +155,6 @@ module StatementInsurer
       assert_calls [
         'ALTER TABLE "users" ADD "email" character varying',
         "ALTER TABLE \"users\" ALTER COLUMN \"email\" SET DEFAULT 'roger@doctolib.com'",
-        'SET statement_timeout TO 0',
-        "SET statement_timeout TO '5s'",
         # exec_calls goes here
       ], calls
     end

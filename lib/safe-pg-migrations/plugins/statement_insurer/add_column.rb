@@ -55,7 +55,7 @@ module SafePgMigrations
         Helpers::Logger.say_method_call(:backfill_column_default, table_name, column_name)
 
         Helpers::BatchOver.new(model).each_batch do |batch|
-          without_statement_timeout { batch.update_all("#{quoted_column_name} = DEFAULT") }
+          batch.update_all("#{quoted_column_name} = DEFAULT")
 
           sleep SafePgMigrations.config.backfill_pause
         end

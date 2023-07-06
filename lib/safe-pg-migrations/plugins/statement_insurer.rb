@@ -2,7 +2,7 @@
 
 module SafePgMigrations
   module StatementInsurer
-    include Helpers::TimeoutManagement
+    include Helpers::SessionSettingManagement
     include AddColumn
 
     def validate_check_constraint(table_name, **options)

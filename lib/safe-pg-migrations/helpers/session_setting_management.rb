@@ -2,7 +2,7 @@
 
 module SafePgMigrations
   module Helpers
-    module TimeoutManagement
+    module SessionSettingManagement
       def with_setting(key, value)
         old_value = query_value("SHOW #{key}")
         execute("SET #{key} TO #{quote(value)}")
