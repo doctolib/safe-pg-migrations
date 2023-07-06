@@ -29,12 +29,8 @@ module IdempotentStatements
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls <<~CALLS.strip.split("\n"), calls
-        SET statement_timeout TO '5s'
         ALTER TABLE "users" DROP CONSTRAINT "fk_rails_d15efa01b1"
-        SET statement_timeout TO '70s'
-        SET statement_timeout TO '5s'
         DROP TABLE "users"
-        SET statement_timeout TO '70s'
       CALLS
     end
 
@@ -44,11 +40,7 @@ module IdempotentStatements
 
       calls = record_calls(@connection, :execute) { run_migration }
 
-      assert_calls <<~CALLS.strip.split("\n"), calls
-        SET statement_timeout TO '5s'
-        DROP TABLE "users"
-        SET statement_timeout TO '70s'
-      CALLS
+      assert_calls ['DROP TABLE "users"'], calls
     end
   end
 end

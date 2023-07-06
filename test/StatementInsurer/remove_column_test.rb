@@ -18,8 +18,10 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
 
-      assert_equal ['ALTER TABLE "users" DROP CONSTRAINT "fk_rails_baad13daec"'], calls[2]
-      assert_equal ['ALTER TABLE "users" DROP COLUMN "password_id"'], calls[3]
+      assert_calls <<~CALLS.strip.split("\n"), calls
+        ALTER TABLE "users" DROP CONSTRAINT "fk_rails_baad13daec"
+        ALTER TABLE "users" DROP COLUMN "password_id"
+      CALLS
     end
 
     def test_can_remove_column_with_foreign_key_on_other_column

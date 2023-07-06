@@ -16,8 +16,9 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
 
-      assert_calls ["SET statement_timeout TO '5s'", 'DROP TABLE "users"', "SET statement_timeout TO '70s'"],
-                   calls
+      assert_calls <<~CALLS.strip.split("\n"), calls
+        DROP TABLE "users"
+      CALLS
     end
 
     def test_can_drop_table_with_foreign_key
@@ -36,14 +37,10 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
 
-      assert_calls [
-        "SET statement_timeout TO '5s'",
-        'ALTER TABLE "users" DROP CONSTRAINT "fk_rails_253ea793f9"',
-        "SET statement_timeout TO '70s'",
-        "SET statement_timeout TO '5s'",
-        'DROP TABLE "users"',
-        "SET statement_timeout TO '70s'",
-      ], calls
+      assert_calls <<~CALLS.strip.split("\n"), calls
+        ALTER TABLE "users" DROP CONSTRAINT "fk_rails_253ea793f9"
+        DROP TABLE "users"
+      CALLS
     end
 
     def test_can_drop_table_with_several_foreign_keys
@@ -64,17 +61,11 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
 
-      assert_calls [
-        "SET statement_timeout TO '5s'",
-        'ALTER TABLE "users" DROP CONSTRAINT "fk_rails_253ea793f9"',
-        "SET statement_timeout TO '70s'",
-        "SET statement_timeout TO '5s'",
-        'ALTER TABLE "users" DROP CONSTRAINT "fk_rails_d15efa01b1"',
-        "SET statement_timeout TO '70s'",
-        "SET statement_timeout TO '5s'",
-        'DROP TABLE "users"',
-        "SET statement_timeout TO '70s'",
-      ], calls
+      assert_calls <<~CALLS.strip.split("\n"), calls
+        ALTER TABLE "users" DROP CONSTRAINT "fk_rails_253ea793f9"
+        ALTER TABLE "users" DROP CONSTRAINT "fk_rails_d15efa01b1"
+        DROP TABLE "users"
+      CALLS
     end
   end
 end
