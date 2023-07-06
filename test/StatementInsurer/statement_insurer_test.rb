@@ -16,9 +16,7 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ALTER COLUMN "email" TYPE text',
-        "SET statement_timeout TO '70s'",
       ], calls
     end
 
@@ -34,25 +32,21 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
       assert_calls [
         # The column is added.
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD "user_id" bigint',
-        "SET statement_timeout TO '70s'",
 
         # The index is created concurrently.
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
         'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
         "SET lock_timeout TO '4950ms'",
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
 
         # The foreign key is added.
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "users" ADD CONSTRAINT "fk_rails_6d0b8b3c2f" FOREIGN KEY ("user_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "users" VALIDATE CONSTRAINT "fk_rails_6d0b8b3c2f"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], calls
     end
 
@@ -72,10 +66,8 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
       ], calls
     end
 
@@ -95,13 +87,11 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], calls
     end
 
@@ -125,13 +115,11 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "message_user_key" FOREIGN KEY ("author_id") ' \
         'REFERENCES "users" ("real_id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "message_user_key"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], calls
     end
 
@@ -151,9 +139,7 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
-        "SET statement_timeout TO '70s'",
       ], calls
     end
 
@@ -170,7 +156,6 @@ module StatementInsurer
 
       calls = record_calls(@connection, :execute) { run_migration }
       assert_calls [
-        "SET statement_timeout TO '5s'",
 
         # Create the table with constraints.
         'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying, "user_id" bigint, ' \
@@ -183,7 +168,6 @@ module StatementInsurer
         "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '5s'",
 
-        "SET statement_timeout TO '70s'",
       ], calls
 
       run_migration(:down)

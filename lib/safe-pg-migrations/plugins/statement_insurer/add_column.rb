@@ -7,9 +7,7 @@ module SafePgMigrations
         options = args.last.is_a?(Hash) && args.last
         options ||= {}
 
-        if should_keep_default_implementation?(**options)
-          with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) { return super }
-        end
+        return super if should_keep_default_implementation?(**options)
 
         raise <<~ERROR unless backfill_column_default_safe?(table_name)
           Table #{table_name} has more than #{SafePgMigrations.config.default_value_backfill_threshold} rows.
@@ -23,18 +21,13 @@ module SafePgMigrations
         default = options.delete(:default)
         null = options.delete(:null)
 
-        with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout) do
-          Helpers::Logger.say_method_call(:add_column, table_name, column_name, type, options)
-          super table_name, column_name, type, **options
-        end
+        Helpers::Logger.say_method_call(:add_column, table_name, column_name, type, options)
+        super table_name, column_name, type, **options
 
         Helpers::Logger.say_method_call(:change_column_default, table_name, column_name, default)
         change_column_default(table_name, column_name, default)
 
-        Helpers::Logger.say_method_call(:backfill_column_default, table_name, column_name)
-        without_statement_timeout do
-          backfill_column_default(table_name, column_name)
-        end
+        backfill_column_default(table_name, column_name)
 
         change_column_null(table_name, column_name, null) if null == false
       end
@@ -59,9 +52,11 @@ module SafePgMigrations
         model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
         quoted_column_name = quote_column_name(column_name)
 
+        Helpers::Logger.say_method_call(:backfill_column_default, table_name, column_name)
+
         Helpers::BatchOver.new(model).each_batch do |batch|
-          batch
-            .update_all("#{quoted_column_name} = DEFAULT")
+          batch.update_all("#{quoted_column_name} = DEFAULT")
+
           sleep SafePgMigrations.config.backfill_pause
         end
       end

@@ -19,9 +19,7 @@ class LegacyActiveRecordSupportTest < Minitest::Test
 
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
-      "SET statement_timeout TO '5s'",
       'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") REFERENCES "users" ("id")',
-      "SET statement_timeout TO '70s'",
     ], calls
   end
 end

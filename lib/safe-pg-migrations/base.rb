@@ -5,6 +5,7 @@ require 'safe-pg-migrations/helpers/logger'
 require 'safe-pg-migrations/helpers/satisfied_helper'
 require 'safe-pg-migrations/helpers/index_helper'
 require 'safe-pg-migrations/helpers/batch_over'
+require 'safe-pg-migrations/helpers/session_setting_management'
 require 'safe-pg-migrations/plugins/verbose_sql_logger'
 require 'safe-pg-migrations/plugins/blocking_activity_logger'
 require 'safe-pg-migrations/plugins/statement_insurer/add_column'
@@ -40,7 +41,9 @@ module SafePgMigrations
         VerboseSqlLogger.new.setup if verbose?
         PLUGINS.each { |plugin| connection.extend(plugin) }
 
-        connection.with_setting :lock_timeout, SafePgMigrations.config.pg_lock_timeout, &block
+        connection.with_setting :lock_timeout, SafePgMigrations.config.pg_lock_timeout do
+          connection.with_setting :statement_timeout, SafePgMigrations.config.pg_statement_timeout, &block
+        end
       ensure
         stdout_sql_logger&.teardown
       end

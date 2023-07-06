@@ -116,11 +116,11 @@ module IdempotentStatements
         'SET lock_timeout TO 0',
         'CREATE INDEX CONCURRENTLY "my_custom_index_name" ON "users" ("email") WHERE email IS NOT NULL',
         "SET lock_timeout TO '4950ms'",
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
         "SET lock_timeout TO '4950ms'",
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], calls
     end
 
@@ -148,7 +148,7 @@ module IdempotentStatements
 
         'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
         "SET lock_timeout TO '4950ms'",
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], calls
     end
 
@@ -218,18 +218,14 @@ module IdempotentStatements
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-        "SET statement_timeout TO '70s'",
         "SET statement_timeout TO '5s'",
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], execute_calls
 
       assert_equal [
@@ -261,18 +257,14 @@ module IdempotentStatements
         end
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
-        "SET statement_timeout TO '70s'",
         "SET statement_timeout TO '5s'",
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], execute_calls
 
       assert_equal [
@@ -305,18 +297,14 @@ module IdempotentStatements
         end
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_273a25a7a6" FOREIGN KEY ("user_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-        "SET statement_timeout TO '70s'",
         "SET statement_timeout TO '5s'",
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_273a25a7a6"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], execute_calls
 
       assert_equal [
@@ -351,20 +339,16 @@ module IdempotentStatements
         end
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_995937c106" FOREIGN KEY ("author_id") ' \
         'REFERENCES "users" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_995937c106"',
-        "SET statement_timeout TO '70s'",
         "SET statement_timeout TO '5s'",
         'ALTER TABLE "messages" ADD CONSTRAINT "fk_rails_7f927086d2" FOREIGN KEY ("conversation_id") ' \
         'REFERENCES "conversations" ("id") NOT VALID',
-        "SET statement_timeout TO '70s'",
         'SET statement_timeout TO 0',
         'ALTER TABLE "messages" VALIDATE CONSTRAINT "fk_rails_7f927086d2"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], execute_calls
 
       assert_equal [
@@ -399,7 +383,6 @@ module IdempotentStatements
       refute_includes flat_calls(calls), 'CREATE INDEX CONCURRENTLY "index_users_on_name" ON "users" ("name")'
 
       assert_calls [
-        "SET statement_timeout TO '5s'",
         'SET statement_timeout TO 0',
         'SET lock_timeout TO 0',
         "SET lock_timeout TO '4950ms'",
@@ -409,7 +392,6 @@ module IdempotentStatements
         'CREATE INDEX "index_users_on_email" ON "users" ("email")',
         "SET lock_timeout TO '4950ms'",
         "SET statement_timeout TO '5s'",
-        "SET statement_timeout TO '70s'",
       ], calls
     end
 
@@ -471,7 +453,7 @@ module IdempotentStatements
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
 
-      assert_match(/ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_\w*"/, flat_calls(execute_calls)[1])
+      assert_match(/ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_\w*"/, flat_calls(execute_calls)[2])
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
@@ -502,7 +484,7 @@ module IdempotentStatements
           execute_calls = record_calls(@connection, :execute) { run_migration }
         end
 
-      assert_match(/ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_\w*"/, flat_calls(execute_calls)[1])
+      assert_match(/ALTER TABLE "messages" DROP CONSTRAINT "fk_rails_\w*"/, flat_calls(execute_calls)[2])
 
       assert_equal [
         '== 8128 : migrating ===========================================================',

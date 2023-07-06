@@ -84,19 +84,15 @@ class SafePgMigrationsTest < Minitest::Test
     calls = record_calls(@connection, :execute) { run_migration }
     assert_calls [
       # Both columns are added.
-      "SET statement_timeout TO '5s'",
       'ALTER TABLE "users" ADD "email" character varying',
-      "SET statement_timeout TO '70s'",
-      "SET statement_timeout TO '5s'",
       'ALTER TABLE "users" ADD "user_id" bigint',
-      "SET statement_timeout TO '70s'",
 
       # An index is created because of the column reference.
       'SET statement_timeout TO 0',
       'SET lock_timeout TO 0',
       'CREATE INDEX CONCURRENTLY "index_users_on_user_id" ON "users" ("user_id")',
       "SET lock_timeout TO '4950ms'",
-      "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO '5s'",
     ], calls
 
     run_migration(:down)
@@ -119,7 +115,7 @@ class SafePgMigrationsTest < Minitest::Test
       'SET lock_timeout TO 0',
       'CREATE INDEX CONCURRENTLY "index_users_on_email" ON "users" ("email")',
       "SET lock_timeout TO '4950ms'",
-      "SET statement_timeout TO '70s'",
+      "SET statement_timeout TO '5s'",
     ], calls
 
     run_migration(:down)

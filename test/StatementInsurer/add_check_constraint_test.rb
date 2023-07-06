@@ -44,7 +44,7 @@ module StatementInsurer
         'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
         'SET statement_timeout TO 0',
         'ALTER TABLE "users" VALIDATE CONSTRAINT "chk_rails_8d5dc0bde6"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
       ], calls
     end
 
@@ -62,7 +62,8 @@ module StatementInsurer
         'ALTER TABLE "users" ADD CONSTRAINT chk_rails_8d5dc0bde6 CHECK (email IS NOT NULL) NOT VALID',
         'SET statement_timeout TO 0',
         'ALTER TABLE "users" VALIDATE CONSTRAINT "chk_rails_8d5dc0bde6"',
-        "SET statement_timeout TO '70s'",
+        "SET statement_timeout TO '5s'",
+
       ], calls
     end
 
