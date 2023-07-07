@@ -4,6 +4,7 @@ module SafePgMigrations
   module StatementInsurer
     include Helpers::SessionSettingManagement
     include AddColumn
+    include ChangeColumnNull
 
     def validate_check_constraint(table_name, **options)
       Helpers::Logger.say_method_call :validate_check_constraint, table_name, **options
@@ -71,18 +72,6 @@ module SafePgMigrations
 
       Helpers::Logger.say_method_call(:remove_index, table_name, **options)
       without_timeout { super(table_name, **options) }
-    end
-
-    def change_column_null(table_name, column_name, null, default = nil)
-      return super if default || null || !Helpers::SatisfiedHelper.satisfies_change_column_null_requirements?
-
-      add_check_constraint table_name, "#{column_name} IS NOT NULL"
-
-      Helpers::Logger.say_method_call :change_column_null, table_name, column_name, false
-      super table_name, column_name, false
-
-      Helpers::Logger.say_method_call :remove_check_constraint, table_name, "#{column_name} IS NOT NULL"
-      remove_check_constraint table_name, "#{column_name} IS NOT NULL"
     end
 
     def remove_column(table_name, column_name, *)
