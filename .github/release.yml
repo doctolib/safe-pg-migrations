@@ -7,9 +7,9 @@ changelog:
     - title: Breaking Changes 🛠
       labels:
         - breaking-change
-    - title: New Features 🎉
-      labels:
-        - "*"
     - title: "Fixes :bug:"
       labels:
         - bug
+    - title: New Features 🎉
+      labels:
+        - "*"
