@@ -55,7 +55,9 @@ module StatementInsurer
     end
 
     def test_when_constraint_already_exists_and_is_validated
-      # name is important otherwise generated name would match
+      skip_if_unmet_requirements!
+
+      # name is important otherwise generated name would match. Please keep the spaces in the constraint.
       @connection.add_check_constraint :users, 'email IS NOT      NULL', name: 'chk_email_is_not_null', validate: true
 
       @migration =
@@ -75,7 +77,9 @@ module StatementInsurer
     end
 
     def test_when_constraint_already_exists_and_is_not_validated
-      # name is important otherwise generated name would match
+      skip_if_unmet_requirements!
+
+      # name is important otherwise generated name would match. Please keep the spaces in the constraint.
       @connection.add_check_constraint :users, 'email IS NOT      NULL', name: 'chk_email_is_not_null', validate: false
 
       @migration =
@@ -113,6 +117,12 @@ module StatementInsurer
         with_default ? "UPDATE \"users\" SET \"email\"='roger@doctolib.com' WHERE \"email\" IS NULL" : nil,
         "ALTER TABLE \"users\" ALTER COLUMN \"email\" #{action} NOT NULL",
       ].compact
+    end
+
+    def skip_if_unmet_requirements!
+      return if met_requirements?
+
+      skip "validate_check_constraint does not exist on ActiveRecord#{::ActiveRecord::VERSION::STRING}"
     end
 
     def met_requirements?
