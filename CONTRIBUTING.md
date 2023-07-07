@@ -49,10 +49,10 @@ You need to be part of Doctolib to release a new version of this gem.
     gem push safe-pg-migrations-<VERSION>.gem
     ```
 3. Once the pull request is merged, create a new release on GitHub.
-    a. Click on [GitHub's release tool](https://github.com/doctolib/safe-pg-migrations/releases/new);
-    b. Click on "Choose a tag" and write the name of your new tag (using semantic versioning). A button will appear to create the new tag;
-    c. Once the tag is created, feel the release title with your tag name as well;
-    d. Click on "Generate release notes"
-    e. Ensure that "Set as the latest release" is checked
-    f. Upload the `gem` file you generated in step 2
-    e. Click on "Publish release"
+    1. Click on [GitHub's release tool](https://github.com/doctolib/safe-pg-migrations/releases/new);
+    2. Click on "Choose a tag" and write the name of your new tag (using semantic versioning). A button will appear to create the new tag;
+    3. Once the tag is created, feel the release title with your tag name as well;
+    4. Click on "Generate release notes"
+    5. Ensure that "Set as the latest release" is checked
+    6. Upload the `gem` file you generated in step 2
+    7. Click on "Publish release"
