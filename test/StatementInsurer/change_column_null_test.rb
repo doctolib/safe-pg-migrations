@@ -54,6 +54,51 @@ module StatementInsurer
       assert_calls met_requirements? ? safe_pg_calls : base_calls, calls
     end
 
+    def test_when_constraint_already_exists_and_is_validated
+      skip_if_unmet_requirements!
+
+      # name is important otherwise generated name would match. Please keep the spaces in the constraint.
+      @connection.add_check_constraint :users, 'email IS NOT      NULL', name: 'chk_email_is_not_null', validate: true
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            change_column_null(:users, :email, false)
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+
+      assert_calls <<~CALLS.split("\n"), calls
+        SET statement_timeout TO 0
+        SET statement_timeout TO '5s'
+        ALTER TABLE "users" ALTER COLUMN "email" SET NOT NULL
+      CALLS
+    end
+
+    def test_when_constraint_already_exists_and_is_not_validated
+      skip_if_unmet_requirements!
+
+      # name is important otherwise generated name would match. Please keep the spaces in the constraint.
+      @connection.add_check_constraint :users, 'email IS NOT      NULL', name: 'chk_email_is_not_null', validate: false
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            change_column_null(:users, :email, false)
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+
+      assert_calls <<~CALLS.split("\n"), calls
+        SET statement_timeout TO 0
+        ALTER TABLE "users" VALIDATE CONSTRAINT "chk_email_is_not_null"
+        SET statement_timeout TO '5s'
+        ALTER TABLE "users" ALTER COLUMN "email" SET NOT NULL
+      CALLS
+    end
+
     private
 
     def safe_pg_calls
@@ -72,6 +117,12 @@ module StatementInsurer
         with_default ? "UPDATE \"users\" SET \"email\"='roger@doctolib.com' WHERE \"email\" IS NULL" : nil,
         "ALTER TABLE \"users\" ALTER COLUMN \"email\" #{action} NOT NULL",
       ].compact
+    end
+
+    def skip_if_unmet_requirements!
+      return if met_requirements?
+
+      skip "validate_check_constraint does not exist on ActiveRecord#{::ActiveRecord::VERSION::STRING}"
     end
 
     def met_requirements?
