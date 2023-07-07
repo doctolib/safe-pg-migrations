@@ -346,18 +346,11 @@ SafePgMigrations.config.retry_delay = 1.minute # Delay between retries for retry
 SafePgMigrations.config.max_tries = 5 # Number of retries before abortion of the migration
 ```
 
-## Running tests
-
-```bash
-bundle
-psql -h localhost -c 'CREATE DATABASE safe_pg_migrations_test'
-rake test
-```
-
 ## Authors
 
 - [Matthieu Prat](https://github.com/matthieuprat)
 - [Romain Choquet](https://github.com/rchoquet)
+- [Thomas Hareau](https://github.com/ThHareau)
 - [Paul-Etienne Coisne](https://github.com/coisnepe)
 
 ## License
