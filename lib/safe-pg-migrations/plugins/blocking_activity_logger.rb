@@ -16,6 +16,7 @@ module SafePgMigrations
       change_column_default
       change_column_null
       create_table
+      add_check_constraint
     ].each do |method|
       define_method method do |*args, &block|
         log_context = lambda do
