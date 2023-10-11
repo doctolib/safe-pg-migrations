@@ -7,7 +7,7 @@ class UselessStatementLoggerTest < Minitest::Test
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         disable_ddl_transaction!
-
+        # just to test the CI
         def change
           create_table(:users) { |t| t.string :email }
         end
