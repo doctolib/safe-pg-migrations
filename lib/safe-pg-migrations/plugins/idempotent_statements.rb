@@ -11,9 +11,7 @@ module SafePgMigrations
       return super unless index_name_exists?(index_definition.table, index_definition.name)
 
       if index_valid?(index_definition.name)
-        Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-          /!\\ Index '#{index_definition.name}' already exists in '#{table_name}'. Skipping statement.
-        MESSAGE
+        log_message("/!\\ Index '#{index_definition.name}' already exists in '#{table_name}'. Skipping statement.")
         return
       end
 
@@ -29,17 +27,12 @@ module SafePgMigrations
 
       return super unless column_exists?(table_name, column_name, type)
 
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type (#{type}). Skipping statement.
-      MESSAGE
+      log_message("/!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type (#{type}). Skipping statement.")
     end
 
     ruby2_keywords def remove_column(table_name, column_name, type = nil, *)
       return super if column_exists?(table_name, column_name)
-
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.")
     end
 
     ruby2_keywords def remove_index(table_name, *args)
@@ -47,10 +40,7 @@ module SafePgMigrations
       index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, options)
 
       return super if index_name_exists?(table_name, index_name)
-
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.")
     end
 
     ruby2_keywords def add_foreign_key(from_table, to_table, *args)
@@ -58,18 +48,14 @@ module SafePgMigrations
       sub_options = options.slice(:name, :column)
       return super unless foreign_key_exists?(from_table, sub_options.present? ? nil : to_table, **sub_options)
 
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Foreign key '#{from_table}' -> '#{to_table}' already exists. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Foreign key '#{from_table}' -> '#{to_table}' already exists. Skipping statement.")
     end
 
     def remove_foreign_key(from_table, to_table = nil, **options)
       return super if foreign_key_exists?(from_table, to_table, **options)
 
       reference_name = to_table || options[:to_table] || options[:column] || options[:name]
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Foreign key '#{from_table}' -> '#{reference_name}' does not exist. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Foreign key '#{from_table}' -> '#{reference_name}' does not exist. Skipping statement.")
     end
 
     ruby2_keywords def create_table(table_name, *args)
@@ -95,9 +81,7 @@ module SafePgMigrations
 
       return super if constraint_definition.nil?
 
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Constraint '#{constraint_definition.name}' already exists. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Constraint '#{constraint_definition.name}' already exists. Skipping statement.")
     end
 
     def change_column_null(table_name, column_name, null, *)
@@ -105,9 +89,7 @@ module SafePgMigrations
 
       return super if column.null != null
 
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Column '#{table_name}.#{column.name}' is already set to 'null: #{null}'. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Column '#{table_name}.#{column.name}' is already set to 'null: #{null}'. Skipping statement.")
     end
 
     def validate_check_constraint(table_name, **options)
@@ -115,9 +97,7 @@ module SafePgMigrations
 
       return super unless constraint_definition.validated?
 
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Constraint '#{constraint_definition.name}' already validated. Skipping statement.")
     end
 
     def change_column_default(table_name, column_name, default_or_changes)
@@ -130,16 +110,20 @@ module SafePgMigrations
 
       return super if new_alter_statement != previous_alter_statement
 
-      Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'. Skipping statement.
-      MESSAGE
+      log_message("/!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'. Skipping statement.")
     end
 
     ruby2_keywords def drop_table(table_name, *)
       return super if table_exists?(table_name)
 
+      log_message("/!\\ Table '#{table_name} does not exist. Skipping statement.")
+    end
+
+    private
+
+    def log_message(message)
       Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Table '#{table_name} does not exist. Skipping statement.
+        #{message}
       MESSAGE
     end
   end
