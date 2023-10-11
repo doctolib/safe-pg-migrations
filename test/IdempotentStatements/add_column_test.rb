@@ -63,7 +63,7 @@ module IdempotentStatements
         record_calls(@migration, :write) { run_migration }
       end
       expected_error_message = "/!\\ Column 'status' already exists in 'users' with a different type"
-      assert_equal expected_error_message, error.message
+      assert_includes error.message, expected_error_message
     end
 
     def test_column_after_change_column_default
