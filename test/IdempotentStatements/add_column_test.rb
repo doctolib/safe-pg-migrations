@@ -33,13 +33,6 @@ module IdempotentStatements
       skip_if_unmet_requirements!
 
       @connection.add_column :users, :email, :string
-      @migration =
-        Class.new(ActiveRecord::Migration::Current) do
-          def change
-            add_column :users, :email, :string, default: 'roger@doctolib.com', null: false,
-                                                default_value_backfill: :update_in_batches
-          end
-        end.new
 
       calls = record_calls(migration, :write) { run_migration }.map(&:first)
 
