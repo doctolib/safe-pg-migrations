@@ -42,7 +42,7 @@ module IdempotentStatements
 
       assert_equal [
         '-- add_column(:users, :name, :string)',
-        "   -> /!\\ Column 'name' already exists in 'users'. Skipping statement.",
+        "   -> /!\\ Column 'name' already exists in 'users' with the same type (string). Skipping statement.",
       ], write_calls[3..4]
     end
 
