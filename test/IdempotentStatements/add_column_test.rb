@@ -48,6 +48,24 @@ module IdempotentStatements
       refute_calls_include calls, change_column_null_skipped_call
     end
 
+    def test_column_already_created_with_a_different_type
+      skip_if_unmet_requirements!
+
+      @connection.add_column :users, :status, :string
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :status, :boolean
+          end
+        end.new
+
+      error = assert_raises RuntimeError do
+        record_calls(migration, :write) { run_migration }
+      end
+      expected_error_message = "/!\\ Column 'status' already exists in 'users' with a different type"
+      assert_equal expected_error_message, error.message
+    end
+
     def test_column_after_change_column_default
       skip_if_unmet_requirements!
 

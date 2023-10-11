@@ -24,7 +24,7 @@ module SafePgMigrations
 
     ruby2_keywords def add_column(table_name, column_name, type, *)
       if column_exists?(table_name, column_name) && !column_exists?(table_name, column_name, type)
-        error_message = "/!\\ Column '#{column_name}' already exists in '#{table_name}' with a different type: #{type}"
+        error_message = "/!\\ Column '#{column_name}' already exists in '#{table_name}' with a different type"
         raise error_message
       end
 
