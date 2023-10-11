@@ -52,9 +52,15 @@ module IdempotentStatements
       skip_if_unmet_requirements!
 
       @connection.add_column :users, :status, :string
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :status, :boolean
+          end
+        end.new
 
       error = assert_raises StandardError do
-        @connection.add_column :users, :status, :boolean
+        record_calls(@migration, :write) { run_migration }
       end
       expected_error_message = "/!\\ Column 'status' already exists in 'users' with a different type"
       assert_equal expected_error_message, error.message

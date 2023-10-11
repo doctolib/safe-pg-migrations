@@ -31,7 +31,7 @@ module SafePgMigrations
         /!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type (#{type}).
         Skipping statement.
       MESSAGE
-      )
+                 )
     end
 
     ruby2_keywords def remove_column(table_name, column_name, type = nil, *)
@@ -120,7 +120,7 @@ module SafePgMigrations
         /!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'.
         Skipping statement.
       MESSAGE
-      )
+                 )
     end
 
     ruby2_keywords def drop_table(table_name, *)
