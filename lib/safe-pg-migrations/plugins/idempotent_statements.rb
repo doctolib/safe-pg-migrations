@@ -32,6 +32,7 @@ module SafePgMigrations
 
     ruby2_keywords def remove_column(table_name, column_name, type = nil, *)
       return super if column_exists?(table_name, column_name)
+
       log_message("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.")
     end
 
@@ -40,6 +41,7 @@ module SafePgMigrations
       index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, options)
 
       return super if index_name_exists?(table_name, index_name)
+
       log_message("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.")
     end
 
