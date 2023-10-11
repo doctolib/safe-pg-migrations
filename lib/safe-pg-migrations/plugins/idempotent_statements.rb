@@ -120,7 +120,7 @@ module SafePgMigrations
         /!\\ Column '#{table_name}.#{column.name}' is already set to 'default: #{column.default}'. 
         Skipping statement.
       MESSAGE
-      )
+                 )
     end
 
     ruby2_keywords def drop_table(table_name, *)

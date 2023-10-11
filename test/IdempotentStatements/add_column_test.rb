@@ -59,7 +59,7 @@ module IdempotentStatements
           end
         end.new
 
-      error = assert_raises RuntimeError do
+      error = assert_raises StandardError do
         record_calls(migration, :write) { run_migration }
       end
       expected_error_message = "/!\\ Column 'status' already exists in 'users' with a different type"
