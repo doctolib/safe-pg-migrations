@@ -6,7 +6,6 @@ module SafePgMigrations
 
     ruby2_keywords def add_index(table_name, column_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
-
       index_definition = index_definition(table_name, column_name, **options)
 
       return super unless index_name_exists?(index_definition.table, index_definition.name)
@@ -31,7 +30,7 @@ module SafePgMigrations
       return super unless column_exists?(table_name, column_name, type)
 
       Helpers::Logger.say <<~MESSAGE.squish, sub_item: true
-        /!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type #{type}. Skipping statement.
+        /!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type (#{type}). Skipping statement.
       MESSAGE
     end
 
@@ -123,7 +122,6 @@ module SafePgMigrations
 
     def change_column_default(table_name, column_name, default_or_changes)
       column = column_for(table_name, column_name)
-
       previous_alter_statement = change_column_default_for_alter(table_name, column_name, column.default)
       new_alter_statement = change_column_default_for_alter(table_name, column_name, default_or_changes)
 

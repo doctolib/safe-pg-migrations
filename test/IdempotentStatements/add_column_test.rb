@@ -92,7 +92,7 @@ module IdempotentStatements
     end
 
     def add_column_creation_skipped_call
-      "/!\\ Column 'email' already exists in 'users'. Skipping statement."
+      "/!\\ Column 'email' already exists in 'users' with the same type (string). Skipping statement."
     end
 
     def change_column_default_skipped_call
