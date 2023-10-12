@@ -2,8 +2,8 @@ PATH
   remote: .
   specs:
     safe-pg-migrations (2.3.0)
-      activerecord (>= 6.0)
-      activesupport (>= 6.0)
+      activerecord (>= 6.0, < 7.1.x)
+      activesupport (>= 6.0, < 7.1.x)
 
 GEM
   remote: https://rubygems.org/
