@@ -33,19 +33,30 @@ module IdempotentStatements
       skip_if_unmet_requirements!
 
       @connection.add_column :users, :email, :string
-      @migration =
-        Class.new(ActiveRecord::Migration::Current) do
-          def change
-            add_column :users, :email, :string, default: 'roger@doctolib.com', null: false,
-                                                default_value_backfill: :update_in_batches
-          end
-        end.new
 
       calls = record_calls(migration, :write) { run_migration }.map(&:first)
 
       assert_calls_include calls, add_column_creation_skipped_call
       refute_calls_include calls, change_column_default_skipped_call
       refute_calls_include calls, change_column_null_skipped_call
+    end
+
+    def test_column_already_created_with_a_different_type
+      skip_if_unmet_requirements!
+
+      @connection.add_column :users, :status, :string
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :status, :boolean
+          end
+        end.new
+
+      error = assert_raises StandardError do
+        record_calls(@migration, :write) { run_migration }
+      end
+      expected_error_message = "/!\\ Column 'status' already exists in 'users' with a different type"
+      assert_includes error.message, expected_error_message
     end
 
     def test_column_after_change_column_default
@@ -74,7 +85,7 @@ module IdempotentStatements
     end
 
     def add_column_creation_skipped_call
-      "/!\\ Column 'email' already exists in 'users'. Skipping statement."
+      "/!\\ Column 'email' already exists in 'users' with the same type (string). Skipping statement."
     end
 
     def change_column_default_skipped_call
