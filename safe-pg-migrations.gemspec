@@ -30,6 +30,6 @@ Gem::Specification.new do |s|
   s.platform              = Gem::Platform::RUBY
   s.required_ruby_version = '>= 2.7'
 
-  s.add_dependency 'activerecord', '>= 6.0', '< 7.1.x'
-  s.add_dependency 'activesupport', '>= 6.0', '< 7.1.x'
+  s.add_dependency 'activerecord', '>= 6.0', '< 7.2.x'
+  s.add_dependency 'activesupport', '>= 6.0', '< 7.2.x'
 end

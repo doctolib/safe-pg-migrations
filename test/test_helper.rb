@@ -32,8 +32,8 @@ class Minitest::Test
     @verbose_was = ActiveRecord::Migration.verbose
     @connection = ActiveRecord::Base.connection
     @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
-    ActiveRecord::SchemaMigration.create_table
-    ActiveRecord::InternalMetadata.create_table
+    ActiveRecord::SchemaMigration.new(@connection).create_table
+    ActiveRecord::InternalMetadata.new(@connection).create_table
     ActiveRecord::Migration.verbose = false
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
@@ -46,7 +46,7 @@ class Minitest::Test
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::Base.clear_all_connections!
+    ActiveRecord::Base.connection_handler.clear_all_connections!
   end
 
   def run_migration(direction = :up)
@@ -54,7 +54,8 @@ class Minitest::Test
 
     migrator =
       if Gem::Requirement.new('>=6.0.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
-        ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration)
+        ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration.new(@connection),
+                                   ActiveRecord::InternalMetadata.new(@connection))
       else
         ActiveRecord::Migrator.new(direction, [@migration])
       end

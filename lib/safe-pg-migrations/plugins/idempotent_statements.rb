@@ -82,8 +82,10 @@ module SafePgMigrations
     end
 
     def add_check_constraint(table_name, expression, **options)
-      constraint_definition = check_constraint_for table_name,
-                                                   **check_constraint_options(table_name, expression, options)
+      constraint_definition = check_constraint_for(
+        table_name,
+        **check_constraint_options(table_name, expression, options.except(:validate))
+      )
 
       return super if constraint_definition.nil?
 

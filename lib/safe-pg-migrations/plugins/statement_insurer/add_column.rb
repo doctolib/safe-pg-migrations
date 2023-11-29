@@ -6,8 +6,9 @@ module SafePgMigrations
       ruby2_keywords def add_column(table_name, column_name, type, *args)
         options = args.last.is_a?(Hash) && args.last
         options ||= {}
+        default_value_backfill = options.delete(:default_value_backfill) || :auto
 
-        return super if should_keep_default_implementation?(**options)
+        return super if should_keep_default_implementation?(**options, default_value_backfill: default_value_backfill)
 
         raise <<~ERROR unless backfill_column_default_safe?(table_name)
           Table #{table_name} has more than #{SafePgMigrations.config.default_value_backfill_threshold} rows.
