@@ -21,8 +21,7 @@ module SafePgMigrations
       super
     end
 
-    def add_foreign_key(*args)
-      options = args.last.is_a?(Hash) ? args.last : {}
+    def add_foreign_key(from_table, to_table, **options)
       if options[:validate] == false
         UselessStatementsLogger.warn_useless '`validate: :false`', 'https://github.com/doctolib/safe-pg-migrations#safe_add_foreign_key'
       end

@@ -10,11 +10,9 @@ module SafePgMigrations
     include Helpers::StatementsHelper
 
     RETRIABLE_SCHEMA_STATEMENTS.each do |method|
-      define_method method do |*args, &block|
+      define_method method do |*args, **options, &block|
         log_context = lambda do
           break unless SafePgMigrations.config.sensitive_logger
-
-          options = args.last.is_a?(Hash) ? args.last : {}
 
           Helpers::Logger.say "Executing #{SafePgMigrations.current_migration.name}",
                               sensitive: true, warn_sensitive_logs: false
@@ -22,10 +20,10 @@ module SafePgMigrations
         end
 
         log_blocking_queries_after_lock(log_context) do
-          super(*args, &block)
+          super(*args, **options, &block)
         end
       end
-      ruby2_keywords method
+      method
     end
 
     %i[add_index remove_index].each do |method|

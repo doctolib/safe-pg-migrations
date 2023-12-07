@@ -54,12 +54,12 @@ module SafePgMigrations
     ].freeze
 
     SAFE_METHODS.each do |method|
-      define_method method do |*args|
-        return super(*args) unless respond_to?(:safety_assured)
+      define_method method do |*args, **options|
+        return super(*args, **options) unless respond_to?(:safety_assured)
 
-        safety_assured { super(*args) }
+        safety_assured { super(*args, **options) }
       end
-      ruby2_keywords method
+      method
     end
 
     ruby2_keywords def add_column(table_name, *args)

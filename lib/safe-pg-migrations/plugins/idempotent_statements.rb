@@ -18,7 +18,7 @@ module SafePgMigrations
       super
     end
 
-    def add_column(table_name, column_name, type, *)
+    def add_column(table_name, column_name, type, **options)
       if column_exists?(table_name, column_name) && !column_exists?(table_name, column_name, type)
         error_message = "/!\\ Column '#{column_name}' already exists in '#{table_name}' with a different type"
         raise error_message
@@ -47,8 +47,7 @@ module SafePgMigrations
       log_message("/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.")
     end
 
-    def add_foreign_key(from_table, to_table, *args)
-      options = args.last.is_a?(Hash) ? args.last : {}
+    def add_foreign_key(from_table, to_table, **options)
       sub_options = options.slice(:name, :column)
       return super unless foreign_key_exists?(from_table, sub_options.present? ? nil : to_table, **sub_options)
 

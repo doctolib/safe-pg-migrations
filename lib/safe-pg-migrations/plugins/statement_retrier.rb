@@ -5,10 +5,10 @@ module SafePgMigrations
     include Helpers::StatementsHelper
 
     RETRIABLE_SCHEMA_STATEMENTS.each do |method|
-      define_method method do |*args, &block|
-        retry_if_lock_timeout { super(*args, &block) }
+      define_method method do |*args, **options, &block|
+        retry_if_lock_timeout { super(*args, **options, &block) }
       end
-      ruby2_keywords method
+      method
     end
 
     private
