@@ -30,7 +30,7 @@ module SafePgMigrations
       without_statement_timeout { super }
     end
 
-    ruby2_keywords def add_foreign_key(from_table, to_table, *args)
+    def add_foreign_key(from_table, to_table, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       validate_present = options.key?(:validate)
       options[:validate] = false unless validate_present
@@ -43,7 +43,7 @@ module SafePgMigrations
       validate_foreign_key from_table, sub_options.present? ? nil : to_table, **sub_options
     end
 
-    ruby2_keywords def create_table(*)
+    def create_table(*)
       super do |td|
         yield td if block_given?
         td.indexes.map! do |key, index_options|
@@ -80,14 +80,14 @@ module SafePgMigrations
       super
     end
 
-    ruby2_keywords def drop_table(table_name, *args)
+    def drop_table(table_name, **options)
       foreign_keys(table_name).each do |foreign_key|
         remove_foreign_key(table_name, name: foreign_key.name)
       end
 
-      Helpers::Logger.say_method_call :drop_table, table_name, *args
+      Helpers::Logger.say_method_call :drop_table, table_name, **options
 
-      super(table_name, *args)
+      super
     end
   end
 end

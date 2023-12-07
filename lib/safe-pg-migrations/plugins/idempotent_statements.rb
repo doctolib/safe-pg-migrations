@@ -121,7 +121,7 @@ module SafePgMigrations
                  )
     end
 
-    def drop_table(table_name, *)
+    def drop_table(table_name, **options)
       return super if table_exists?(table_name)
 
       log_message("/!\\ Table '#{table_name} does not exist. Skipping statement.")
