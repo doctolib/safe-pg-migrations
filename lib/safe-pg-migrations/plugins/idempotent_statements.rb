@@ -4,8 +4,7 @@ module SafePgMigrations
   module IdempotentStatements
     include Helpers::IndexHelper
 
-    ruby2_keywords def add_index(table_name, column_name, *args)
-      options = args.last.is_a?(Hash) ? args.last : {}
+    def add_index(table_name, column_name, **options)
       index_definition = index_definition(table_name, column_name, **options)
 
       return super unless index_name_exists?(index_definition.table, index_definition.name)
@@ -15,11 +14,11 @@ module SafePgMigrations
         return
       end
 
-      remove_index(table_name, name: index_definition.name)
+      remove_index(table_name, column_name, **options)
       super
     end
 
-    ruby2_keywords def add_column(table_name, column_name, type, *)
+    def add_column(table_name, column_name, type, *)
       if column_exists?(table_name, column_name) && !column_exists?(table_name, column_name, type)
         error_message = "/!\\ Column '#{column_name}' already exists in '#{table_name}' with a different type"
         raise error_message
@@ -34,22 +33,21 @@ module SafePgMigrations
                  )
     end
 
-    ruby2_keywords def remove_column(table_name, column_name, type = nil, *)
+    def remove_column(table_name, column_name, type = nil, **options)
       return super if column_exists?(table_name, column_name)
 
       log_message("/!\\ Column '#{column_name}' not found on table '#{table_name}'. Skipping statement.")
     end
 
-    ruby2_keywords def remove_index(table_name, *args)
-      options = args.last.is_a?(Hash) ? args.last : {}
-      index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, options)
+    def remove_index(table_name, column_name = nil, **options)
+      index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, column: column_name)
 
       return super if index_name_exists?(table_name, index_name)
 
       log_message("/!\\ Index '#{index_name}' not found on table '#{table_name}'. Skipping statement.")
     end
 
-    ruby2_keywords def add_foreign_key(from_table, to_table, *args)
+    def add_foreign_key(from_table, to_table, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       sub_options = options.slice(:name, :column)
       return super unless foreign_key_exists?(from_table, sub_options.present? ? nil : to_table, **sub_options)
@@ -64,7 +62,7 @@ module SafePgMigrations
       log_message("/!\\ Foreign key '#{from_table}' -> '#{reference_name}' does not exist. Skipping statement.")
     end
 
-    ruby2_keywords def create_table(table_name, *args)
+    def create_table(table_name, *args)
       options = args.last.is_a?(Hash) ? args.last : {}
       return super if options[:force] || !table_exists?(table_name)
 
@@ -123,7 +121,7 @@ module SafePgMigrations
                  )
     end
 
-    ruby2_keywords def drop_table(table_name, *)
+    def drop_table(table_name, *)
       return super if table_exists?(table_name)
 
       log_message("/!\\ Table '#{table_name} does not exist. Skipping statement.")

@@ -87,12 +87,12 @@ module IdempotentStatements
       assert_equal [
         '== 8128 : migrating ===========================================================',
         '-- remove_index(:users, :email)',
-        '   -> remove_index("users", {:column=>:email, :algorithm=>:concurrently})',
+        '   -> remove_index("users", :email, {:algorithm=>:concurrently})',
       ], write_calls[0...3]
 
       assert_equal [
         '-- remove_index(:users, :email)',
-        '   -> remove_index("users", {:column=>:email, :algorithm=>:concurrently})',
+        '   -> remove_index("users", :email, {:algorithm=>:concurrently})',
         "   -> /!\\ Index 'index_users_on_email' not found on table 'users'. Skipping statement.",
       ], write_calls[4...7]
 

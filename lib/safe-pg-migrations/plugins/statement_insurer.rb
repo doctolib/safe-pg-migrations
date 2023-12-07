@@ -53,7 +53,7 @@ module SafePgMigrations
       end
     end
 
-    ruby2_keywords def add_index(table_name, column_name, *args_options)
+    def add_index(table_name, column_name, *args_options)
       options = args_options.last.is_a?(Hash) ? args_options.last : {}
 
       if options[:algorithm] == :default
@@ -66,15 +66,14 @@ module SafePgMigrations
       without_timeout { super(table_name, column_name, **options) }
     end
 
-    ruby2_keywords def remove_index(table_name, *args)
-      options = args.last.is_a?(Hash) ? args.last : { column: args.last }
+    def remove_index(table_name, column_name = nil, **options)
       options[:algorithm] = :concurrently unless options.key?(:algorithm)
 
-      Helpers::Logger.say_method_call(:remove_index, table_name, **options)
-      without_timeout { super(table_name, **options) }
+      Helpers::Logger.say_method_call(:remove_index, table_name, column_name, **options)
+      without_timeout { super(table_name, column_name, **options) }
     end
 
-    def remove_column(table_name, column_name, *)
+    def remove_column(table_name, column_name, type = nil, **options)
       foreign_key = foreign_key_for(table_name, column: column_name)
 
       remove_foreign_key(table_name, name: foreign_key.name) if foreign_key
