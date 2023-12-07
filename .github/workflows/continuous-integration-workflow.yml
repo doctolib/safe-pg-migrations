@@ -67,7 +67,7 @@ jobs:
           - ruby: "3.0"
             gemfile: gemfiles/activerecord61.gemfile
           - ruby: "3.0"
-            gemfile: gemfiles/activerecord60.gemfile
+            gemfile: gemfiles/activerecord71.gemfile
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     services:

@@ -28,8 +28,8 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.platform              = Gem::Platform::RUBY
-  s.required_ruby_version = '>= 2.7'
+  s.required_ruby_version = '>= 3.0'
 
-  s.add_dependency 'activerecord', '>= 6.0', '< 7.1.x'
-  s.add_dependency 'activesupport', '>= 6.0', '< 7.1.x'
+  s.add_dependency 'activerecord', '>= 6.1'
+  s.add_dependency 'activesupport', '>= 6.1'
 end
