@@ -59,7 +59,6 @@ module SafePgMigrations
 
         safety_assured { super(*args, **options) }
       end
-      method
     end
 
     def add_column(table_name, *args, **options)

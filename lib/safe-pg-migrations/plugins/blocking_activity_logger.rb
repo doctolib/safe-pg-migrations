@@ -23,7 +23,6 @@ module SafePgMigrations
           super(*args, **options, &block)
         end
       end
-      method
     end
 
     %i[add_index remove_index].each do |method|

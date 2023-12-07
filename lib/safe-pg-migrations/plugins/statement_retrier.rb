@@ -8,7 +8,6 @@ module SafePgMigrations
       define_method method do |*args, **options, &block|
         retry_if_lock_timeout { super(*args, **options, &block) }
       end
-      method
     end
 
     private
