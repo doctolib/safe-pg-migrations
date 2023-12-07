@@ -62,14 +62,12 @@ module SafePgMigrations
       method
     end
 
-    ruby2_keywords def add_column(table_name, *args)
-      return super(table_name, *args) unless respond_to?(:safety_assured)
+    def add_column(table_name, *args, **options)
+      return super unless respond_to?(:safety_assured)
 
-      options = args.last.is_a?(Hash) ? args.last : {}
+      return safety_assured { super } if options.fetch(:default_value_backfill, :auto) == :auto
 
-      return safety_assured { super(table_name, *args) } if options.fetch(:default_value_backfill, :auto) == :auto
-
-      super(table_name, *args)
+      super
     end
   end
 end
