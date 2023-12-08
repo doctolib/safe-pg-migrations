@@ -32,7 +32,12 @@ class Minitest::Test
     @verbose_was = ActiveRecord::Migration.verbose
     @connection = ActiveRecord::Base.connection
     @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
-    ActiveRecord::SchemaMigration.create_table
+    # only instanciate ActiveRecord::SchemaMigration with the right connection for Activerecord 7.1 or above
+    if Gem::Requirement.new('>=7.1.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+      ActiveRecord::SchemaMigration.new(@connection).create_table
+    else
+      ActiveRecord::SchemaMigration.create_table
+    end
     ActiveRecord::InternalMetadata.create_table
     ActiveRecord::Migration.verbose = false
     @connection.execute("SET statement_timeout TO '70s'")
