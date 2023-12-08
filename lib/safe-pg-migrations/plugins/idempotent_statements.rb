@@ -23,8 +23,8 @@ module SafePgMigrations
         error_message = "/!\\ Column '#{column_name}' already exists in '#{table_name}' with a different type"
         raise error_message
       end
-
-      return super unless column_exists?(table_name, column_name, type)
+      options_without_default_value_backfill = options.except(:default_value_backfill)
+      return super(table_name, column_name, type, **options_without_default_value_backfill) unless column_exists?(table_name, column_name, type)
 
       log_message(<<~MESSAGE.squish
         /!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type (#{type}).
@@ -79,8 +79,9 @@ module SafePgMigrations
     end
 
     def add_check_constraint(table_name, expression, **options)
+      options_without_validate = options.except(:validate)
       constraint_definition = check_constraint_for table_name,
-                                                   **check_constraint_options(table_name, expression, options)
+                                                   **check_constraint_options(table_name, expression, options_without_validate)
 
       return super if constraint_definition.nil?
 

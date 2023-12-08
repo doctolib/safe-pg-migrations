@@ -6,6 +6,8 @@ module SafePgMigrations
       def add_column(table_name, column_name, type, **options)
         return super if should_keep_default_implementation?(**options)
 
+        options.delete(:default_value_backfill)
+
         raise <<~ERROR unless backfill_column_default_safe?(table_name)
           Table #{table_name} has more than #{SafePgMigrations.config.default_value_backfill_threshold} rows.
           Backfilling the default value for column #{column_name} on table #{table_name} would take too long.
