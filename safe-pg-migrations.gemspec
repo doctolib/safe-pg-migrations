@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
 
   s.version = SafePgMigrations::VERSION
 
-  s.authors  = ['Matthieu Prat', 'Romain Choquet', 'Thomas Hareau']
+  s.authors  = ['Matthieu Prat', 'Romain Choquet', 'Thomas Hareau', 'Charles Delannoy']
   s.homepage = 'https://github.com/doctolib/safe-pg-migrations'
 
   s.metadata = {

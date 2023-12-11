@@ -264,10 +264,7 @@ module StatementInsurer
     private
 
     def skip_if_unmet_requirements!
-      if Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING)) &&
-         SafePgMigrations.get_pg_version_num(ActiveRecord::Base.connection) >= 120_000
-        return
-      end
+      return if SafePgMigrations.get_pg_version_num(ActiveRecord::Base.connection) >= 120_000
 
       skip "validate_check_constraint does not exist on ActiveRecord#{::ActiveRecord::VERSION::STRING}"
     end

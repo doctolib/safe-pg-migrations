@@ -65,13 +65,12 @@ module SafePgMigrations
       log_message("/!\\ Foreign key '#{from_table}' -> '#{reference_name}' does not exist. Skipping statement.")
     end
 
-    def create_table(table_name, *args)
-      options = args.last.is_a?(Hash) ? args.last : {}
+    def create_table(table_name, **options)
       return super if options[:force] || !table_exists?(table_name)
 
       Helpers::Logger.say "/!\\ Table '#{table_name}' already exists.", sub_item: true
 
-      td = create_table_definition(table_name, *args)
+      td = create_table_definition(table_name, **options)
 
       yield td if block_given?
 

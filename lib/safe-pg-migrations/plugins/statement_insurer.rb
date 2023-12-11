@@ -30,8 +30,7 @@ module SafePgMigrations
       without_statement_timeout { super }
     end
 
-    def add_foreign_key(from_table, to_table, *args)
-      options = args.last.is_a?(Hash) ? args.last : {}
+    def add_foreign_key(from_table, to_table, **options)
       validate_present = options.key?(:validate)
       options[:validate] = false unless validate_present
 
@@ -53,9 +52,7 @@ module SafePgMigrations
       end
     end
 
-    def add_index(table_name, column_name, *args_options)
-      options = args_options.last.is_a?(Hash) ? args_options.last : {}
-
+    def add_index(table_name, column_name, **options)
       if options[:algorithm] == :default
         options.delete :algorithm
       else
