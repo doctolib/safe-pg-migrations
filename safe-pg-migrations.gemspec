@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
 
   s.version = SafePgMigrations::VERSION
 
-  s.authors  = ['Matthieu Prat', 'Romain Choquet', 'Thomas Hareau']
+  s.authors  = ['Matthieu Prat', 'Romain Choquet', 'Thomas Hareau', 'Charles Delannoy']
   s.homepage = 'https://github.com/doctolib/safe-pg-migrations'
 
   s.metadata = {
@@ -28,8 +28,8 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
 
   s.platform              = Gem::Platform::RUBY
-  s.required_ruby_version = '>= 2.7'
+  s.required_ruby_version = '>= 3.0'
 
-  s.add_dependency 'activerecord', '>= 6.0', '< 7.1.x'
-  s.add_dependency 'activesupport', '>= 6.0', '< 7.1.x'
+  s.add_dependency 'activerecord', '>= 6.1'
+  s.add_dependency 'activesupport', '>= 6.1'
 end

@@ -32,8 +32,16 @@ class Minitest::Test
     @verbose_was = ActiveRecord::Migration.verbose
     @connection = ActiveRecord::Base.connection
     @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
-    ActiveRecord::SchemaMigration.create_table
-    ActiveRecord::InternalMetadata.create_table
+    # only instanciate ActiveRecord::SchemaMigration with the right connection for Activerecord 7.1 or above
+    if Gem::Requirement.new('>=7.1.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+      @schema_migration = ActiveRecord::SchemaMigration.new(@connection)
+      @internal_metadata = ActiveRecord::InternalMetadata.new(@connection)
+    else
+      @schema_migration = ActiveRecord::SchemaMigration
+      @internal_metadata = ActiveRecord::InternalMetadata
+    end
+    @schema_migration.create_table
+    @internal_metadata.create_table
     ActiveRecord::Migration.verbose = false
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
@@ -53,10 +61,10 @@ class Minitest::Test
     @migration.version = DUMMY_MIGRATION_VERSION
 
     migrator =
-      if Gem::Requirement.new('>=6.0.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
-        ActiveRecord::Migrator.new(direction, [@migration], ActiveRecord::SchemaMigration)
+      if Gem::Requirement.new('>=7.1.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+        ActiveRecord::Migrator.new(direction, [@migration], @schema_migration, @internal_metadata)
       else
-        ActiveRecord::Migrator.new(direction, [@migration])
+        ActiveRecord::Migrator.new(direction, [@migration], @schema_migration)
       end
     migrator.migrate
   end

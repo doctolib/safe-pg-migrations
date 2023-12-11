@@ -30,8 +30,7 @@ module SafePgMigrations
       without_statement_timeout { super }
     end
 
-    ruby2_keywords def add_foreign_key(from_table, to_table, *args)
-      options = args.last.is_a?(Hash) ? args.last : {}
+    def add_foreign_key(from_table, to_table, **options)
       validate_present = options.key?(:validate)
       options[:validate] = false unless validate_present
 
@@ -43,7 +42,7 @@ module SafePgMigrations
       validate_foreign_key from_table, sub_options.present? ? nil : to_table, **sub_options
     end
 
-    ruby2_keywords def create_table(*)
+    def create_table(*)
       super do |td|
         yield td if block_given?
         td.indexes.map! do |key, index_options|
@@ -53,9 +52,7 @@ module SafePgMigrations
       end
     end
 
-    ruby2_keywords def add_index(table_name, column_name, *args_options)
-      options = args_options.last.is_a?(Hash) ? args_options.last : {}
-
+    def add_index(table_name, column_name, **options)
       if options[:algorithm] == :default
         options.delete :algorithm
       else
@@ -66,29 +63,28 @@ module SafePgMigrations
       without_timeout { super(table_name, column_name, **options) }
     end
 
-    ruby2_keywords def remove_index(table_name, *args)
-      options = args.last.is_a?(Hash) ? args.last : { column: args.last }
+    def remove_index(table_name, column_name = nil, **options)
       options[:algorithm] = :concurrently unless options.key?(:algorithm)
 
-      Helpers::Logger.say_method_call(:remove_index, table_name, **options)
-      without_timeout { super(table_name, **options) }
+      Helpers::Logger.say_method_call(:remove_index, table_name, column_name, **options)
+      without_timeout { super(table_name, column_name, **options) }
     end
 
-    def remove_column(table_name, column_name, *)
+    def remove_column(table_name, column_name, type = nil, **options)
       foreign_key = foreign_key_for(table_name, column: column_name)
 
       remove_foreign_key(table_name, name: foreign_key.name) if foreign_key
       super
     end
 
-    ruby2_keywords def drop_table(table_name, *args)
+    def drop_table(table_name, **options)
       foreign_keys(table_name).each do |foreign_key|
         remove_foreign_key(table_name, name: foreign_key.name)
       end
 
-      Helpers::Logger.say_method_call :drop_table, table_name, *args
+      Helpers::Logger.say_method_call :drop_table, table_name, **options
 
-      super(table_name, *args)
+      super
     end
   end
 end
