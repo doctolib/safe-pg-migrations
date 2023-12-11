@@ -23,14 +23,18 @@ module SafePgMigrations
         error_message = "/!\\ Column '#{column_name}' already exists in '#{table_name}' with a different type"
         raise error_message
       end
-      options_without_default_value_backfill = options.except(:default_value_backfill)
-      return super(table_name, column_name, type, **options_without_default_value_backfill) unless column_exists?(table_name, column_name, type)
 
-      log_message(<<~MESSAGE.squish
-        /!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type (#{type}).
-        Skipping statement.
-      MESSAGE
-                 )
+      options_without_default_value_backfill = options.except(:default_value_backfill)
+
+      if column_exists?(table_name, column_name, type)
+        log_message(<<~MESSAGE.squish
+          /!\\ Column '#{column_name}' already exists in '#{table_name}' with the same type (#{type}).
+          Skipping statement.
+        MESSAGE
+                   )
+      else
+        super(table_name, column_name, type, **options_without_default_value_backfill)
+      end
     end
 
     def remove_column(table_name, column_name, type = nil, **options)
