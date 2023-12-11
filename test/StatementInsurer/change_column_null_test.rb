@@ -127,7 +127,7 @@ module StatementInsurer
 
     def met_requirements?
       Gem::Requirement.new('>6.1').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING)) &&
-        SafePgMigrations.get_pg_version_num(@connection) >= 120_000
+        SafePgMigrations.get_pg_version_num(ActiveRecord::Base.connection) >= 120_000
     end
   end
 end
