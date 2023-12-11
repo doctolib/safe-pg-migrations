@@ -6,8 +6,8 @@ ActiveRecord migrations for Postgres made safe.
 
 ## Requirements
 
-- Ruby 2.7+
-- Rails 6.0+
+- Ruby 3.0+
+- Rails 6.1+
 - PostgreSQL 11.7+
 
 ## Usage
