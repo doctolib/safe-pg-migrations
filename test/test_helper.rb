@@ -63,10 +63,8 @@ class Minitest::Test
     migrator =
       if Gem::Requirement.new('>=7.1.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
         ActiveRecord::Migrator.new(direction, [@migration], @schema_migration, @internal_metadata)
-      elsif Gem::Requirement.new('>=6.0.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
-        ActiveRecord::Migrator.new(direction, [@migration], @schema_migration)
       else
-        ActiveRecord::Migrator.new(direction, [@migration])
+        ActiveRecord::Migrator.new(direction, [@migration], @schema_migration)
       end
     migrator.migrate
   end

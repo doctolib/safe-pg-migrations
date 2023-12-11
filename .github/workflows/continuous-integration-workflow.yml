@@ -66,6 +66,8 @@ jobs:
             gemfile: gemfiles/without_strong_migrations.gemfile
           - ruby: "3.0"
             gemfile: gemfiles/activerecord61.gemfile
+          - ruby: "3.0"
+            gemfile: gemfiles/activerecord70.gemfile
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     services:
