@@ -42,7 +42,7 @@ module SafePgMigrations
       validate_foreign_key from_table, sub_options.present? ? nil : to_table, **sub_options
     end
 
-    def create_table(*)
+    def create_table(table_name, **options)
       super do |td|
         yield td if block_given?
         td.indexes.map! do |key, index_options|
