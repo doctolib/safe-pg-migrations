@@ -147,7 +147,7 @@ module StatementInsurer
       @migration =
         Class.new(ActiveRecord::Migration::Current) do
           def change
-            create_table(:users) do |t|
+            create_table(:users, primary_key: nil) do |t|
               t.string :email
               t.references :user, foreign_key: true
             end
