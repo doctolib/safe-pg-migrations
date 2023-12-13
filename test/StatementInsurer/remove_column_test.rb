@@ -55,5 +55,20 @@ module StatementInsurer
 
       assert_equal ['ALTER TABLE "users" DROP COLUMN "name"'], calls[2]
     end
+
+    def test_remove_column_with_default_arguments
+      @connection.create_table(:users) { |t| t.string :name }
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            remove_column(:users, :name, :string, null: false, default: 'Benaaaa')
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+
+      assert_equal ['ALTER TABLE "users" DROP COLUMN "name"'], calls[2]
+    end
   end
 end
