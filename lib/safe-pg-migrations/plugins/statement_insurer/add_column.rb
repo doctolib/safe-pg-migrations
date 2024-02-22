@@ -53,10 +53,18 @@ module SafePgMigrations
 
         Helpers::Logger.say_method_call(:backfill_column_default, table_name, column_name)
 
-        Helpers::BatchOver.new(model).each_batch do |batch|
+        batch_handler = lambda do |batch|
           batch.update_all("#{quoted_column_name} = DEFAULT")
 
           sleep SafePgMigrations.config.backfill_pause
+        end
+
+        backfill_batch_size = SafePgMigrations.config.backfill_batch_size
+
+        if ActiveRecord.version >= Gem::Version.new('7.1')
+          model.in_batches(of: backfill_batch_size, use_ranges: true).each(&batch_handler)
+        else
+          Helpers::BatchOver.new(model, of: backfill_batch_size).each_batch(&batch_handler)
         end
       end
     end
