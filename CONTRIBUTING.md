@@ -3,9 +3,10 @@
 ## Running tests
 
 ```bash
-bundle
 psql -h localhost -c 'CREATE DATABASE safe_pg_migrations_test'
-rake test
+
+bundle
+bundle exec rake test
 ```
 
 You may want to use one of the specific gemfiles, to test against some exotic setups. To do so, run: 
