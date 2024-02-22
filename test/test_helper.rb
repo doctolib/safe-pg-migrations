@@ -54,7 +54,7 @@ class Minitest::Test
     @connection.execute("SET statement_timeout TO '70s'")
     @connection.execute("SET lock_timeout TO '70s'")
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::Base.clear_all_connections!
+    ActiveRecord::Base.connection_handler.clear_all_connections!
   end
 
   def run_migration(direction = :up)
