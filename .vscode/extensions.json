@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "ruby-syntax-tree.vscode-syntax-tree",
+    "shopify.ruby-lsp"
+  ]
+}
