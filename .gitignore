@@ -2,3 +2,4 @@
 *.gem
 
 /debug.log
+/gemfiles/*.lock
