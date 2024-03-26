@@ -13,8 +13,9 @@ module SafePgMigrations
                     retry_delay
                     max_tries
                     sensitive_logger
+                    lock_timeout
+                    safe_timeout
                   ])
-    attr_reader :lock_timeout, :safe_timeout
 
     def initialize
       self.default_value_backfill_threshold = nil
