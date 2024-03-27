@@ -12,10 +12,11 @@ module SafePgMigrations
                     backfill_pause
                     retry_delay
                     max_tries
+                    max_lock_timeout
                     sensitive_logger
                     lock_timeout
-                    safe_timeout
                   ])
+    attr_reader :safe_timeout
 
     def initialize
       self.default_value_backfill_threshold = nil
@@ -27,6 +28,7 @@ module SafePgMigrations
       self.backfill_pause = 0.5.second
       self.retry_delay = 1.minute
       self.max_tries = 5
+      self.max_lock_timeout = 1.second
       self.sensitive_logger = nil
     end
 
@@ -43,7 +45,7 @@ module SafePgMigrations
     def safe_timeout=(value)
       raise 'Setting safe timeout to 0 disables the safe timeout and is dangerous' unless value
 
-      unless lock_timeout.nil? || value > lock_timeout
+      unless lock_timeout.nil? || value > lock_timeout || value > max_lock_timeout
         raise ArgumentError, "Safe timeout (#{value}) cannot be less than lock timeout (#{lock_timeout})"
       end
 
