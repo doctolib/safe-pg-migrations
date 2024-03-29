@@ -21,10 +21,12 @@ module SafePgMigrations
         raise if transaction_open? # Retrying is useless if we're inside a transaction.
         raise if number_of_retries >= SafePgMigrations.config.max_tries
 
-        if SafePgMigrations.config.lock_timeout < SafePgMigrations.config.max_lock_timeout
-          SafePgMigrations.config.lock_timeout = SafePgMigrations.config.lock_timeout * number_of_retries
-        else
-          SafePgMigrations.config.lock_timeout = SafePgMigrations.config.max_lock_timeout
+        unless SafePgMigrations.config.lock_timeout.nil?
+          if SafePgMigrations.config.lock_timeout < SafePgMigrations.config.max_lock_timeout
+            SafePgMigrations.config.lock_timeout = SafePgMigrations.config.lock_timeout * number_of_retries
+          else
+            SafePgMigrations.config.lock_timeout = SafePgMigrations.config.max_lock_timeout
+          end
         end
 
         retry_delay = SafePgMigrations.config.retry_delay

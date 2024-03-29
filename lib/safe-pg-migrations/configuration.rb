@@ -5,16 +5,16 @@ require 'active_support/core_ext/numeric/time'
 module SafePgMigrations
   class Configuration
     attr_accessor(*%i[
+                    backfill_batch_size
+                    backfill_pause
                     blocking_activity_logger_margin
                     blocking_activity_logger_verbose
                     default_value_backfill_threshold
-                    backfill_batch_size
-                    backfill_pause
-                    retry_delay
+                    lock_timeout
                     max_tries
                     max_lock_timeout
+                    retry_delay
                     sensitive_logger
-                    lock_timeout
                   ])
     attr_reader :safe_timeout
 
