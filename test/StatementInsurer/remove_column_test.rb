@@ -41,7 +41,7 @@ module StatementInsurer
       assert_equal ['ALTER TABLE "users" DROP COLUMN "name"'], calls[2]
     end
 
-    def test_can_remove_column_without_foreign_key
+    def test_can_remove_column_without_foreign_key_or_index
       @connection.create_table(:users) { |t| t.string :name }
 
       @migration =
@@ -54,6 +54,59 @@ module StatementInsurer
       calls = record_calls(@connection, :execute) { run_migration }
 
       assert_equal ['ALTER TABLE "users" DROP COLUMN "name"'], calls[2]
+    end
+
+    def test_can_remove_column_with_index_on_other_columns
+      @connection.create_table(:users) { |t| t.string :name, :email }
+      @connection.add_index(:users, :email)
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            remove_column(:users, :name)
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+
+      assert_equal ['ALTER TABLE "users" DROP COLUMN "name"'], calls[2]
+    end
+
+    def test_can_remove_column_with_dependent_index
+      @connection.create_table(:users) { |t| t.string :name, :email }
+      @connection.add_index(:users, :name)
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            remove_column(:users, :name)
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+
+      assert_equal ['ALTER TABLE "users" DROP COLUMN "name"'], calls[2]
+    end
+
+    def test_can_not_remove_column_with_dependent_composite_index
+      @connection.create_table(:users) { |t| t.string :name, :email }
+      @connection.add_index(:users, %i[name email], name: 'index_users_on_name_and_email')
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            remove_column(:users, :name)
+          end
+        end.new
+
+      error_message = <<~ERROR
+        Cannot drop column name from table users because composite index(es): index_users_on_name_and_email is/are present.
+        If they are still required, create the index(es) without name before dropping the existing index(es).
+        Then you will be able to drop the column.
+      ERROR
+
+      exception = assert_raises(StandardError, error_message) { run_migration }
+      assert_match error_message, exception.message
     end
   end
 end

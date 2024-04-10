@@ -16,7 +16,7 @@ module SafePgMigrations
         add_check_constraint table_name, expression, name: constraint_name
 
         Helpers::Logger.say_method_call :change_column_null, table_name, column_name, false
-        super table_name, column_name, false
+        super(table_name, column_name, false)
 
         return unless should_remove_constraint? default_name, constraint_name
 
