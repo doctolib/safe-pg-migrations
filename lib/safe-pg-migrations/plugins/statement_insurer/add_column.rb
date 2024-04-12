@@ -21,7 +21,7 @@ module SafePgMigrations
         null = options.delete(:null)
 
         Helpers::Logger.say_method_call(:add_column, table_name, column_name, type, options)
-        super table_name, column_name, type, **options
+        super(table_name, column_name, type, **options)
 
         Helpers::Logger.say_method_call(:change_column_default, table_name, column_name, default)
         change_column_default(table_name, column_name, default)

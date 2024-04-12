@@ -5,6 +5,7 @@ module SafePgMigrations
     include Helpers::SessionSettingManagement
     include AddColumn
     include ChangeColumnNull
+    include RemoveColumnIndex
 
     def validate_check_constraint(table_name, **options)
       Helpers::Logger.say_method_call :validate_check_constraint, table_name, **options
@@ -19,7 +20,7 @@ module SafePgMigrations
 
       Helpers::Logger.say_method_call :add_check_constraint, table_name, expression, **options,
         validate: false
-      super table_name, expression, **options, validate: false
+      super(table_name, expression, **options, validate: false)
 
       return unless options.fetch(:validate, true)
 
@@ -74,6 +75,7 @@ module SafePgMigrations
       foreign_key = foreign_key_for(table_name, column: column_name)
 
       remove_foreign_key(table_name, name: foreign_key.name) if foreign_key
+      remove_column_with_composite_index(table_name, column_name)
       super
     end
 
