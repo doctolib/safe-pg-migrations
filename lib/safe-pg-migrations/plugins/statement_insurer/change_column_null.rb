@@ -27,7 +27,7 @@ module SafePgMigrations
       private
 
       def check_constraint_by_expression(table_name, expression)
-        check_constraints(table_name).detect { |check_constraint| check_constraint.expression = expression }
+        check_constraints(table_name).detect { |check_constraint| check_constraint.expression == expression }
       end
 
       def should_create_constraint?(default, null)

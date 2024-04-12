@@ -99,6 +99,23 @@ module StatementInsurer
       CALLS
     end
 
+    def test_when_a_non_matching_check_constraint_exists_creates_new_constraint
+      skip_if_unmet_requirements!
+
+      @connection.add_check_constraint :users, 'length(email) > 5', name: 'chk_email_length', validate: true
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            change_column_null(:users, :email, false)
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+
+      assert_calls met_requirements? ? safe_pg_calls : base_calls, calls
+    end
+
     private
 
     def safe_pg_calls
