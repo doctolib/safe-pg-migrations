@@ -33,7 +33,7 @@ module SafePgMigrations
     def lock_timeout=(value)
       raise 'Setting lock timeout to 0 disables the lock timeout and is dangerous' if value == 0.seconds
 
-      unless value.nil? || (value < safe_timeout && value < max_lock_timeout_for_retry)
+      unless value.nil? || (value < safe_timeout && value <= max_lock_timeout_for_retry)
         raise ArgumentError, "Lock timeout (#{value}) cannot be greater than the safe timeout (#{safe_timeout}) or the max lock timeout for retry (#{max_lock_timeout_for_retry})"
       end
 
@@ -43,15 +43,15 @@ module SafePgMigrations
     def safe_timeout=(value)
       raise 'Setting safe timeout to 0 or nil disables the safe timeout and is dangerous' unless value && value > 0.seconds
 
-      unless lock_timeout.nil? || (value > lock_timeout && value > max_lock_timeout_for_retry)
+      unless lock_timeout.nil? || (value > lock_timeout && value >= max_lock_timeout_for_retry)
         raise ArgumentError, "Safe timeout (#{value}) cannot be lower than the lock timeout (#{lock_timeout}) or the max lock timeout for retry (#{max_lock_timeout_for_retry})"
       end
 
       @safe_timeout = value
     end
 
-    def max_lock_timeout_for_retry(value)
-      unless lock_timeout.nil? || (value > lock_timeout && value < safe_timeout)
+    def max_lock_timeout_for_retry=(value)
+      unless lock_timeout.nil? || (value >= lock_timeout && value <= safe_timeout)
         raise ArgumentError, "Max lock timeout for retry (#{value}) cannot be lower than the lock timeout (#{lock_timeout}) and greater than the safe timeout (#{safe_timeout})"
       end
 

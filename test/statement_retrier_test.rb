@@ -48,4 +48,8 @@ class StatementRetrierTest < Minitest::Test
       '   -> Retrying now.',
     ], calls[7..9]
   end
+
+  def lock_timout_increase_on_retry
+
+  end
 end

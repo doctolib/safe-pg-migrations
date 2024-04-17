@@ -13,16 +13,19 @@ module SafePgMigrations
     private
 
     def retry_if_lock_timeout
-      lock_timeout_step = get_lock_timeout_step(SafePgMigrations.config)
+      initial_lock_timeout = SafePgMigrations.config.lock_timeout
       number_of_retries = 0
       begin
         number_of_retries += 1
         yield
       rescue ActiveRecord::LockWaitTimeout
-        raise if transaction_open? # Retrying is useless if we're inside a transaction.
-        raise if number_of_retries >= max_tries
+        # Retrying is useless if we're inside a transaction.
+        if transaction_open? || number_of_retries >= SafePgMigrations.config.max_tries
+          SafePgMigrations.config.lock_timeout = initial_lock_timeout
+          raise
+        end
 
-        increase_lock_timeout(lock_timeout_step) unless SafePgMigrations.config.lock_timeout.nil?
+        increase_lock_timeout unless SafePgMigrations.config.lock_timeout.nil?
 
         retry_delay = SafePgMigrations.config.retry_delay
         Helpers::Logger.say "Retrying in #{retry_delay} seconds...", sub_item: true
@@ -32,15 +35,15 @@ module SafePgMigrations
       end
     end
 
-    def increase_lock_timeout(lock_timeout_step)
+    def increase_lock_timeout
       SafePgMigrations.config.lock_timeout += lock_timeout_step
       unless SafePgMigrations.config.lock_timeout < SafePgMigrations.config.max_lock_timeout_for_retry
         SafePgMigrations.config.lock_timeout = SafePgMigrations.config.max_lock_timeout_for_retry
       end
     end
 
-    def get_lock_timeout_step(config)
-      (config.max_lock_timeout_for_retry - config.lock_timeout) / config.max_tries
+    def lock_timeout_step
+      (SafePgMigrations.config.max_lock_timeout_for_retry - SafePgMigrations.config.lock_timeout) / SafePgMigrations.config.max_tries
     end
   end
 end
