@@ -91,15 +91,13 @@ class StatementRetrierTest < Minitest::Test
 
     @connection.expects(:sleep).times(4)
 
-    calls =
-      record_calls(@migration, :write) do
-        run_migration
-        flunk 'run_migration should raise'
-      rescue StandardError => e
-        assert_instance_of ActiveRecord::LockWaitTimeout, e.cause
-        assert_includes e.cause.message, 'canceling statement due to lock timeout'
-      end
 
-    calls
+    record_calls(@migration, :write) do
+      run_migration
+      flunk 'run_migration should raise'
+    rescue StandardError => e
+      assert_instance_of ActiveRecord::LockWaitTimeout, e.cause
+      assert_includes e.cause.message, 'canceling statement due to lock timeout'
+    end
   end
 end
