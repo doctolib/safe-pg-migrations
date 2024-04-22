@@ -3,7 +3,6 @@
 require 'test_helper'
 
 class StatementRetrierTest < Minitest::Test
-
   def test_lock_timeout_increase_on_retry
     SafePgMigrations.config.lock_timeout = 0.1.seconds
     SafePgMigrations.config.increase_lock_timeout_on_retry = true
@@ -11,23 +10,23 @@ class StatementRetrierTest < Minitest::Test
     calls = calls_for_lock_timeout_migration
 
     assert_equal [
-                   '   -> Retrying in 60 seconds...',
-                   '   ->   Increasing the lock timeout... Currently set to 0.1',
-                   '   ->   Lock timeout is now set to 0.325',
-                   '   -> Retrying now.',
-                   '   -> Retrying in 60 seconds...',
-                   '   ->   Increasing the lock timeout... Currently set to 0.325',
-                   '   ->   Lock timeout is now set to 0.55',
-                   '   -> Retrying now.',
-                   '   -> Retrying in 60 seconds...',
-                   '   ->   Increasing the lock timeout... Currently set to 0.55',
-                   '   ->   Lock timeout is now set to 0.775',
-                   '   -> Retrying now.',
-                   '   -> Retrying in 60 seconds...',
-                   '   ->   Increasing the lock timeout... Currently set to 0.775',
-                   '   ->   Lock timeout is now set to 1',
-                   '   -> Retrying now.',
-                 ], calls[1..-1].map(&:first)
+      '   -> Retrying in 60 seconds...',
+      '   ->   Increasing the lock timeout... Currently set to 0.1',
+      '   ->   Lock timeout is now set to 0.325',
+      '   -> Retrying now.',
+      '   -> Retrying in 60 seconds...',
+      '   ->   Increasing the lock timeout... Currently set to 0.325',
+      '   ->   Lock timeout is now set to 0.55',
+      '   -> Retrying now.',
+      '   -> Retrying in 60 seconds...',
+      '   ->   Increasing the lock timeout... Currently set to 0.55',
+      '   ->   Lock timeout is now set to 0.775',
+      '   -> Retrying now.',
+      '   -> Retrying in 60 seconds...',
+      '   ->   Increasing the lock timeout... Currently set to 0.775',
+      '   ->   Lock timeout is now set to 1',
+      '   -> Retrying now.',
+    ], calls[1..].map(&:first)
   end
 
   def test_no_lock_timeout_increase_on_retry_if_disabled
@@ -37,15 +36,15 @@ class StatementRetrierTest < Minitest::Test
     calls = calls_for_lock_timeout_migration
 
     assert_equal [
-                   '   -> Retrying in 60 seconds...',
-                   '   -> Retrying now.',
-                   '   -> Retrying in 60 seconds...',
-                   '   -> Retrying now.',
-                   '   -> Retrying in 60 seconds...',
-                   '   -> Retrying now.',
-                   '   -> Retrying in 60 seconds...',
-                   '   -> Retrying now.',
-                 ], calls[1..-1].map(&:first)
+      '   -> Retrying in 60 seconds...',
+      '   -> Retrying now.',
+      '   -> Retrying in 60 seconds...',
+      '   -> Retrying now.',
+      '   -> Retrying in 60 seconds...',
+      '   -> Retrying now.',
+      '   -> Retrying in 60 seconds...',
+      '   -> Retrying now.',
+    ], calls[1..].map(&:first)
   end
 
   def test_retry_if_lock_timeout
@@ -90,7 +89,6 @@ class StatementRetrierTest < Minitest::Test
     end.new
 
     @connection.expects(:sleep).times(4)
-
 
     record_calls(@migration, :write) do
       run_migration
