@@ -13,6 +13,7 @@ module SafePgMigrations
                     max_tries
                     retry_delay
                     sensitive_logger
+                    increase_lock_timeout_on_retry
                   ])
     attr_reader :lock_timeout, :safe_timeout, :max_lock_timeout_for_retry
 
@@ -28,6 +29,7 @@ module SafePgMigrations
       self.max_tries = 5
       self.max_lock_timeout_for_retry = 1.second
       self.sensitive_logger = nil
+      self.increase_lock_timeout_on_retry = false
     end
 
     def lock_timeout=(value)

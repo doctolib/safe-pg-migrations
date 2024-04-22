@@ -28,7 +28,7 @@ module SafePgMigrations
         retry_delay = SafePgMigrations.config.retry_delay
         Helpers::Logger.say "Retrying in #{retry_delay} seconds...", sub_item: true
 
-        increase_lock_timeout unless SafePgMigrations.config.lock_timeout.nil?
+        increase_lock_timeout if SafePgMigrations.config.increase_lock_timeout_on_retry && !SafePgMigrations.config.lock_timeout.nil?
 
         sleep retry_delay
         Helpers::Logger.say 'Retrying now.', sub_item: true

@@ -329,7 +329,9 @@ SafePgMigrations.config.safe_timeout = 5.seconds # Statement timeout used for al
 
 SafePgMigrations.config.lock_timeout = nil # Lock timeout used for all DDL operations except from CREATE / DROP INDEX. If not set, safe_timeout will be used with a deduction of 1% to ensure that the lock timeout is raised in priority
 
-SafePgMigrations.config.max_lock_timeout_for_retry = 1.second # Max lock timeout for the retries for all DDL operations except from CREATE / DROP INDEX. Each retry will increase the lock_timeout by (max_lock_timeout_for_retry - lock_timeout) / max_tries
+SafePgMigrations.config.increase_lock_timeout_on_retry # Activate the lock timeout increase feature on retry if set to true. See max_lock_timeout_for_retry for more information.
+
+SafePgMigrations.config.max_lock_timeout_for_retry = 1.second # Max lock timeout for the retries for all DDL operations except from CREATE / DROP INDEX. Each retry will increase the lock_timeout (if increase_lock_timeout_on_retry option is set to true) by (max_lock_timeout_for_retry - lock_timeout) / max_tries
 
 SafePgMigrations.config.blocking_activity_logger_verbose = true # Outputs the raw blocking queries on timeout. When false, outputs information about the lock instead
 
