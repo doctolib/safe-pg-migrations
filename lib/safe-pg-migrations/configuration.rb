@@ -10,26 +10,26 @@ module SafePgMigrations
                     blocking_activity_logger_margin
                     blocking_activity_logger_verbose
                     default_value_backfill_threshold
+                    increase_lock_timeout_on_retry
                     max_tries
                     retry_delay
                     sensitive_logger
-                    increase_lock_timeout_on_retry
                   ])
     attr_reader :lock_timeout, :safe_timeout, :max_lock_timeout_for_retry
 
     def initialize
-      self.default_value_backfill_threshold = nil
-      self.safe_timeout = 5.seconds
-      self.lock_timeout = nil
-      self.blocking_activity_logger_margin = 1.second
-      self.blocking_activity_logger_verbose = true
       self.backfill_batch_size = 100_000
       self.backfill_pause = 0.5.second
-      self.retry_delay = 1.minute
-      self.max_tries = 5
-      self.max_lock_timeout_for_retry = 1.second
-      self.sensitive_logger = nil
+      self.blocking_activity_logger_margin = 1.second
+      self.blocking_activity_logger_verbose = true
+      self.default_value_backfill_threshold = nil
       self.increase_lock_timeout_on_retry = false
+      self.lock_timeout = nil
+      self.max_lock_timeout_for_retry = 1.second
+      self.max_tries = 5
+      self.retry_delay = 1.minute
+      self.safe_timeout = 5.seconds
+      self.sensitive_logger = nil
     end
 
     def lock_timeout=(value)
