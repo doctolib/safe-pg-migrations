@@ -19,11 +19,11 @@ module SafePgMigrations
       def next_batch
         return if endless?
 
-        first = next_scope.select(primary_key).take
+        first = next_scope.take
 
         return unless first
 
-        last = next_scope.select(primary_key).offset(@of).take
+        last = next_scope.offset(@of).take
 
         first_key = first[primary_key]
         last_key = last.nil? ? nil : last[primary_key]
