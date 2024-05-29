@@ -5,6 +5,7 @@ module SafePgMigrations
     include Helpers::SessionSettingManagement
     include AddColumn
     include ChangeColumnNull
+    include AddIndex
 
     def validate_check_constraint(table_name, **options)
       Helpers::Logger.say_method_call :validate_check_constraint, table_name, **options
