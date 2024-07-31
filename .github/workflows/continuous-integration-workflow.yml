@@ -16,7 +16,7 @@ on:
 jobs:
   rubocop-test:
     name: Rubocop
-    runs-on: ubuntu-latest
+    runs-on: prod-linux-xs
     steps:
       - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
@@ -27,7 +27,7 @@ jobs:
         run: bundle exec rubocop
   unit-test:
     name: UnitTest
-    runs-on: ubuntu-latest
+    runs-on: prod-linux-s
     # Service containers to run with `container-job`
     strategy:
       matrix:
@@ -57,7 +57,7 @@ jobs:
       - name: Run tests
         run: bundle exec rake test
   legacy-activerecord-test:
-    runs-on: ubuntu-latest
+    runs-on: prod-linux-s
     strategy:
       fail-fast: false
       matrix:

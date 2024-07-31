@@ -28,7 +28,7 @@ jobs:
   check_pr_title:
     name: Check PR title
     if: '!github.event.pull_request.draft'
-    runs-on: ubuntu-latest
+    runs-on: prod-linux-xs
     steps:
       - name: Check PR title
         uses: doctolib/actions/check-pr-title@main
