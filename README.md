@@ -161,7 +161,7 @@ It is also possible to set a threshold for the table size, above which the migra
 
 Creating an index requires a `SHARE` lock on the target table which blocks all write on the table while the index is created (which can take some time on a large table). This is usually not practical in a live environment. Thus, **Safe PG Migrations** ensures indexes are created concurrently.
 
-As `CREATE INDEX CONCURRENTLY` and `DROP INDEX CONCURRENTLY` are non-blocking operations (ie: read/write operations on the table are still possible), **Safe PG Migrations** sets a lock timeout to 30 seconds for those 2 specific statements.
+As `CREATE INDEX CONCURRENTLY` and `DROP INDEX CONCURRENTLY` are non-blocking operations (ie: read/write operations on the table are still possible), **Safe PG Migrations** sets a statement and lock timeout to 0 seconds for those 2 specific statements.
 
 If you still get lock timeout while adding / removing indexes, it might be for one of those reasons:
 
