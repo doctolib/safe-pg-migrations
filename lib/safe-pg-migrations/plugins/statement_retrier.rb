@@ -3,6 +3,7 @@
 module SafePgMigrations
   module StatementRetrier
     include Helpers::StatementsHelper
+    include Helpers::PgHelper
 
     RETRIABLE_SCHEMA_STATEMENTS.each do |method|
       define_method method do |*args, **options, &block|
@@ -36,14 +37,14 @@ module SafePgMigrations
     end
 
     def increase_lock_timeout
-      Helpers::Logger.say "  Increasing the lock timeout... Currently set to #{@lock_timeout} seconds",
+      Helpers::Logger.say "  Increasing the lock timeout... Currently set to #{pg_duration(@lock_timeout)}",
                           sub_item: true
       @lock_timeout += lock_timeout_step
       unless @lock_timeout < SafePgMigrations.config.max_lock_timeout_for_retry
         @lock_timeout = SafePgMigrations.config.max_lock_timeout_for_retry
       end
-      execute("SET lock_timeout TO '#{@lock_timeout}s'")
-      Helpers::Logger.say "  Lock timeout is now set to #{@lock_timeout} seconds", sub_item: true
+      execute("SET lock_timeout TO '#{pg_duration(@lock_timeout)}'")
+      Helpers::Logger.say "  Lock timeout is now set to #{pg_duration(@lock_timeout)}", sub_item: true
     end
 
     def lock_timeout_step

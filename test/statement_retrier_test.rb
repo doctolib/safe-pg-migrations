@@ -12,20 +12,20 @@ class StatementRetrierTest < Minitest::Test
 
       assert_equal [
         '   -> Retrying in 60 seconds...',
-        '   ->   Increasing the lock timeout... Currently set to 0.1 seconds',
-        '   ->   Lock timeout is now set to 0.325 seconds',
+        '   ->   Increasing the lock timeout... Currently set to 100ms',
+        '   ->   Lock timeout is now set to 325ms',
         '   -> Retrying now.',
         '   -> Retrying in 60 seconds...',
-        '   ->   Increasing the lock timeout... Currently set to 0.325 seconds',
-        '   ->   Lock timeout is now set to 0.55 seconds',
+        '   ->   Increasing the lock timeout... Currently set to 325ms',
+        '   ->   Lock timeout is now set to 550ms',
         '   -> Retrying now.',
         '   -> Retrying in 60 seconds...',
-        '   ->   Increasing the lock timeout... Currently set to 0.55 seconds',
-        '   ->   Lock timeout is now set to 0.775 seconds',
+        '   ->   Increasing the lock timeout... Currently set to 550ms',
+        '   ->   Lock timeout is now set to 775ms',
         '   -> Retrying now.',
         '   -> Retrying in 60 seconds...',
-        '   ->   Increasing the lock timeout... Currently set to 0.775 seconds',
-        '   ->   Lock timeout is now set to 1 seconds',
+        '   ->   Increasing the lock timeout... Currently set to 775ms',
+        '   ->   Lock timeout is now set to 1s',
         '   -> Retrying now.',
       ], calls[1..].map(&:first)
     end
