@@ -7,26 +7,28 @@ class StatementRetrierTest < Minitest::Test
     SafePgMigrations.config.lock_timeout = 0.1.seconds
     SafePgMigrations.config.increase_lock_timeout_on_retry = true
 
-    calls = calls_for_lock_timeout_migration
+    2.times do
+      calls = calls_for_lock_timeout_migration
 
-    assert_equal [
-      '   -> Retrying in 60 seconds...',
-      '   ->   Increasing the lock timeout... Currently set to 0.1',
-      '   ->   Lock timeout is now set to 0.325',
-      '   -> Retrying now.',
-      '   -> Retrying in 60 seconds...',
-      '   ->   Increasing the lock timeout... Currently set to 0.325',
-      '   ->   Lock timeout is now set to 0.55',
-      '   -> Retrying now.',
-      '   -> Retrying in 60 seconds...',
-      '   ->   Increasing the lock timeout... Currently set to 0.55',
-      '   ->   Lock timeout is now set to 0.775',
-      '   -> Retrying now.',
-      '   -> Retrying in 60 seconds...',
-      '   ->   Increasing the lock timeout... Currently set to 0.775',
-      '   ->   Lock timeout is now set to 1',
-      '   -> Retrying now.',
-    ], calls[1..].map(&:first)
+      assert_equal [
+        '   -> Retrying in 60 seconds...',
+        '   ->   Increasing the lock timeout... Currently set to 0.1 seconds',
+        '   ->   Lock timeout is now set to 0.325 seconds',
+        '   -> Retrying now.',
+        '   -> Retrying in 60 seconds...',
+        '   ->   Increasing the lock timeout... Currently set to 0.325 seconds',
+        '   ->   Lock timeout is now set to 0.55 seconds',
+        '   -> Retrying now.',
+        '   -> Retrying in 60 seconds...',
+        '   ->   Increasing the lock timeout... Currently set to 0.55 seconds',
+        '   ->   Lock timeout is now set to 0.775 seconds',
+        '   -> Retrying now.',
+        '   -> Retrying in 60 seconds...',
+        '   ->   Increasing the lock timeout... Currently set to 0.775 seconds',
+        '   ->   Lock timeout is now set to 1 seconds',
+        '   -> Retrying now.',
+      ], calls[1..].map(&:first)
+    end
   end
 
   def test_no_lock_timeout_increase_on_retry_if_disabled
