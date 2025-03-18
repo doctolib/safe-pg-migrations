@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require 'active_support/core_ext/numeric/time'
+require 'safe-pg-migrations/helpers/pg_helper'
 
 module SafePgMigrations
   class Configuration
+    include Helpers::PgHelper
+
     attr_accessor(*%i[
                     backfill_batch_size
                     backfill_pause
@@ -76,13 +79,6 @@ module SafePgMigrations
       # need the opposite for BlockingActivityLogger to detect lock timeouts correctly.
       # By reducing the lock timeout by a very small margin, we ensure that the lock timeout is raised in priority
       pg_duration safe_timeout * 0.99
-    end
-
-    private
-
-    def pg_duration(duration)
-      value, unit = duration.integer? ? [duration, 's'] : [(duration * 1000).to_i, 'ms']
-      "#{value}#{unit}"
     end
   end
 end
