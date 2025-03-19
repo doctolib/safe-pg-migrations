@@ -41,7 +41,7 @@ module SafePgMigrations
         queries.each do |start_time, locktype, mode, pid, transactionid|
           Logger.say <<~MESSAGE.squish, sub_item: true, sensitive: true
             Query with pid #{pid || 'null'}
-            started #{format_start_time(start_time)}:
+            started #{start_time ? format_start_time(start_time) : 'unknown'}:
             lock type: #{locktype || 'null'},
             lock mode: #{mode || 'null'},
             lock transactionid: #{transactionid || 'null'}",
