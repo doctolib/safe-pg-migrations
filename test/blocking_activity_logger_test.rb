@@ -17,6 +17,20 @@ class BlockingActivityLoggerTest < Minitest::Test
     refute_includes calls, 'BEGIN; SELECT 1 FROM users'
   end
 
+  def test_doenot_fail_with_unknown_start_time
+    @migration = simulate_blocking_transaction_from_another_connection
+
+    alternate_connection = SafePgMigrations.alternate_connection
+    SafePgMigrations.stubs(:alternate_connection).returns(alternate_connection)
+    alternate_connection.stubs(:query).returns([[1234, 'SELECT something FROM a_table', nil]])
+
+    calls = record_calls(@migration, :write) do
+      run_migration
+    end.join
+
+    assert_match(/Query with pid 1234 started \(unknown start time\)/, calls)
+  end
+
   def test_logger_unfiltered
     @migration = simulate_blocking_transaction_from_another_connection
     calls = record_calls(@migration, :write) { run_migration }.join
