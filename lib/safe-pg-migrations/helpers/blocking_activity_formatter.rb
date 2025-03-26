@@ -41,7 +41,7 @@ module SafePgMigrations
         queries.each do |start_time, locktype, mode, pid, transactionid|
           Logger.say <<~MESSAGE.squish, sub_item: true, sensitive: true
             Query with pid #{pid || 'null'}
-            started #{start_time ? format_start_time(start_time) : 'unknown'}:
+            started #{format_start_time(start_time)}:
             lock type: #{locktype || 'null'},
             lock mode: #{mode || 'null'},
             lock transactionid: #{transactionid || 'null'}",
@@ -50,6 +50,8 @@ module SafePgMigrations
       end
 
       def format_start_time(start_time, reference_time = Time.now)
+        return '(unknown start time)' unless start_time
+
         start_time = Time.parse(start_time) unless start_time.is_a? Time
 
         duration = (reference_time - start_time).round
