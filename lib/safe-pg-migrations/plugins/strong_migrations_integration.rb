@@ -15,11 +15,12 @@ module SafePgMigrations
           default = options[:default]
           default_value_backfill = options.fetch(:default_value_backfill, :auto)
 
-          # Block volatile defaults with backfill
-          if default_value_backfill == :update_in_batches && volatile_default?(default)
+          next unless default_value_backfill == :update_in_batches
+
+          if volatile_default?(default)
             default_display = default.is_a?(Proc) ? '<Proc>' : default
 
-            check_message = <<~CHECK
+            stop! <<~CHECK
               Using default_value_backfill: :update_in_batches with volatile default '#{default_display}' is not allowed.
 
               Volatile defaults (like NOW(), clock_timestamp(), random()) are evaluated per row and can cause
@@ -28,8 +29,15 @@ module SafePgMigrations
               Please backfill volatile defaults manually instead. See the safe-pg-migrations README for the
               recommended approach.
             CHECK
+          else
+            stop! <<~CHECK
+              default_value_backfill: :update_in_batches will take time if the table is too big.
 
-            stop! check_message
+              Your configuration sets a pause of #{SafePgMigrations.config.backfill_pause} seconds between batches of
+              #{SafePgMigrations.config.backfill_batch_size} rows. Each batch execution will take time as well. Please
+              check that the estimated duration of the migration is acceptable
+              before adding `safety_assured`.
+            CHECK
           end
         end
       end
@@ -91,14 +99,11 @@ module SafePgMigrations
 
       default_value_backfill = options.fetch(:default_value_backfill, :auto)
 
-      # Auto backfill (non-volatile) is safe - use safety_assured
+      # Auto backfill is safe - use safety_assured
       return safety_assured { super } if default_value_backfill == :auto
 
-      # Non-volatile defaults with backfill are also safe - use safety_assured
-      default = options[:default]
-      return safety_assured { super } if default_value_backfill == :update_in_batches && !volatile_default?(default)
-
-      # Volatile defaults with backfill - don't auto-approve, let the check above catch it
+      # :update_in_batches always requires explicit safety_assured (volatile defaults will be
+      # blocked by the check above before reaching this point)
       super
     end
 

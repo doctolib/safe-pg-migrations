@@ -61,7 +61,20 @@ class StrongMigrationIntegrationTest < Minitest::Test
     assert_match(/Volatile defaults \(like NOW\(\), clock_timestamp\(\), random\(\)\)/, exception.message)
   end
 
-  def test_add_column_with_non_volatile_default_and_backfill_no_raise
+  def test_add_column_with_non_volatile_default_and_backfill_raises_without_safety_assured
+    @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          add_column :users, :status, :string, default: 'active', null: false, default_value_backfill: :update_in_batches
+        end
+      end.new
+
+    exception = assert_raises(StandardError, 'Dangerous operation detected #strong_migrations') { run_migration }
+    assert_match(/default_value_backfill: :update_in_batches will take time/, exception.message)
+  end
+
+  def test_add_column_with_non_volatile_default_and_backfill_no_raise_with_safety_assured
     skip 'validate_check_constraint does not exist' unless SafePgMigrations.get_pg_version_num(ActiveRecord::Base.connection) >= 120_000
 
     @connection.create_table(:users)
@@ -70,31 +83,16 @@ class StrongMigrationIntegrationTest < Minitest::Test
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
-          add_column :users, :status, :string, default: 'active', null: false, default_value_backfill: :update_in_batches
-        end
-      end.new
-
-    # Non-volatile defaults with backfill should work without safety_assured
-    run_migration
-
-    assert @connection.column_exists?(:users, :status)
-    assert_equal 'active', @connection.query_value('SELECT status FROM users LIMIT 1')
-  end
-
-  def test_add_column_with_safety_assured_and_backfill_in_batches_no_raise
-    @connection.create_table(:users)
-
-    @migration =
-      Class.new(ActiveRecord::Migration::Current) do
-        def up
           safety_assured do
-            add_column :users,
-                       :name, :string, default: -> { 'NOW()' }, null: false, default_value_backfill: :update_in_batches
+            add_column :users, :status, :string, default: 'active', null: false, default_value_backfill: :update_in_batches
           end
         end
       end.new
 
     run_migration
+
+    assert @connection.column_exists?(:users, :status)
+    assert_equal 'active', @connection.query_value('SELECT status FROM users LIMIT 1')
   end
 
   def test_rename_column_should_not_be_available_without_safety_assured
