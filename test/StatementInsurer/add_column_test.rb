@@ -261,6 +261,97 @@ module StatementInsurer
       assert_raises(StandardError, 'Table users has more than 4 rows') { run_migration }
     end
 
+    def test_volatile_default_with_backfill_raises
+      skip_if_unmet_requirements!
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :created_at, :datetime,
+                       default: -> { 'NOW()' },
+                       null: false,
+                       default_value_backfill: :update_in_batches
+          end
+        end.new
+
+      # Should raise an error
+      exception = assert_raises(StandardError) { run_migration }
+      assert_match(/Using default_value_backfill: :update_in_batches with volatile default/, exception.message)
+      assert_match(/is not allowed/, exception.message)
+    end
+
+    def test_volatile_default_without_backfill_does_not_raise
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :created_at, :datetime,
+                       default: -> { 'NOW()' },
+                       null: false
+          end
+        end.new
+
+      # Should NOT raise an error (volatile defaults are OK without backfill)
+      run_migration
+
+      assert @connection.column_exists?(:users, :created_at)
+    end
+
+    def test_non_volatile_default_with_backfill_does_not_raise
+      skip_if_unmet_requirements!
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :status, :string,
+                       default: 'active',
+                       null: false,
+                       default_value_backfill: :update_in_batches
+          end
+        end.new
+
+      # Should NOT raise an error for non-volatile defaults
+      run_migration
+
+      assert @connection.column_exists?(:users, :status)
+      assert_equal 'active', @connection.query_value('SELECT status FROM users LIMIT 1')
+    end
+
+    def test_detects_clock_timestamp_as_volatile
+      skip_if_unmet_requirements!
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :test_col, :string,
+                       default: -> { 'clock_timestamp()' },
+                       default_value_backfill: :update_in_batches
+          end
+        end.new
+
+      # Should raise an error for clock_timestamp()
+      exception = assert_raises(StandardError) { run_migration }
+      assert_match(/volatile default/, exception.message)
+      assert_match(/is not allowed/, exception.message)
+    end
+
+    def test_detects_random_as_volatile
+      skip_if_unmet_requirements!
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :test_col, :string,
+                       default: -> { 'random()' },
+                       default_value_backfill: :update_in_batches
+          end
+        end.new
+
+      # Should raise an error for random()
+      exception = assert_raises(StandardError) { run_migration }
+      assert_match(/volatile default/, exception.message)
+      assert_match(/is not allowed/, exception.message)
+    end
+
     private
 
     def skip_if_unmet_requirements!

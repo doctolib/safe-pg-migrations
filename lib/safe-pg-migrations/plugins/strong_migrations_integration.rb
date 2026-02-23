@@ -12,23 +12,21 @@ module SafePgMigrations
           next unless method == :add_column
 
           options = args.last.is_a?(Hash) ? args.last : {}
-
+          default = options[:default]
           default_value_backfill = options.fetch(:default_value_backfill, :auto)
 
-          if default_value_backfill == :update_in_batches
+          # Block volatile defaults with backfill
+          if default_value_backfill == :update_in_batches && volatile_default?(default)
+            default_display = default.is_a?(Proc) ? '<Proc>' : default
+
             check_message = <<~CHECK
-              default_value_backfill: :update_in_batches will take time if the table is too big.
+              Using default_value_backfill: :update_in_batches with volatile default '#{default_display}' is not allowed.
 
-              Your configuration sets a pause of #{SafePgMigrations.config.backfill_pause} seconds between batches of
-              #{SafePgMigrations.config.backfill_batch_size} rows. Each batch execution will take time as well. Please
-              check that the estimated duration of the migration is acceptable
-              before adding `safety_assured`.
-            CHECK
+              Volatile defaults (like NOW(), clock_timestamp(), random()) are evaluated per row and can cause
+              migrations to hang for a very long time on large tables.
 
-            check_message += <<~CHECK if SafePgMigrations.config.default_value_backfill_threshold
-
-              Also, please note that SafePgMigrations is configured to raise if the table has more than
-              #{SafePgMigrations.config.default_value_backfill_threshold} rows.
+              Please backfill volatile defaults manually instead. See the safe-pg-migrations README for the
+              recommended approach.
             CHECK
 
             stop! check_message
@@ -40,6 +38,33 @@ module SafePgMigrations
 
       def strong_migration_available?
         Object.const_defined? :StrongMigrations
+      end
+
+      def volatile_default?(default)
+        return false if default.nil?
+
+        # Proc/lambda → volatile
+        return true if default.is_a?(Proc)
+
+        # String defaults only
+        return false unless default.is_a?(String)
+
+        # Check against known volatile patterns
+        volatile_patterns = [
+          /\bclock_timestamp\s*\(/i,
+          /\bnow\s*\(/i,
+          /\bcurrent_timestamp\b/i,
+          /\bcurrent_time\b/i,
+          /\bcurrent_date\b/i,
+          /\brandom\s*\(/i,
+          /\buuid_generate/i,
+          /\bgen_random_uuid\s*\(/i,
+          /\btimeofday\s*\(/i,
+          /\btransaction_timestamp\s*\(/i,
+          /\bstatement_timestamp\s*\(/i,
+        ]
+
+        volatile_patterns.any? { |pattern| default.match?(pattern) }
       end
     end
 
@@ -64,9 +89,46 @@ module SafePgMigrations
     def add_column(table_name, *args, **options)
       return super unless respond_to?(:safety_assured)
 
-      return safety_assured { super } if options.fetch(:default_value_backfill, :auto) == :auto
+      default_value_backfill = options.fetch(:default_value_backfill, :auto)
 
+      # Auto backfill (non-volatile) is safe - use safety_assured
+      return safety_assured { super } if default_value_backfill == :auto
+
+      # Non-volatile defaults with backfill are also safe - use safety_assured
+      default = options[:default]
+      return safety_assured { super } if default_value_backfill == :update_in_batches && !volatile_default?(default)
+
+      # Volatile defaults with backfill - don't auto-approve, let the check above catch it
       super
+    end
+
+    private
+
+    def volatile_default?(default)
+      return false if default.nil?
+
+      # Proc/lambda → volatile
+      return true if default.is_a?(Proc)
+
+      # String defaults only
+      return false unless default.is_a?(String)
+
+      # Check against known volatile patterns
+      volatile_patterns = [
+        /\bclock_timestamp\s*\(/i,
+        /\bnow\s*\(/i,
+        /\bcurrent_timestamp\b/i,
+        /\bcurrent_time\b/i,
+        /\bcurrent_date\b/i,
+        /\brandom\s*\(/i,
+        /\buuid_generate/i,
+        /\bgen_random_uuid\s*\(/i,
+        /\btimeofday\s*\(/i,
+        /\btransaction_timestamp\s*\(/i,
+        /\bstatement_timestamp\s*\(/i,
+      ]
+
+      volatile_patterns.any? { |pattern| default.match?(pattern) }
     end
   end
 end

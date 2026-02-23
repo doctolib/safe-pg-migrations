@@ -3,10 +3,30 @@
 module SafePgMigrations
   module StatementInsurer
     module AddColumn
+      # Volatile SQL functions that cause full table rewrites
+      VOLATILE_DEFAULT_PATTERNS = [
+        /\bclock_timestamp\s*\(/i,
+        /\bnow\s*\(/i,
+        /\bcurrent_timestamp\b/i,
+        /\bcurrent_time\b/i,
+        /\bcurrent_date\b/i,
+        /\brandom\s*\(/i,
+        /\buuid_generate/i,
+        /\bgen_random_uuid\s*\(/i,
+        /\btimeofday\s*\(/i,
+        /\btransaction_timestamp\s*\(/i,
+        /\bstatement_timestamp\s*\(/i,
+      ].freeze
+
       def add_column(table_name, column_name, type, **options)
         return super if should_keep_default_implementation?(**options)
 
         options.delete(:default_value_backfill)
+
+        default = options[:default]
+
+        # Raise if using automatic backfill with a volatile default
+        raise_on_volatile_default(table_name, column_name, default) if volatile_default?(default)
 
         raise <<~ERROR unless backfill_column_default_safe?(table_name)
           Table #{table_name} has more than #{SafePgMigrations.config.default_value_backfill_threshold} rows.
@@ -66,6 +86,51 @@ module SafePgMigrations
         else
           Helpers::BatchOver.new(model, of: backfill_batch_size).each_batch(&batch_handler)
         end
+      end
+
+      def volatile_default?(default)
+        return false if default.nil?
+
+        # Proc/lambda → volatile
+        return true if default.is_a?(Proc)
+
+        # String defaults only
+        return false unless default.is_a?(String)
+
+        # Check against known volatile patterns
+        VOLATILE_DEFAULT_PATTERNS.any? { |pattern| default.match?(pattern) }
+      end
+
+      def raise_on_volatile_default(table_name, column_name, default)
+        default_display = default.is_a?(Proc) ? '<Proc>' : default
+
+        raise <<~ERROR
+          Using default_value_backfill: :update_in_batches with volatile default '#{default_display}'
+          on #{table_name}.#{column_name} is not allowed.
+
+          Volatile defaults are non-deterministic functions like gen_random_uuid(), now(), or clock_timestamp().
+          They are evaluated per row and can cause migrations to hang for a very long time on large tables.
+          You should backfill them "manually" with proper monitoring and control.
+
+          Split the operation into multiple steps in this EXACT order:
+
+          1. ALTER COLUMN SET DEFAULT (for new and updated rows)
+             change_column_default :#{table_name}, :#{column_name}, '#{default_display}'
+          2. ADD CONSTRAINT CHECK NOT NULL NOT VALID (for new and updated rows)
+             # Only if you need NOT NULL:
+             add_check_constraint :#{table_name}, "#{column_name} IS NOT NULL", name: "check_#{table_name}_#{column_name}_not_null", validate: false
+          3. BACKFILL the column (using a job or something else, chucking by PK)
+             # Your own script to backfill in batches
+          4. VALIDATE CONSTRAINT (check whole table)
+             # Only if you added the constraint in step 3:
+             validate_check_constraint :#{table_name}, name: "check_#{table_name}_#{column_name}_not_null"
+          5. ALTER COLUMN SET NOT NULL
+             # Only if you need NOT NULL:
+             change_column_null :#{table_name}, :#{column_name}, false
+          6. DROP CONSTRAINT
+             # Only if you added the constraint in step 3:
+             remove_check_constraint :#{table_name}, name: "check_#{table_name}_#{column_name}_not_null"
+        ERROR
       end
     end
   end
