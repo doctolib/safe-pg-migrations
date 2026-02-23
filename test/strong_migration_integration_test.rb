@@ -66,7 +66,8 @@ class StrongMigrationIntegrationTest < Minitest::Test
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
-          add_column :users, :status, :string, default: 'active', null: false, default_value_backfill: :update_in_batches
+          add_column :users, :status, :string,
+                     default: 'active', null: false, default_value_backfill: :update_in_batches
         end
       end.new
 
@@ -75,7 +76,9 @@ class StrongMigrationIntegrationTest < Minitest::Test
   end
 
   def test_add_column_with_non_volatile_default_and_backfill_no_raise_with_safety_assured
-    skip 'validate_check_constraint does not exist' unless SafePgMigrations.get_pg_version_num(ActiveRecord::Base.connection) >= 120_000
+    unless SafePgMigrations.get_pg_version_num(ActiveRecord::Base.connection) >= 120_000
+      skip 'validate_check_constraint does not exist'
+    end
 
     @connection.create_table(:users)
     @connection.execute('INSERT INTO users (id) VALUES (default);')
@@ -84,7 +87,8 @@ class StrongMigrationIntegrationTest < Minitest::Test
       Class.new(ActiveRecord::Migration::Current) do
         def up
           safety_assured do
-            add_column :users, :status, :string, default: 'active', null: false, default_value_backfill: :update_in_batches
+            add_column :users, :status, :string,
+                       default: 'active', null: false, default_value_backfill: :update_in_batches
           end
         end
       end.new
