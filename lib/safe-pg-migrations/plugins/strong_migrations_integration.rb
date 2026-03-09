@@ -58,31 +58,26 @@ module SafePgMigrations
 
       def volatile_default?(default)
         return false if default.nil?
-
-        # Proc/lambda → volatile
         return true if default.is_a?(Proc)
-
-        # String defaults only
         return false unless default.is_a?(String)
 
-        # Check against known volatile patterns
-        volatile_patterns = [
-          /\bclock_timestamp\s*\(/i,
-          /\bnow\s*\(/i,
-          /\bcurrent_timestamp\b/i,
-          /\bcurrent_time\b/i,
-          /\bcurrent_date\b/i,
-          /\brandom\s*\(/i,
-          /\buuid_generate/i,
-          /\bgen_random_uuid\s*\(/i,
-          /\btimeofday\s*\(/i,
-          /\btransaction_timestamp\s*\(/i,
-          /\bstatement_timestamp\s*\(/i,
-        ]
-
-        volatile_patterns.any? { |pattern| default.match?(pattern) }
+        VOLATILE_PATTERNS.any? { |pattern| default.match?(pattern) }
       end
     end
+
+    VOLATILE_PATTERNS = [
+      /\bclock_timestamp\s*\(/i,
+      /\bnow\s*\(/i,
+      /\bcurrent_timestamp\b/i,
+      /\bcurrent_time\b/i,
+      /\bcurrent_date\b/i,
+      /\brandom\s*\(/i,
+      /\buuid_generate/i,
+      /\bgen_random_uuid\s*\(/i,
+      /\btimeofday\s*\(/i,
+      /\btransaction_timestamp\s*\(/i,
+      /\bstatement_timestamp\s*\(/i,
+    ].freeze
 
     SAFE_METHODS = %i[
       execute
@@ -118,30 +113,7 @@ module SafePgMigrations
     private
 
     def volatile_default?(default)
-      return false if default.nil?
-
-      # Proc/lambda → volatile
-      return true if default.is_a?(Proc)
-
-      # String defaults only
-      return false unless default.is_a?(String)
-
-      # Check against known volatile patterns
-      volatile_patterns = [
-        /\bclock_timestamp\s*\(/i,
-        /\bnow\s*\(/i,
-        /\bcurrent_timestamp\b/i,
-        /\bcurrent_time\b/i,
-        /\bcurrent_date\b/i,
-        /\brandom\s*\(/i,
-        /\buuid_generate/i,
-        /\bgen_random_uuid\s*\(/i,
-        /\btimeofday\s*\(/i,
-        /\btransaction_timestamp\s*\(/i,
-        /\bstatement_timestamp\s*\(/i,
-      ]
-
-      volatile_patterns.any? { |pattern| default.match?(pattern) }
+      StrongMigrationsIntegration.volatile_default?(default)
     end
   end
 end
