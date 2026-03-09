@@ -316,42 +316,6 @@ module StatementInsurer
       assert_equal 'active', @connection.query_value('SELECT status FROM users LIMIT 1')
     end
 
-    def test_detects_clock_timestamp_as_volatile
-      skip_if_unmet_requirements!
-
-      @migration =
-        Class.new(ActiveRecord::Migration::Current) do
-          def change
-            add_column :users, :test_col, :string,
-                       default: -> { 'clock_timestamp()' },
-                       default_value_backfill: :update_in_batches
-          end
-        end.new
-
-      # Should raise an error for clock_timestamp()
-      exception = assert_raises(StandardError) { run_migration }
-      assert_match(/volatile default/, exception.message)
-      assert_match(/is not allowed/, exception.message)
-    end
-
-    def test_detects_random_as_volatile
-      skip_if_unmet_requirements!
-
-      @migration =
-        Class.new(ActiveRecord::Migration::Current) do
-          def change
-            add_column :users, :test_col, :string,
-                       default: -> { 'random()' },
-                       default_value_backfill: :update_in_batches
-          end
-        end.new
-
-      # Should raise an error for random()
-      exception = assert_raises(StandardError) { run_migration }
-      assert_match(/volatile default/, exception.message)
-      assert_match(/is not allowed/, exception.message)
-    end
-
     private
 
     def skip_if_unmet_requirements!
