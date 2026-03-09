@@ -30,7 +30,7 @@ module SafePgMigrations
               recommended approach.
             CHECK
           else
-            stop! <<~CHECK
+            check_message = <<~CHECK
               default_value_backfill: :update_in_batches will take time if the table is too big.
 
               Your configuration sets a pause of #{SafePgMigrations.config.backfill_pause} seconds between batches of
@@ -38,6 +38,14 @@ module SafePgMigrations
               check that the estimated duration of the migration is acceptable
               before adding `safety_assured`.
             CHECK
+
+            check_message += <<~CHECK if SafePgMigrations.config.default_value_backfill_threshold
+
+              Also, please note that SafePgMigrations is configured to raise if the table has more than
+              #{SafePgMigrations.config.default_value_backfill_threshold} rows.
+            CHECK
+
+            stop! check_message
           end
         end
       end
