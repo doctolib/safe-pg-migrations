@@ -15,6 +15,13 @@ module SafePgMigrations
         /\btimeofday\s*\(/i,
         /\btransaction_timestamp\s*\(/i,
         /\bstatement_timestamp\s*\(/i,
+        /\bnextval\s*\(/i,
+        /\btxid_current\s*\(/i,
+        /\bpg_current_xact_id\s*\(/i,
+        /\bgen_random_bytes\s*\(/i,
+        /\binet_client_addr\s*\(/i,
+        /\binet_server_addr\s*\(/i,
+        /\bpg_backend_pid\s*\(/i,
       ].freeze
 
       module_function
