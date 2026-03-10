@@ -17,43 +17,8 @@ module SafePgMigrations
 
           next unless default_value_backfill == :update_in_batches
 
-          if volatile_default?(default)
-            default_display = default.is_a?(Proc) ? '<Proc>' : default
-
-            stop! <<~CHECK
-              Using default_value_backfill: :update_in_batches with volatile default '#{default_display}' is not allowed.
-
-              Volatile defaults (like NOW(), clock_timestamp(), random()) are evaluated per row and can cause
-              migrations to hang for a very long time on large tables.
-
-              Please backfill volatile defaults manually instead. See the safe-pg-migrations README for the
-              recommended approach.
-            CHECK
-          else
-            check_message = <<~CHECK
-              default_value_backfill: :update_in_batches will take time if the table is too big.
-
-              Your configuration sets a pause of #{SafePgMigrations.config.backfill_pause} seconds between batches of
-              #{SafePgMigrations.config.backfill_batch_size} rows. Each batch execution will take time as well. Please
-              check that the estimated duration of the migration is acceptable
-              before adding `safety_assured`.
-            CHECK
-
-            check_message += <<~CHECK if SafePgMigrations.config.default_value_backfill_threshold
-
-              Also, please note that SafePgMigrations is configured to raise if the table has more than
-              #{SafePgMigrations.config.default_value_backfill_threshold} rows.
-            CHECK
-
-            stop! check_message
-          end
+          stop! backfill_check_message(default)
         end
-      end
-
-      private
-
-      def strong_migration_available?
-        Object.const_defined? :StrongMigrations
       end
 
       def volatile_default?(default)
@@ -62,6 +27,45 @@ module SafePgMigrations
         return false unless default.is_a?(String)
 
         VOLATILE_PATTERNS.any? { |pattern| default.match?(pattern) }
+      end
+
+      private
+
+      def strong_migration_available?
+        Object.const_defined? :StrongMigrations
+      end
+
+      def backfill_check_message(default)
+        if volatile_default?(default)
+          default_display = default.is_a?(Proc) ? '<Proc>' : default
+
+          <<~CHECK
+            Using default_value_backfill: :update_in_batches with volatile default '#{default_display}' is not allowed.
+
+            Volatile defaults (like NOW(), clock_timestamp(), random()) are evaluated per row and can cause
+            migrations to hang for a very long time on large tables.
+
+            Please backfill volatile defaults manually instead. See the safe-pg-migrations README for the
+            recommended approach.
+          CHECK
+        else
+          check_message = <<~CHECK
+            default_value_backfill: :update_in_batches will take time if the table is too big.
+
+            Your configuration sets a pause of #{SafePgMigrations.config.backfill_pause} seconds between batches of
+            #{SafePgMigrations.config.backfill_batch_size} rows. Each batch execution will take time as well. Please
+            check that the estimated duration of the migration is acceptable
+            before adding `safety_assured`.
+          CHECK
+
+          check_message += <<~CHECK if SafePgMigrations.config.default_value_backfill_threshold
+
+            Also, please note that SafePgMigrations is configured to raise if the table has more than
+            #{SafePgMigrations.config.default_value_backfill_threshold} rows.
+          CHECK
+
+          check_message
+        end
       end
     end
 
