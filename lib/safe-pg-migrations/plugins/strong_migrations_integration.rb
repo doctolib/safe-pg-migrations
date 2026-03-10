@@ -17,7 +17,7 @@ module SafePgMigrations
 
           next unless default_value_backfill == :update_in_batches
 
-          stop! backfill_check_message(default)
+          stop! StrongMigrationsIntegration.send(:backfill_check_message, default)
         end
       end
 
