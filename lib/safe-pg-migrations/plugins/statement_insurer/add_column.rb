@@ -3,21 +3,6 @@
 module SafePgMigrations
   module StatementInsurer
     module AddColumn
-      # Volatile SQL functions that cause full table rewrites
-      VOLATILE_DEFAULT_PATTERNS = [
-        /\bclock_timestamp\s*\(/i,
-        /\bnow\s*\(/i,
-        /\bcurrent_timestamp\b/i,
-        /\bcurrent_time\b/i,
-        /\bcurrent_date\b/i,
-        /\brandom\s*\(/i,
-        /\buuid_generate/i,
-        /\bgen_random_uuid\s*\(/i,
-        /\btimeofday\s*\(/i,
-        /\btransaction_timestamp\s*\(/i,
-        /\bstatement_timestamp\s*\(/i,
-      ].freeze
-
       def add_column(table_name, column_name, type, **options)
         return super if should_keep_default_implementation?(**options)
 
@@ -89,16 +74,7 @@ module SafePgMigrations
       end
 
       def volatile_default?(default)
-        return false if default.nil?
-
-        # Proc/lambda → volatile
-        return true if default.is_a?(Proc)
-
-        # String defaults only
-        return false unless default.is_a?(String)
-
-        # Check against known volatile patterns
-        VOLATILE_DEFAULT_PATTERNS.any? { |pattern| default.match?(pattern) }
+        Helpers::VolatileDefault.volatile_default?(default)
       end
 
       def raise_on_volatile_default(table_name, column_name, default)

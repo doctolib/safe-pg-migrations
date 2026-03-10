@@ -21,14 +21,6 @@ module SafePgMigrations
         end
       end
 
-      def volatile_default?(default)
-        return false if default.nil?
-        return true if default.is_a?(Proc)
-        return false unless default.is_a?(String)
-
-        VOLATILE_PATTERNS.any? { |pattern| default.match?(pattern) }
-      end
-
       private
 
       def strong_migration_available?
@@ -36,7 +28,7 @@ module SafePgMigrations
       end
 
       def backfill_check_message(default)
-        if volatile_default?(default)
+        if Helpers::VolatileDefault.volatile_default?(default)
           default_display = default.is_a?(Proc) ? '<Proc>' : default
 
           <<~CHECK
@@ -68,20 +60,6 @@ module SafePgMigrations
         end
       end
     end
-
-    VOLATILE_PATTERNS = [
-      /\bclock_timestamp\s*\(/i,
-      /\bnow\s*\(/i,
-      /\bcurrent_timestamp\b/i,
-      /\bcurrent_time\b/i,
-      /\bcurrent_date\b/i,
-      /\brandom\s*\(/i,
-      /\buuid_generate/i,
-      /\bgen_random_uuid\s*\(/i,
-      /\btimeofday\s*\(/i,
-      /\btransaction_timestamp\s*\(/i,
-      /\bstatement_timestamp\s*\(/i,
-    ].freeze
 
     SAFE_METHODS = %i[
       execute
@@ -117,7 +95,7 @@ module SafePgMigrations
     private
 
     def volatile_default?(default)
-      StrongMigrationsIntegration.volatile_default?(default)
+      Helpers::VolatileDefault.volatile_default?(default)
     end
   end
 end
