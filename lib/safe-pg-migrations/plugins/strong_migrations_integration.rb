@@ -12,27 +12,12 @@ module SafePgMigrations
           next unless method == :add_column
 
           options = args.last.is_a?(Hash) ? args.last : {}
-
+          default = options[:default]
           default_value_backfill = options.fetch(:default_value_backfill, :auto)
 
-          if default_value_backfill == :update_in_batches
-            check_message = <<~CHECK
-              default_value_backfill: :update_in_batches will take time if the table is too big.
+          next unless default_value_backfill == :update_in_batches
 
-              Your configuration sets a pause of #{SafePgMigrations.config.backfill_pause} seconds between batches of
-              #{SafePgMigrations.config.backfill_batch_size} rows. Each batch execution will take time as well. Please
-              check that the estimated duration of the migration is acceptable
-              before adding `safety_assured`.
-            CHECK
-
-            check_message += <<~CHECK if SafePgMigrations.config.default_value_backfill_threshold
-
-              Also, please note that SafePgMigrations is configured to raise if the table has more than
-              #{SafePgMigrations.config.default_value_backfill_threshold} rows.
-            CHECK
-
-            stop! check_message
-          end
+          stop! StrongMigrationsIntegration.send(:backfill_check_message, default)
         end
       end
 
@@ -40,6 +25,39 @@ module SafePgMigrations
 
       def strong_migration_available?
         Object.const_defined? :StrongMigrations
+      end
+
+      def backfill_check_message(default)
+        if Helpers::VolatileDefault.volatile_default?(default)
+          default_display = default.is_a?(Proc) ? '<Proc>' : default
+
+          <<~CHECK
+            Using default_value_backfill: :update_in_batches with volatile default '#{default_display}' is not allowed.
+
+            Volatile defaults (like NOW(), clock_timestamp(), random()) are evaluated per row and can cause
+            migrations to hang for a very long time on large tables.
+
+            Please backfill volatile defaults manually instead. See the safe-pg-migrations README for the
+            recommended approach.
+          CHECK
+        else
+          check_message = <<~CHECK
+            default_value_backfill: :update_in_batches will take time if the table is too big.
+
+            Your configuration sets a pause of #{SafePgMigrations.config.backfill_pause} seconds between batches of
+            #{SafePgMigrations.config.backfill_batch_size} rows. Each batch execution will take time as well. Please
+            check that the estimated duration of the migration is acceptable
+            before adding `safety_assured`.
+          CHECK
+
+          check_message += <<~CHECK if SafePgMigrations.config.default_value_backfill_threshold
+
+            Also, please note that SafePgMigrations is configured to raise if the table has more than
+            #{SafePgMigrations.config.default_value_backfill_threshold} rows.
+          CHECK
+
+          check_message
+        end
       end
     end
 
@@ -64,9 +82,20 @@ module SafePgMigrations
     def add_column(table_name, *args, **options)
       return super unless respond_to?(:safety_assured)
 
-      return safety_assured { super } if options.fetch(:default_value_backfill, :auto) == :auto
+      default_value_backfill = options.fetch(:default_value_backfill, :auto)
 
+      # Auto backfill is safe - use safety_assured
+      return safety_assured { super } if default_value_backfill == :auto
+
+      # :update_in_batches always requires explicit safety_assured (volatile defaults will be
+      # blocked by the check above before reaching this point)
       super
+    end
+
+    private
+
+    def volatile_default?(default)
+      Helpers::VolatileDefault.volatile_default?(default)
     end
   end
 end

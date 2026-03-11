@@ -44,7 +44,7 @@ class StrongMigrationIntegrationTest < Minitest::Test
     run_migration
   end
 
-  def test_add_column_without_safety_assured_and_backfill_in_batches_raises
+  def test_add_column_with_volatile_default_and_backfill_raises
     @connection.create_table(:users)
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
@@ -56,36 +56,47 @@ class StrongMigrationIntegrationTest < Minitest::Test
       end.new
 
     exception = assert_raises(StandardError, 'Dangerous operation detected #strong_migrations') { run_migration }
-    assert_equal <<~EXCEPTION, exception.message
-      An error has occurred, all later migrations canceled:
-
-
-      === Custom check #strong_migrations ===
-
-      default_value_backfill: :update_in_batches will take time if the table is too big.
-
-      Your configuration sets a pause of 0.5 seconds between batches of
-      100000 rows. Each batch execution will take time as well. Please
-      check that the estimated duration of the migration is acceptable
-      before adding `safety_assured`.
-
-    EXCEPTION
+    assert_match(/Using default_value_backfill: :update_in_batches with volatile default/, exception.message)
+    assert_match(/is not allowed/, exception.message)
+    assert_match(/Volatile defaults \(like NOW\(\), clock_timestamp\(\), random\(\)\)/, exception.message)
   end
 
-  def test_add_column_with_safety_assured_and_backfill_in_batches_no_raise
+  def test_add_column_with_non_volatile_default_and_backfill_raises_without_safety_assured
     @connection.create_table(:users)
+    @migration =
+      Class.new(ActiveRecord::Migration::Current) do
+        def up
+          add_column :users, :status, :string,
+                     default: 'active', null: false, default_value_backfill: :update_in_batches
+        end
+      end.new
+
+    exception = assert_raises(StandardError, 'Dangerous operation detected #strong_migrations') { run_migration }
+    assert_match(/default_value_backfill: :update_in_batches will take time/, exception.message)
+  end
+
+  def test_add_column_with_non_volatile_default_and_backfill_no_raise_with_safety_assured
+    unless SafePgMigrations.get_pg_version_num(ActiveRecord::Base.connection) >= 120_000
+      skip 'validate_check_constraint does not exist'
+    end
+
+    @connection.create_table(:users)
+    @connection.execute('INSERT INTO users (id) VALUES (default);')
 
     @migration =
       Class.new(ActiveRecord::Migration::Current) do
         def up
           safety_assured do
-            add_column :users,
-                       :name, :string, default: -> { 'NOW()' }, null: false, default_value_backfill: :update_in_batches
+            add_column :users, :status, :string,
+                       default: 'active', null: false, default_value_backfill: :update_in_batches
           end
         end
       end.new
 
     run_migration
+
+    assert @connection.column_exists?(:users, :status)
+    assert_equal 'active', @connection.query_value('SELECT status FROM users LIMIT 1')
   end
 
   def test_rename_column_should_not_be_available_without_safety_assured

@@ -116,11 +116,25 @@ PG will still needs to update every row of the table, and will most likely state
 <details>
 <summary>Safe add_column - adding a volatile default value</summary>
 
-**Safe PG Migrations** provides the extra option parameter `default_value_backfill:`. When your migration is adding a volatile default value, the option `:update_in_batches` can be set. It will automatically backfill the value in a safe manner.
+> **⚠️ ERROR**
+>
+> Using `default_value_backfill: :update_in_batches` with **volatile defaults** (like `NOW()`, `clock_timestamp()`, `random()`, `gen_random_uuid()`) is **not allowed** and will raise an error.
+>
+> Volatile defaults are non-deterministic functions that are evaluated per row, causing migrations to hang for a very long time on large tables. You must backfill them manually with proper monitoring and control.
+>
+> **Non-volatile defaults** (like fixed strings, numbers, booleans) are still safe to use with automatic backfill.
+
+**Safe PG Migrations** provides the extra option parameter `default_value_backfill:`. When your migration is adding a **non-volatile** default value, the option `:update_in_batches` can be set. It will automatically backfill the value in a safe manner.
 
 ```ruby
+# ✅ SAFE - non-volatile default with automatic backfill
 safety_assured do
-  add_column :users, :created_at, default: 'clock_timestamp()', default_value_backfill: :update_in_batches
+  add_column :users, :status, :string, default: 'active', default_value_backfill: :update_in_batches
+end
+
+# ❌ NOT ALLOWED - volatile default with automatic backfill (will raise an error)
+safety_assured do
+  add_column :users, :created_at, :datetime, default: -> { 'clock_timestamp()' }, default_value_backfill: :update_in_batches
 end
 ```
 
@@ -132,18 +146,44 @@ More specifically, it will:
 4. change the column to `null: false`, if defined in the parameters, following the algorithm we have defined below.
 
 ---
-**NOTE**
+**NOTE: Manual Backfill for Volatile Defaults**
 
-Data backfill take time. If your table is big, your migrations will (safely) hangs for a while. You might want to backfill data manually instead, to do so you will need two migrations
+For **volatile defaults** (non-deterministic functions), you MUST backfill manually. Split the operation into multiple steps in this EXACT order:
 
-1. First migration :
+1. **ALTER COLUMN SET DEFAULT** (for new and updated rows)
+   ```ruby
+   change_column_default :users, :created_at, -> { 'NOW()' }
+   ```
 
-    a. adds the column without default and without null constraint;
+2. **ADD CONSTRAINT CHECK NOT NULL NOT VALID** (for new and updated rows, only if you need NOT NULL)
+   ```ruby
+   add_check_constraint :users, "created_at IS NOT NULL",
+                        name: "check_users_created_at_not_null",
+                        validate: false
+   ```
 
-    b. add the default value.
+3. **BACKFILL** the column using a job (chunk over the primary key)
+   ```ruby
+   # Your own script to backfill in batches
+   User.in_batches.update_all("created_at = NOW()")
+   ```
 
-2. manual data backfill (rake task, manual operation, ...)
-3. Second migration which change the column to null false (with **Safe PG Migrations**, `change_column_null` is safe and can be used; see section below)
+4. **VALIDATE CONSTRAINT** (check whole table, only if you added the constraint)
+   ```ruby
+   validate_check_constraint :users, name: "check_users_created_at_not_null"
+   ```
+
+5. **ALTER COLUMN SET NOT NULL** (only if you need NOT NULL)
+   ```ruby
+   change_column_null :users, :created_at, false
+   ```
+
+6. **DROP CONSTRAINT** (only if you added the constraint)
+   ```ruby
+   remove_check_constraint :users, name: "check_users_created_at_not_null"
+   ```
+
+For **non-volatile defaults**, data backfill with `:update_in_batches` is safe but takes time. If your table is very large, you might want to backfill manually for better control.
 ---
 
 `default_value_backfill:` also accept the value `:auto` which is set by default. In this case, **Safe PG Migrations** will not backfill data and will let PostgreSQL handle it itself.
