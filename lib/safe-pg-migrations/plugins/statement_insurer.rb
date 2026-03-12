@@ -47,18 +47,14 @@ module SafePgMigrations
       super do |td|
         yield td if block_given?
         td.indexes.map! do |key, index_options|
-          index_options[:algorithm] ||= :default
+          index_options[:algorithm] = nil unless index_options.key?(:algorithm)
           [key, index_options]
         end
       end
     end
 
     def add_index(table_name, column_name, **options)
-      if options[:algorithm] == :default
-        options.delete :algorithm
-      else
-        options[:algorithm] = :concurrently
-      end
+      options[:algorithm] = :concurrently unless options.key?(:algorithm)
 
       Helpers::Logger.say_method_call(:add_index, table_name, column_name, **options)
       without_timeout { super(table_name, column_name, **options) }
