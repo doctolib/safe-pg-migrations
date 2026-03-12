@@ -173,5 +173,26 @@ module StatementInsurer
       run_migration(:down)
       refute @connection.table_exists?(:users)
     end
+
+    def test_create_table_respects_explicit_algorithm_nil_on_index
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            create_table(:users) do |t|
+              t.string :email, index: { algorithm: nil }
+            end
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+      assert_calls [
+        'CREATE TABLE "users" ("id" bigserial primary key, "email" character varying)',
+        'SET statement_timeout TO 0',
+        'SET lock_timeout TO 0',
+        'CREATE INDEX "index_users_on_email" ON "users" ("email")',
+        "SET lock_timeout TO '4950ms'",
+        "SET statement_timeout TO '5s'",
+      ], calls
+    end
   end
 end

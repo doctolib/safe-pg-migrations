@@ -47,7 +47,7 @@ module SafePgMigrations
       super do |td|
         yield td if block_given?
         td.indexes.map! do |key, index_options|
-          index_options[:algorithm] ||= :default
+          index_options[:algorithm] = nil unless index_options.key?(:algorithm)
           [key, index_options]
         end
       end
