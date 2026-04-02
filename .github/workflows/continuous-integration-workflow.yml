@@ -1,5 +1,5 @@
 env:
-  RUBY_VERSION: 3.2.3
+  RUBY_VERSION: 3.4.8
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: safe_pg_migrations_test
@@ -18,11 +18,8 @@ jobs:
     name: Rubocop
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
+      - uses: actions/checkout@v4
+      - uses: doctolib/actions/setup-ruby@fe60c5c88629515edae76e8c2f90c381995ca0ce # setup-ruby-v0.0.25
       - name: Check code
         run: bundle exec rubocop
   unit-test:
@@ -32,7 +29,7 @@ jobs:
     strategy:
       matrix:
         postgres: [ 11.7, 12.14, 15.2 ]
-        ruby: [ 3.1, 3.2 ]
+        ruby: [ "3.3", "3.4" ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
@@ -49,11 +46,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
+      - uses: actions/checkout@v4
+      - name: Set Ruby version
+        run: echo "${{ matrix.ruby }}" > .ruby-version
+      - uses: doctolib/actions/setup-ruby@fe60c5c88629515edae76e8c2f90c381995ca0ce # setup-ruby-v0.0.25
       - name: Run tests
         run: bundle exec rake test
   legacy-activerecord-test:
@@ -62,11 +58,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ruby: "3.0"
+          - ruby: "3.3"
             gemfile: gemfiles/without_strong_migrations.gemfile
-          - ruby: "3.0"
+          - ruby: "3.3"
             gemfile: gemfiles/activerecord61.gemfile
-          - ruby: "3.0"
+          - ruby: "3.3"
             gemfile: gemfiles/activerecord70.gemfile
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
@@ -86,10 +82,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
+      - uses: actions/checkout@v4
+      - name: Set Ruby version
+        run: echo "${{ matrix.ruby }}" > .ruby-version
+      - uses: doctolib/actions/setup-ruby@fe60c5c88629515edae76e8c2f90c381995ca0ce # setup-ruby-v0.0.25
       - name: Run tests
         run: bundle exec rake test
