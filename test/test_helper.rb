@@ -6,7 +6,6 @@ require 'bundler/setup'
 
 require 'debug'
 require 'minitest/autorun'
-require 'minitest/mock'
 require 'mocha/minitest'
 require 'active_record'
 require 'active_support'
