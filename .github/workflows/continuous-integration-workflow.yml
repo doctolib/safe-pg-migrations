@@ -63,7 +63,7 @@ jobs:
           - ruby: "3.4"
             gemfile: gemfiles/without_strong_migrations.gemfile
           - ruby: "3.4"
-            gemfile: gemfiles/activerecord61.gemfile
+            gemfile: gemfiles/activerecord71.gemfile
           - ruby: "3.4"
             gemfile: gemfiles/activerecord70.gemfile
     env:
