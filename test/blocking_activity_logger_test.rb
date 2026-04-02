@@ -73,10 +73,10 @@ class BlockingActivityLoggerTest < Minitest::Test
 
   def test_add_index_unfiltered
     @migration = simulate_long_running_query_from_another_transaction
-    calls = record_calls(@migration, :write) { run_migration }.join
+    calls = normalize_for_ruby34(record_calls(@migration, :write) { run_migration }.join)
 
     assert_includes calls,
-                    'add_index("users", :email, {:algorithm=>:concurrently})'
+                    'add_index("users", :email, {algorithm: :concurrently})'
     assert_includes calls, 'Statement was being blocked by the following query'
     assert_match(/Query with pid \d+ started 1 second ago: SELECT pg_sleep\(3\)/,
                  calls)
@@ -88,10 +88,10 @@ class BlockingActivityLoggerTest < Minitest::Test
     SafePgMigrations.config.blocking_activity_logger_verbose = false
     @migration = simulate_long_running_query_from_another_transaction
 
-    calls = record_calls(@migration, :write) { run_migration }.join
+    calls = normalize_for_ruby34(record_calls(@migration, :write) { run_migration }.join)
 
     assert_includes calls,
-                    'add_index("users", :email, {:algorithm=>:concurrently})'
+                    'add_index("users", :email, {algorithm: :concurrently})'
     assert_includes calls, 'Statement was being blocked by the following query'
 
     variable_part_regex =
