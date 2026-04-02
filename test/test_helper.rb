@@ -69,19 +69,6 @@ class Minitest::Test
     migrator.migrate
   end
 
-  # Ruby 3.4 changed Hash#inspect to use {key: val} instead of {:key=>val}.
-  # This normalizes actual migration output on Ruby < 3.4 for cross-version test compat.
-  def normalize_for_ruby34(output)
-    return output if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
-
-    normalizer = ->(str) { str.gsub(/:(\w+)=>/, '\1: ') }
-    case output
-    when Array then output.map(&normalizer)
-    when String then normalizer.call(output)
-    else output
-    end
-  end
-
   def assert_calls(expected, actual)
     assert_equal [
       "SET lock_timeout TO '4950ms'",

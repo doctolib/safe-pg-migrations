@@ -88,13 +88,13 @@ module IdempotentStatements
         '== 8128 : migrating ===========================================================',
         '-- remove_index(:users, :email)',
         '   -> remove_index("users", :email, {algorithm: :concurrently})',
-      ], normalize_for_ruby34(write_calls[0...3])
+      ], write_calls[0...3]
 
       assert_equal [
         '-- remove_index(:users, :email)',
         '   -> remove_index("users", :email, {algorithm: :concurrently})',
         "   -> /!\\ Index 'index_users_on_email' not found on table 'users'. Skipping statement.",
-      ], normalize_for_ruby34(write_calls[4...7])
+      ], write_calls[4...7]
 
       assert_equal write_calls.length, 10
       refute @connection.index_exists?(:users, :email)
@@ -195,7 +195,7 @@ module IdempotentStatements
         '== 8128 : migrating ===========================================================',
         '-- add_index(:users, :email, {name: "index_on_users"})',
         "   -> /!\\ Index 'index_on_users' already exists in 'users'. Skipping statement.",
-      ], normalize_for_ruby34(write_calls.map(&:first).values_at(0, 1, 3))
+      ], write_calls.map(&:first).values_at(0, 1, 3)
     end
 
     def test_add_foreign_key
@@ -272,7 +272,7 @@ module IdempotentStatements
         '-- add_foreign_key(:messages, :users, {column: :author_id})',
         '-- add_foreign_key(:messages, :users, {column: :author_id})',
         "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
-      ], normalize_for_ruby34(write_calls.map(&:first).values_at(0, 1, 3, 4))
+      ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
 
     def test_add_foreign_key_with_other_options
@@ -312,7 +312,7 @@ module IdempotentStatements
         '-- add_foreign_key(:messages, :users)',
         '-- add_foreign_key(:messages, :users, {on_delete: :cascade})',
         "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
-      ], normalize_for_ruby34(write_calls.map(&:first).values_at(0, 1, 3, 4))
+      ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
 
     def test_add_foreign_key_different_tables
@@ -355,7 +355,7 @@ module IdempotentStatements
         '== 8128 : migrating ===========================================================',
         '-- add_foreign_key(:messages, :users, {column: :author_id})',
         '-- add_foreign_key(:messages, :conversations)',
-      ], normalize_for_ruby34(write_calls.map(&:first).values_at(0, 1, 3))
+      ], write_calls.map(&:first).values_at(0, 1, 3)
     end
 
     def test_create_table
@@ -460,7 +460,7 @@ module IdempotentStatements
         '-- remove_foreign_key(:messages, {to_table: :users})',
         '-- remove_foreign_key(:messages, {to_table: :users})',
         "   -> /!\\ Foreign key 'messages' -> 'users' does not exist. Skipping statement.",
-      ], normalize_for_ruby34(write_calls.map(&:first).values_at(0, 1, 3, 4))
+      ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
 
     def test_remove_foreign_key_using_column
@@ -491,7 +491,7 @@ module IdempotentStatements
         '-- remove_foreign_key(:messages, {column: :author_id})',
         '-- remove_foreign_key(:messages, {column: :author_id})',
         "   -> /!\\ Foreign key 'messages' -> 'author_id' does not exist. Skipping statement.",
-      ], normalize_for_ruby34(write_calls.map(&:first).values_at(0, 1, 3, 4))
+      ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
 
     def test_remove_foreign_key_using_foreign_key_name
@@ -524,7 +524,7 @@ module IdempotentStatements
         '-- remove_foreign_key(:messages, {name: :special_fk_name})',
         '-- remove_foreign_key(:messages, {name: :special_fk_name})',
         "   -> /!\\ Foreign key 'messages' -> 'special_fk_name' does not exist. Skipping statement.",
-      ], normalize_for_ruby34(write_calls.map(&:first).values_at(0, 1, 3, 4))
+      ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
   end
 end

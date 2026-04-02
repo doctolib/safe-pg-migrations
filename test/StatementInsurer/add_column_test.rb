@@ -43,7 +43,7 @@ module StatementInsurer
       assert_equal [
         '== 8128 : migrating ===========================================================',
         '-- add_column(:users, :admin, :boolean, {default: false, null: false})',
-      ], normalize_for_ruby34(write_calls.map(&:first)[0...-3])
+      ], write_calls.map(&:first)[0...-3]
     end
 
     def test_can_add_column_without_default
