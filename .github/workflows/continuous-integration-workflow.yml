@@ -19,13 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: doctolib/actions/setup-ruby@fe60c5c88629515edae76e8c2f90c381995ca0ce # setup-ruby-v0.0.25
+      - uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # v1.299.0
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
       - name: Check code
         run: bundle exec rubocop
   unit-test:
     name: UnitTest
     runs-on: ubuntu-latest
-    # Service containers to run with `container-job`
     strategy:
       matrix:
         postgres: [ 11.7, 12.14, 15.2 ]
@@ -39,7 +41,6 @@ jobs:
           POSTGRES_USER: postgres
         ports:
           - 5432:5432
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -47,9 +48,10 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - name: Set Ruby version
-        run: echo "${{ matrix.ruby }}" > .ruby-version
-      - uses: doctolib/actions/setup-ruby@fe60c5c88629515edae76e8c2f90c381995ca0ce # setup-ruby-v0.0.25
+      - uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # v1.299.0
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
       - name: Run tests
         run: bundle exec rake test
   legacy-activerecord-test:
@@ -75,7 +77,6 @@ jobs:
           POSTGRES_USER: postgres
         ports:
           - 5432:5432
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -83,8 +84,9 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - name: Set Ruby version
-        run: echo "${{ matrix.ruby }}" > .ruby-version
-      - uses: doctolib/actions/setup-ruby@fe60c5c88629515edae76e8c2f90c381995ca0ce # setup-ruby-v0.0.25
+      - uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # v1.299.0
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
       - name: Run tests
         run: bundle exec rake test
