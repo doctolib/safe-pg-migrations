@@ -101,11 +101,8 @@ module StatementInsurer
           end
         end.new
 
-      calls = nil
-
-      SafePgMigrations::Helpers::SatisfiedHelper.stub :satisfies_add_column_update_rows_backfill?, false do
-        calls = record_calls(@connection, :execute) { run_migration }
-      end
+      SafePgMigrations::Helpers::SatisfiedHelper.stubs(:satisfies_add_column_update_rows_backfill?).returns(false)
+      calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
         "ALTER TABLE \"users\" ADD \"email\" character varying DEFAULT '' NOT NULL",
