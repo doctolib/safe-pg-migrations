@@ -3,16 +3,16 @@
 module SafePgMigrations
   module UselessStatementsLogger
     class << self
-      def warn_useless(action, link = nil, *)
+      def warn_useless(action, link = nil, *args)
         Helpers::Logger.say(
-          "/!\\ No need to explicitly use #{action}, safe-pg-migrations does it for you", *
+          "/!\\ No need to explicitly use #{action}, safe-pg-migrations does it for you", *args
         )
-        Helpers::Logger.say("\t see #{link} for more details", *) if link
+        Helpers::Logger.say "\t see #{link} for more details", *args if link
       end
     end
 
-    def add_index(table_name, column_name, **)
-      warn_for_index(**)
+    def add_index(table_name, column_name, **options)
+      warn_for_index(**options)
       super
     end
 

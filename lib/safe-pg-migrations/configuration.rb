@@ -60,7 +60,7 @@ module SafePgMigrations
     end
 
     def max_lock_timeout_for_retry=(value)
-      unless lock_timeout.nil? || value.between?(lock_timeout, safe_timeout)
+      unless lock_timeout.nil? || (value >= lock_timeout && value <= safe_timeout)
         raise ArgumentError, "Max lock timeout for retry (#{value}) cannot be lower than the lock timeout
                               (#{lock_timeout}) and greater than the safe timeout (#{safe_timeout})"
       end

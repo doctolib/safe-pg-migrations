@@ -35,7 +35,7 @@ module SafePgMigrations
   class << self
     attr_reader :current_migration, :pg_version_num
 
-    def setup_and_teardown(migration, connection, &)
+    def setup_and_teardown(migration, connection, &block)
       @pg_version_num = get_pg_version_num(connection)
       @alternate_connection = nil
 
@@ -46,7 +46,7 @@ module SafePgMigrations
         PLUGINS.each { |plugin| connection.extend(plugin) }
 
         connection.with_setting :lock_timeout, SafePgMigrations.config.pg_lock_timeout do
-          connection.with_setting(:statement_timeout, SafePgMigrations.config.pg_statement_timeout, &)
+          connection.with_setting :statement_timeout, SafePgMigrations.config.pg_statement_timeout, &block
         end
       ensure
         stdout_sql_logger&.teardown

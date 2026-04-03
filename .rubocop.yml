@@ -31,3 +31,13 @@ Style/NumericPredicate:
   Enabled: false
 Style/OptionalBooleanParameter:
   Enabled: false
+# Style cops introduced in rubocop > 1.53 that require code changes unrelated to the Ruby upgrade.
+# To be addressed in a separate PR.
+Naming/BlockForwarding:
+  Enabled: false
+Style/ArgumentsForwarding:
+  Enabled: false
+Style/ComparableBetween:
+  Enabled: false
+Style/SuperArguments:
+  Enabled: false
