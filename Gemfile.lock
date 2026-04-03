@@ -111,7 +111,6 @@ PLATFORMS
 
 DEPENDENCIES
   debug
-  minitest
   mocha
   pg
   rake
