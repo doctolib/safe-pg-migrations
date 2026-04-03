@@ -19,16 +19,16 @@ module SafePgMigrations
         end
       end
 
-      def without_statement_timeout(&block)
-        with_setting(:statement_timeout, 0, &block)
+      def without_statement_timeout(&)
+        with_setting(:statement_timeout, 0, &)
       end
 
-      def without_lock_timeout(&block)
-        with_setting(:lock_timeout, 0, &block)
+      def without_lock_timeout(&)
+        with_setting(:lock_timeout, 0, &)
       end
 
-      def without_timeout(&block)
-        without_statement_timeout { without_lock_timeout(&block) }
+      def without_timeout(&)
+        without_statement_timeout { without_lock_timeout(&) }
       end
     end
   end

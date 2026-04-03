@@ -7,8 +7,8 @@ module SafePgMigrations
     include ChangeColumnNull
     include RemoveColumnIndex
 
-    def validate_check_constraint(table_name, **options)
-      Helpers::Logger.say_method_call :validate_check_constraint, table_name, **options
+    def validate_check_constraint(table_name, **)
+      Helpers::Logger.say_method_call(:validate_check_constraint, table_name, **)
       without_statement_timeout { super }
     end
 
@@ -35,7 +35,7 @@ module SafePgMigrations
       validate_present = options.key?(:validate)
       options[:validate] = false unless validate_present
 
-      super(from_table, to_table, **options)
+      super
 
       return if validate_present
 
@@ -75,12 +75,12 @@ module SafePgMigrations
       super
     end
 
-    def drop_table(table_name, **options)
+    def drop_table(table_name, **)
       foreign_keys(table_name).each do |foreign_key|
         remove_foreign_key(table_name, name: foreign_key.name)
       end
 
-      Helpers::Logger.say_method_call :drop_table, table_name, **options
+      Helpers::Logger.say_method_call(:drop_table, table_name, **)
 
       super
     end

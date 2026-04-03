@@ -3,8 +3,8 @@
 module SafePgMigrations
   module Helpers
     module IndexHelper
-      def index_definition(table_name, column_name, **options)
-        index_definition, = add_index_options(table_name, column_name, **options)
+      def index_definition(table_name, column_name, **)
+        index_definition, = add_index_options(table_name, column_name, **)
         index_definition
       end
 

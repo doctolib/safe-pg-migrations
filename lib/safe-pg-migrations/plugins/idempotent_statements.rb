@@ -4,8 +4,8 @@ module SafePgMigrations
   module IdempotentStatements
     include Helpers::IndexHelper
 
-    def add_index(table_name, column_name, **options)
-      index_definition = index_definition(table_name, column_name, **options)
+    def add_index(table_name, column_name, **)
+      index_definition = index_definition(table_name, column_name, **)
 
       return super unless index_name_exists?(index_definition.table, index_definition.name)
 
@@ -14,7 +14,7 @@ module SafePgMigrations
         return
       end
 
-      remove_index(table_name, column_name, **options)
+      remove_index(table_name, column_name, **)
       super
     end
 
@@ -100,8 +100,8 @@ module SafePgMigrations
       log_message("/!\\ Column '#{table_name}.#{column.name}' is already set to 'null: #{null}'. Skipping statement.")
     end
 
-    def validate_check_constraint(table_name, **options)
-      constraint_definition = check_constraint_for!(table_name, **options)
+    def validate_check_constraint(table_name, **)
+      constraint_definition = check_constraint_for!(table_name, **)
 
       return super unless constraint_definition.validated?
 

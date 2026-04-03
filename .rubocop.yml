@@ -1,12 +1,12 @@
 AllCops:
-  TargetRubyVersion: 3.0
+  TargetRubyVersion: 3.4
   NewCops: enable
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
 Metrics/ClassLength:
   Enabled: false
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
 Metrics/BlockLength:
   Enabled: false
