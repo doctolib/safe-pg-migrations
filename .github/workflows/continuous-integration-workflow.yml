@@ -31,7 +31,7 @@ jobs:
     # Service containers to run with `container-job`
     strategy:
       matrix:
-        postgres: [ 12.14, 15.2 ]
+        postgres: [ 12.14, 15.3 ]
         ruby: [ "3.4" ]
     services:
       postgres:
