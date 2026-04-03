@@ -23,20 +23,18 @@ class VerboseSqlLoggerTest < Minitest::Test
   end
 
   def test_logs_in_output
-    SafePgMigrations.stub(:verbose?, true) do
-      stdout, _stderr = capture_io { run_migration }
+    SafePgMigrations.stubs(:verbose?).returns(true)
+    stdout, _stderr = capture_io { run_migration }
 
-      assert_logs_match stdout
-    end
+    assert_logs_match stdout
   end
 
   def test_does_not_logs_in_output
-    SafePgMigrations.stub(:verbose?, false) do
-      stdout, stderr = capture_io { run_migration }
+    SafePgMigrations.stubs(:verbose?).returns(false)
+    stdout, stderr = capture_io { run_migration }
 
-      assert_equal '', stdout
-      assert_equal '', stderr
-    end
+    assert_equal '', stdout
+    assert_equal '', stderr
   end
 
   def test_logs_with_env
