@@ -46,10 +46,10 @@ class BlockingActivityLoggerTest < Minitest::Test
   end
 
   def test_logger_unfiltered_sensitive_logger
-    sensitive_logger = Minitest::Mock.new
-    sensitive_logger.expect(:info, nil, ['Executing AddColumnWithBlockingTransactionFromAnotherConnection'])
-    sensitive_logger.expect(:info, nil, ['add_column("users", :email, :string)'])
-    sensitive_logger.expect(:info, nil) do |log|
+    sensitive_logger = mock
+    sensitive_logger.expects(:info).with('Executing AddColumnWithBlockingTransactionFromAnotherConnection')
+    sensitive_logger.expects(:info).with('add_column("users", :email, :string)')
+    sensitive_logger.expects(:info).with do |log|
       log.match?(/Query with pid \d+ started [01] seconds? ago:\s+BEGIN; SELECT 1 FROM users/)
     end
 
@@ -67,8 +67,6 @@ class BlockingActivityLoggerTest < Minitest::Test
 
     refute_includes calls, 'BEGIN; SELECT 1 FROM users'
     refute_includes calls, 'Query with pid'
-
-    sensitive_logger.verify
   end
 
   def test_add_index_unfiltered
@@ -76,7 +74,7 @@ class BlockingActivityLoggerTest < Minitest::Test
     calls = record_calls(@migration, :write) { run_migration }.join
 
     assert_includes calls,
-                    'add_index("users", :email, {:algorithm=>:concurrently})'
+                    'add_index("users", :email, {algorithm: :concurrently})'
     assert_includes calls, 'Statement was being blocked by the following query'
     assert_match(/Query with pid \d+ started 1 second ago: SELECT pg_sleep\(3\)/,
                  calls)
@@ -91,7 +89,7 @@ class BlockingActivityLoggerTest < Minitest::Test
     calls = record_calls(@migration, :write) { run_migration }.join
 
     assert_includes calls,
-                    'add_index("users", :email, {:algorithm=>:concurrently})'
+                    'add_index("users", :email, {algorithm: :concurrently})'
     assert_includes calls, 'Statement was being blocked by the following query'
 
     variable_part_regex =
