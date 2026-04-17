@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         postgres: [ 12.14, 15.3 ]
-        ruby: [ "3.4", "4.0" ]
+        ruby: [ "3.3", "3.4" ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
