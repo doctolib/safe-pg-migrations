@@ -1,5 +1,5 @@
 env:
-  RUBY_VERSION: 3.4.8
+  RUBY_VERSION: 3.4.9
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: safe_pg_migrations_test
@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         postgres: [ 12.14, 15.3 ]
-        ruby: [ "3.4" ]
+        ruby: [ "3.4", "4.0" ]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
