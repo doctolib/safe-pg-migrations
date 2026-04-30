@@ -87,12 +87,12 @@ module IdempotentStatements
       assert_equal [
         '== 8128 : migrating ===========================================================',
         '-- remove_index(:users, :email)',
-        '   -> remove_index("users", :email, {:algorithm=>:concurrently})',
+        '   -> remove_index("users", :email, {algorithm: :concurrently})',
       ], write_calls[0...3]
 
       assert_equal [
         '-- remove_index(:users, :email)',
-        '   -> remove_index("users", :email, {:algorithm=>:concurrently})',
+        '   -> remove_index("users", :email, {algorithm: :concurrently})',
         "   -> /!\\ Index 'index_users_on_email' not found on table 'users'. Skipping statement.",
       ], write_calls[4...7]
 
@@ -193,7 +193,7 @@ module IdempotentStatements
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
-        '-- add_index(:users, :email, {:name=>"index_on_users"})',
+        '-- add_index(:users, :email, {name: "index_on_users"})',
         "   -> /!\\ Index 'index_on_users' already exists in 'users'. Skipping statement.",
       ], write_calls.map(&:first).values_at(0, 1, 3)
     end
@@ -269,8 +269,8 @@ module IdempotentStatements
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
-        '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
-        '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+        '-- add_foreign_key(:messages, :users, {column: :author_id})',
+        '-- add_foreign_key(:messages, :users, {column: :author_id})',
         "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
       ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
@@ -310,7 +310,7 @@ module IdempotentStatements
       assert_equal [
         '== 8128 : migrating ===========================================================',
         '-- add_foreign_key(:messages, :users)',
-        '-- add_foreign_key(:messages, :users, {:on_delete=>:cascade})',
+        '-- add_foreign_key(:messages, :users, {on_delete: :cascade})',
         "   -> /!\\ Foreign key 'messages' -> 'users' already exists. Skipping statement.",
       ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
@@ -353,7 +353,7 @@ module IdempotentStatements
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
-        '-- add_foreign_key(:messages, :users, {:column=>:author_id})',
+        '-- add_foreign_key(:messages, :users, {column: :author_id})',
         '-- add_foreign_key(:messages, :conversations)',
       ], write_calls.map(&:first).values_at(0, 1, 3)
     end
@@ -457,8 +457,8 @@ module IdempotentStatements
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
-        '-- remove_foreign_key(:messages, {:to_table=>:users})',
-        '-- remove_foreign_key(:messages, {:to_table=>:users})',
+        '-- remove_foreign_key(:messages, {to_table: :users})',
+        '-- remove_foreign_key(:messages, {to_table: :users})',
         "   -> /!\\ Foreign key 'messages' -> 'users' does not exist. Skipping statement.",
       ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
@@ -488,8 +488,8 @@ module IdempotentStatements
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
-        '-- remove_foreign_key(:messages, {:column=>:author_id})',
-        '-- remove_foreign_key(:messages, {:column=>:author_id})',
+        '-- remove_foreign_key(:messages, {column: :author_id})',
+        '-- remove_foreign_key(:messages, {column: :author_id})',
         "   -> /!\\ Foreign key 'messages' -> 'author_id' does not exist. Skipping statement.",
       ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
@@ -521,8 +521,8 @@ module IdempotentStatements
 
       assert_equal [
         '== 8128 : migrating ===========================================================',
-        '-- remove_foreign_key(:messages, {:name=>:special_fk_name})',
-        '-- remove_foreign_key(:messages, {:name=>:special_fk_name})',
+        '-- remove_foreign_key(:messages, {name: :special_fk_name})',
+        '-- remove_foreign_key(:messages, {name: :special_fk_name})',
         "   -> /!\\ Foreign key 'messages' -> 'special_fk_name' does not exist. Skipping statement.",
       ], write_calls.map(&:first).values_at(0, 1, 3, 4)
     end
