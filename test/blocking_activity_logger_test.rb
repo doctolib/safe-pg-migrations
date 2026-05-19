@@ -73,8 +73,9 @@ class BlockingActivityLoggerTest < Minitest::Test
     @migration = simulate_long_running_query_from_another_transaction
     calls = record_calls(@migration, :write) { run_migration }.join
 
+    # Ruby < 3.4 uses {:key=>val} for Hash#inspect; remove once Ruby 3.3 support is dropped
     assert_includes calls,
-                    'add_index("users", :email, {algorithm: :concurrently})'
+                    "add_index(\"users\", :email, #{{ algorithm: :concurrently }.inspect})"
     assert_includes calls, 'Statement was being blocked by the following query'
     assert_match(/Query with pid \d+ started 1 second ago: SELECT pg_sleep\(3\)/,
                  calls)
@@ -88,8 +89,9 @@ class BlockingActivityLoggerTest < Minitest::Test
 
     calls = record_calls(@migration, :write) { run_migration }.join
 
+    # Ruby < 3.4 uses {:key=>val} for Hash#inspect; remove once Ruby 3.3 support is dropped
     assert_includes calls,
-                    'add_index("users", :email, {algorithm: :concurrently})'
+                    "add_index(\"users\", :email, #{{ algorithm: :concurrently }.inspect})"
     assert_includes calls, 'Statement was being blocked by the following query'
 
     variable_part_regex =
