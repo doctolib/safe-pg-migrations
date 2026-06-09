@@ -56,7 +56,8 @@ jobs:
           bundler-cache: true
       - name: Run tests
         run: bundle exec rake test
-  legacy-activerecord-test:
+  without-strong-migrations-test:
+    name: WithoutStrongMigrations
     runs-on: ubuntu-latest
     env:
       BUNDLE_GEMFILE: gemfiles/without_strong_migrations.gemfile
