@@ -40,9 +40,10 @@ module StatementInsurer
         'ALTER TABLE "users" ADD "admin" boolean DEFAULT FALSE NOT NULL',
       ], execute_calls
 
+      # Ruby < 3.4 uses {:key=>val} for Hash#inspect; remove once Ruby 3.3 support is dropped
       assert_equal [
         '== 8128 : migrating ===========================================================',
-        '-- add_column(:users, :admin, :boolean, {:default=>false, :null=>false})',
+        "-- add_column(:users, :admin, :boolean, #{{ default: false, null: false }.inspect})",
       ], write_calls.map(&:first)[0...-3]
     end
 
@@ -101,11 +102,8 @@ module StatementInsurer
           end
         end.new
 
-      calls = nil
-
-      SafePgMigrations::Helpers::SatisfiedHelper.stub :satisfies_add_column_update_rows_backfill?, false do
-        calls = record_calls(@connection, :execute) { run_migration }
-      end
+      SafePgMigrations::Helpers::SatisfiedHelper.stubs(:satisfies_add_column_update_rows_backfill?).returns(false)
+      calls = record_calls(@connection, :execute) { run_migration }
 
       assert_calls [
         "ALTER TABLE \"users\" ADD \"email\" character varying DEFAULT '' NOT NULL",

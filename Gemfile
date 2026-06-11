@@ -6,7 +6,6 @@ gemspec
 
 group :development, :test do
   gem 'debug'
-  gem 'minitest', '>= 5'
   gem 'mocha'
   gem 'pg'
   gem 'rake'

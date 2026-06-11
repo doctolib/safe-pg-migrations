@@ -15,7 +15,7 @@ class LoggerTest < Minitest::Test
   end
 
   def test_say_not_sensitive_without_sensitive_logger
-    logger = Minitest::Mock.new
+    logger = mock
 
     migration = Class.new(ActiveRecord::Migration::Current).new
     SafePgMigrations.instance_variable_set :@current_migration, migration
@@ -29,8 +29,8 @@ class LoggerTest < Minitest::Test
   end
 
   def test_say_sensitive_with_sensitive_logger
-    logger = Minitest::Mock.new
-    logger.expect :info, nil, ['hello']
+    logger = mock
+    logger.expects(:info).with('hello')
 
     migration = Class.new(ActiveRecord::Migration::Current).new
     SafePgMigrations.instance_variable_set :@current_migration, migration
@@ -41,12 +41,11 @@ class LoggerTest < Minitest::Test
     end
 
     assert_includes calls, ['-- Sensitive data sent to sensitive logger']
-    logger.verify
   end
 
   def test_does_not_warn_with_sensitive_logger
-    logger = Minitest::Mock.new
-    logger.expect :info, nil, ['hello']
+    logger = mock
+    logger.expects(:info).with('hello')
 
     migration = Class.new(ActiveRecord::Migration::Current).new
     SafePgMigrations.instance_variable_set :@current_migration, migration
@@ -57,12 +56,11 @@ class LoggerTest < Minitest::Test
     end
 
     refute_includes calls, ['-- Sensitive data sent to sensitive logger']
-    logger.verify
   end
 
   def test_say_non_sensitive_with_sensitive_logger
-    logger = Minitest::Mock.new
-    # contrary to the previous test, we do give the method "info" in expect. If the method is called, the test will fail
+    logger = mock
+    # contrary to the previous test, we do not expect :info — mocha will fail if it gets called.
 
     migration = Class.new(ActiveRecord::Migration::Current).new
     SafePgMigrations.instance_variable_set :@current_migration, migration
@@ -73,6 +71,5 @@ class LoggerTest < Minitest::Test
     end
 
     assert_includes calls, ['-- hello']
-    logger.verify
   end
 end

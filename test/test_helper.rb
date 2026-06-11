@@ -33,7 +33,11 @@ class Minitest::Test
     @connection = ActiveRecord::Base.connection
     @connection.tables.each { |table| @connection.drop_table table, force: :cascade }
     # only instanciate ActiveRecord::SchemaMigration with the right connection for Activerecord 7.1 or above
-    if Gem::Requirement.new('>=7.1.0').satisfied_by?(Gem::Version.new(::ActiveRecord::VERSION::STRING))
+    ar_version = Gem::Version.new(::ActiveRecord::VERSION::STRING)
+    if Gem::Requirement.new('>=8.0.0').satisfied_by?(ar_version)
+      @schema_migration = ActiveRecord::SchemaMigration.new(ActiveRecord::Base.connection_pool)
+      @internal_metadata = ActiveRecord::InternalMetadata.new(ActiveRecord::Base.connection_pool)
+    elsif Gem::Requirement.new('>=7.1.0').satisfied_by?(ar_version)
       @schema_migration = ActiveRecord::SchemaMigration.new(@connection)
       @internal_metadata = ActiveRecord::InternalMetadata.new(@connection)
     else
