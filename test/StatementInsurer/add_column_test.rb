@@ -157,6 +157,32 @@ module StatementInsurer
       ], calls
     end
 
+    def test_with_default_value_backfill_algorithm_and_false_default
+      skip_if_unmet_requirements!
+
+      @migration =
+        Class.new(ActiveRecord::Migration::Current) do
+          def change
+            add_column :users, :active, :boolean, default: false, null: false,
+                                                  default_value_backfill: :update_in_batches
+          end
+        end.new
+
+      calls = record_calls(@connection, :execute) { run_migration }
+
+      assert_calls [
+        'ALTER TABLE "users" ADD "active" boolean',
+        'ALTER TABLE "users" ALTER COLUMN "active" SET DEFAULT FALSE',
+        # exec_calls goes here
+        'ALTER TABLE "users" ADD CONSTRAINT chk_rails_7c13a48bf9 CHECK (active IS NOT NULL) NOT VALID',
+        'SET statement_timeout TO 0',
+        'ALTER TABLE "users" VALIDATE CONSTRAINT "chk_rails_7c13a48bf9"',
+        "SET statement_timeout TO '5s'",
+        'ALTER TABLE "users" ALTER COLUMN "active" SET NOT NULL',
+        'ALTER TABLE "users" DROP CONSTRAINT "chk_rails_7c13a48bf9"',
+      ], calls
+    end
+
     def test_backfill_in_multiple_steps
       skip_if_unmet_requirements!
 
