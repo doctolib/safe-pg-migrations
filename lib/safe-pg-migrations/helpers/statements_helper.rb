@@ -10,6 +10,7 @@ module SafePgMigrations
         change_column_default
         change_column_null
         create_table
+        remove_check_constraint
         remove_column
         remove_foreign_key
         drop_table
